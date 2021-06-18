@@ -11,6 +11,7 @@ Encoding: UTF-8
 
 RnwWeave: Sweave
 LaTeX: pdfLaTeX
+<<<<<<< Updated upstream
 
 AutoAppendNewline: Yes
 StripTrailingWhitespace: Yes
@@ -18,3 +19,5 @@ StripTrailingWhitespace: Yes
 BuildType: Package
 PackageUseDevtools: Yes
 PackageInstallArgs: --no-multiarch --with-keep.source
+=======
+>>>>>>> Stashed changes
