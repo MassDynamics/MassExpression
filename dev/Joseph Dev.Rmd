@@ -53,6 +53,9 @@ Unmet goals:
 
 ```{r Utilities}
 
+# This function converts the assay data in a protein intensity se
+# to a long data.table object with intensities for each protein Id and intensity
+# column
 get_long_protein_intensity <- function(protein.summarized.experiment){
   wide <- as.data.table(assay(protein.summarized.experiment))
   colnames(wide) <- protein.summarized.experiment$IntensityColumn
@@ -68,6 +71,9 @@ get_long_protein_intensity <- function(protein.summarized.experiment){
 ```
 
 ```{r I/O}
+
+# This function creates a summarized experiment object from a protein intensity
+# table and experiment design. 
 construct_summarized_experiment <- function(experiment.design, protein.intensities){
   
   stopifnot("Condition" %in% colnames(experiment.design))
@@ -111,6 +117,7 @@ protein.summarized.experiment <- construct_summarized_experiment(experiment.desi
 
 ```{r Maxquant Parsing}
 
+# This function removes bad rows in a maxquant protein intensity object
 filter_columns_mq <- function(protein.intensities){
   cols.to.filter = c("Reverse", "Potential.contaminant", "Only.identified.by.site", "Contaminant")
   for (col in intersect(colnames(protein.intensities),cols.to.filter)){
@@ -123,6 +130,9 @@ filter_columns_mq <- function(protein.intensities){
   protein.intensities 
 }
 
+# this function uses regex to get the first uniprot assession and the
+# corresponding gene and description and adds them to a protein intensity table
+# coming from maxquant
 assign_uniprot_ids_mq <- function(protein.intensities){
   
   uniprot_pattern = "[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}"
@@ -147,7 +157,8 @@ assign_uniprot_ids_mq <- function(protein.intensities){
   protein.intensities
 }
 
-
+# this is a wrapper for the mq parser functions that can be used to go
+# from maxquant data to protein intensity tables we can work with
 convert_protein_groups_to_universal <- function(proteinGroups){
   protein.intensities = filter_columns_mq(proteinGroups)
   protein.intensities = assign_uniprot_ids_mq(protein.intensities)
@@ -158,6 +169,8 @@ convert_protein_groups_to_universal <- function(proteinGroups){
 ```
 
 ```{r condition name parsing}
+
+# Note these functions are in LFQ Processing
 
 # use literal string match to find condition name in comparison string
 #' @export detect_condition_string
@@ -208,6 +221,9 @@ get_condition_string <- function(conditions, comparison, position = 1){
 ## QC
 
 ```{r}
+
+# this function creates a pca projection of each intensity column in a 
+# protein.summarized.experiment object
 pca_plot_experiment <- function(protein.summarized.experiment){
   
   res.pca <- PCA(t(assay(protein.summarized.experiment)), graph = FALSE, ncp = 2)
@@ -246,6 +262,8 @@ pca_plot_experiment <- function(protein.summarized.experiment){
 
 }
 
+# this function creates a lollipop plot of missingness by intensity column
+# where missingness is defined as 0 values
 replicate_missingness_experiment <- function(protein.summarized.experiment){
   
 
@@ -272,6 +290,8 @@ replicate_missingness_experiment <- function(protein.summarized.experiment){
   
 }
 
+# this function creates a lollipop plot of missingness by protein row
+# where missingness is defined as 0 values
 protein_missingness_experiment <- function(protein.summarized.experiment){
 
   num.replicates <- dim(assay(protein.summarized.experiment))[2]
@@ -302,6 +322,7 @@ protein_missingness_experiment <- function(protein.summarized.experiment){
   
 }
 
+# this protein plots the number of identifications ??
 protein_counts_by_replicate <- function(protein.summarized.experiment){
   
   long <- get_long_protein_intensity(protein.summarized.experiment)
@@ -324,6 +345,8 @@ protein_counts_by_replicate <- function(protein.summarized.experiment){
   p
 }
 
+# This protein plots the CV distributuions of a protein summarized
+# experiment object. Might need to distinguish pre/post workflow versions
 plot_protein_cv_distribution <- function(protein.summarized.experiment){
   
   long <- get_long_protein_intensity(protein.summarized.experiment)
@@ -343,6 +366,7 @@ plot_protein_cv_distribution <- function(protein.summarized.experiment){
   p
 }
 
+# Plots imputed vs not distribution to show how mnar imputation works
 plot_imputed_vs_not <- function(prot.int){
   prot.int$Imputed <- as.character(prot.int$Imputed)
   p <- ggplot(prot.int, aes(x=log2NIntNorm, fill=Imputed, 
@@ -356,6 +380,7 @@ plot_imputed_vs_not <- function(prot.int){
 
 }
 
+#This shows the intensities by each condition/replicate
 plot_measurement_distributions <- function(prot.int, 
                                            use_imputed = F, 
                                            measurement = "log2NInt"){
@@ -635,6 +660,8 @@ limma_stats_fun <- function(ID_type,
 ```
 
 ```{r End to End Pipeline}
+
+# This function performs the log2 conversion and writes the imputed column
 prepare_prot_int <- function(protein.summarized.experiment){
   prot.int <- get_long_protein_intensity(protein.summarized.experiment)
   stopifnot(dim(prot.int)[1]>0)
@@ -647,6 +674,8 @@ prepare_prot_int <- function(protein.summarized.experiment){
   prot.int 
 }
 
+# This function orchestrates imputation, normalization and the binary limma 
+# statistics accross all experimental comparisons
 run_binary_limma_pipeline <- function(protein.summarized.experiment){
   
   
@@ -689,6 +718,8 @@ run_binary_limma_pipeline <- function(protein.summarized.experiment){
 
 ```{r protein viz export functions}
 
+# this function takes the statistics table from limma and retrieves a single 
+# comparison's worth of statistics.
 filter_stats_table_on_comparison <- function(statistics.table, comparison){
   example_col = str_c("P.Value ",comparison)
   stopifnot(example_col %in% colnames(statistics.table))
@@ -713,6 +744,8 @@ filter_stats_table_on_comparison <- function(statistics.table, comparison){
   statistics.table
 }
 
+# this function ensures that all the missing columns are filled with NA's
+# It should probably flag important columns that are missing in the future. 
 fill_out_missing_columns <- function(comparison.statistics){
   
   columns.possible=  c("ProteinId","GeneId","Description",
@@ -725,6 +758,9 @@ fill_out_missing_columns <- function(comparison.statistics){
   
   comparison.statistics
 }
+
+# MD's protein viz needs specific attribute names so this function
+# does that renaming
 rename_comparison_statistics_export <- function(comparison.statistics){
   
   comparison.statistics = as_data_frame(comparison.statistics) %>% 
@@ -741,6 +777,9 @@ rename_comparison_statistics_export <- function(comparison.statistics){
 
   comparison.statistics
 } 
+
+# This functions works out which comparisons were calcualted by limma
+# It's currently all of them but order dependent so not trivial.
 get_comparison_strings <- function(results.quant){
   cols <- colnames(results.quant)
   cols <- cols[grepl("logFC ", colnames(results.quant))]
@@ -752,6 +791,9 @@ get_comparison_strings <- function(results.quant){
 ```
 
 ```{r write protein viz}
+
+# this function writes a protein viz object which can be passed into MD's rails
+# database
 write_protein_viz <- function(output_folder, protein.summarized.experiment){
   
   comparison.strings <- get_comparison_strings(rowData(protein.summarized.experiment))
@@ -798,6 +840,8 @@ write_protein_viz <- function(output_folder, protein.summarized.experiment){
 ## Plotting
 
 ```{r}
+
+# This is useful just for checking results.
 plot_volcano <- function(comparison.statistics){
   p <- ggplot(comparison.statistics, 
               aes(FoldChange, -log10(AdjustedPValue), fdr = AdjustedPValue, ProteinId = ProteinId)) + 
@@ -810,6 +854,9 @@ plot_volcano <- function(comparison.statistics){
 ## Runner
 
 ```{r}
+
+# This function orchestrates the MassExpression workflow (could be called by a 
+# workflow step)
 run_generic_discovery <- function(upload_folder, output_folder){
   
   #IO 
@@ -831,7 +878,12 @@ run_generic_discovery <- function(upload_folder, output_folder){
 
 ## End of Workflow Construct Export Object
 
+I realized that being ready to write proteinz viz wasn't the same as being ready to do enrichment or write protein counts and intensities or QC. Here's a couple functions 
+and an orchestrator that could bring it all together.
+
 ```{r}
+
+# count the imputatatiosn in each condition and write to wide table
 get_imputed_counts <- function(prot.int){
   imputed.counts <- prot.int %>% group_by(ProteinId, Condition) %>%
     summarize(NImputed = sum(Imputed))
@@ -840,6 +892,7 @@ get_imputed_counts <- function(prot.int){
   imputed.counts
 }
 
+# count the replicates in each condition and write to wide table
 get_replicate_counts <- function(prot.int){
   replicate.counts <- prot.int %>% group_by(ProteinId, Condition) %>%
     summarize(NReplicates= sum(Imputed==0)+sum(Imputed==1))
@@ -879,9 +932,8 @@ get_complete_protein_summarized_experiment <- function(protein.summarized.experi
 
 ```{r Enrichment Compatibility Functions}
 
-# start by working out which conditions we are working with
-
-
+# filters out stats, assay and experiment design not column not 
+# relevant to the specified comparison
 filter_for_comparison_cols <- function(complete.protein.summarized.experiment,
                                              comparison){
   
@@ -925,7 +977,7 @@ filter_for_comparison_cols <- function(complete.protein.summarized.experiment,
 }
 
 
-
+# filters out rows in the assay that have na statistics in the statisticss
 filter_for_comparison_rows <- function(comparison.protein.summarized.experiment){
   row.data <- rowData(comparison.protein.summarized.experiment)
   row.index.valid <- !is.na(row.data$P.Value)
@@ -937,7 +989,7 @@ filter_for_comparison_rows <- function(comparison.protein.summarized.experiment)
   comparison.protein.summarized.experiment
 }
 
-
+# This is a simple check to validate the intensity/cls vector match the statistics
 validate_comparison <- function(rse){
     assay.data <- as_data_frame(assay(rse))
     row_data_fc <- rowData(rse)$FC
@@ -945,6 +997,8 @@ validate_comparison <- function(rse){
     stopifnot((row_data_fc - calc_fc) < 2**(-10))
 }
 
+# This is an orchestrator for create each comparison table input for enrichment
+# from a completed protein summarized experiment
 create_enrichment_comparison <- function(complete.protein.summarized.experiment,
                                          comparison){
   
