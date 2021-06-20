@@ -989,7 +989,6 @@ experiment.design <- read.table(file.path(upload_folder, "experiment_design.tsv"
 ```
 
 ## Imports
-
 ### Max Quant 
 
 ```{r LFQ Fracs}
@@ -1719,5 +1718,48 @@ plot_enr_volcano <- function(enr_table){
 }
 
 plot_enr_volcano(enrichment.table$Reactome)
+```
+
+
+## Wrap QC Report compilation
+
+Getting the relevant code for running qc, putting it in output folder
+and cleaning up. This will be quite md specific
+
+```{r}
+
+
+# get qc report from package
+  file.copy(from=system.file("rmd","QC_Report.Rmd", package = "MassExpression"),
+            to=output_folder,
+            overwrite = TRUE, recursive = TRUE,
+            copy.mode = TRUE)
+
+
+cat("Rendering QC Report")
+# render it in the output folder
+
+output_format = "html"
+rmarkdown::render(file.path(output_folder, "QC_Report.Rmd"))
+output_format = "pdf"
+rmarkdown::render(file.path(output_folder, "QC_Report.Rmd"), output_format="pdf_document")
+
+  # clean up
+  figs <- list.files(file.path(output_folder, "QC_Report_files/figure-html/"))
+  dir.create(file.path(output_folder, "figure_html/"))
+
+  for (fig in figs){
+    # copy the figure files for some reason
+    file.copy(from=file.path(output_folder, "QC_Report_files/figure-html/",fig),
+              to=file.path(output_folder, "figure_html/"),
+              overwrite = TRUE, recursive = TRUE,
+              copy.mode = TRUE)
+  }
+
+  unlink(file.path(output_folder, "QC_Report_files/"), recursive = TRUE)
+  unlink(file.path(output_folder, "qc_report_files"), recursive = TRUE)
+  unlink(file.path(output_folder, "QC_Report.Rmd"), recursive = TRUE)
+
+
 ```
 
