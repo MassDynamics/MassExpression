@@ -24,12 +24,25 @@ knitr::opts_chunk$set(echo = TRUE,
 
 # Run example end-to-end
 
-```{r anna-test}
+```{r fragpipe}
 outputFolder <- "output"
-fp_exp <- fragpipe_data$design
-fp_proteins <- fragpipe_data$intensities
+design <- fragpipe_data$design
+intensities <- fragpipe_data$intensities
 
-IntensityExperiment <- runGenericDiscovery(experimentDesign = fp_exp, proteinIntensities = fp_proteins)
+IntensityExperiment <- runGenericDiscovery(experimentDesign = design, proteinIntensities = intensities)
+
+writeProteinViz(outputFolder = outputFolder, IntensityExperiment=IntensityExperiment)
+```
+
+
+
+```{r mq-lfq, eval=FALSE}
+outputFolder <- "output"
+design <- mq_lfq_data$design
+intensities <- mq_lfq_data$intensities
+
+# Something wrong with the creation of the input
+IntensityExperiment <- runGenericDiscovery(experimentDesign = design, proteinIntensities = intensities)
 
 writeProteinViz(outputFolder = outputFolder, IntensityExperiment=IntensityExperiment)
 ```
