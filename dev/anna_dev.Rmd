@@ -19,521 +19,10 @@ uploadParser <- function(uploadFolder){
 
 ```{r}
 ls("package:MassExpression")
-
 ```
-
-# Run example end-to-end
-
-```{r anna-test}
-outputFolder <- "../../data-s3/output"
-fp_exp <- design_fragpipe
-fp_proteins <- assay_fragpipe
-
-IntensityExperiment <- runGenericDiscovery(experimentDesign = sample_data_diann, proteinIntensities = assay_diann)
-  
-# debugonce(runGenericDiscovery(experimentDesign = sample_data_diann, proteinIntensities = assay_diann))
-writeProteinViz(outputFolder = outputFolder, IntensityExperiment=IntensityExperiment)
-```
-
-
-# Functions
-
-
-## Plotting
-
-```{r}
-# This is useful just for checking results.
-plot_volcano <- function(comparison.statistics){
-  p <- ggplot(comparison.statistics, 
-              aes(FoldChange, -log10(AdjustedPValue), fdr = AdjustedPValue, ProteinId = ProteinId)) + 
-    geom_point() +
-    geom_hline(yintercept=-log10(0.05)) 
-  ggplotly(p)
-}
-```
-
-
-## End of Workflow Construct Export Object
-
-I realized that being ready to write proteinz viz wasn't the same as being ready to do enrichment or write protein counts and intensities or QC. Here's a couple functions 
-and an orchestrator that could bring it all together.
-
-```{r}
-
-# count the imputatatiosn in each condition and write to wide table
-get_imputed_counts <- function(prot.int){
-  imputed.counts <- prot.int %>% group_by(ProteinId, Condition) %>%
-    summarize(NImputed = sum(Imputed))
-  imputed.counts <- dcast(imputed.counts, ProteinId ~ Condition, value.var = "NImputed")
-  colnames(imputed.counts)[-1] <- str_c("Imputed: ", colnames(imputed.counts)[-1])
-  imputed.counts
-}
-
-# count the replicates in each condition and write to wide table
-get_replicate_counts <- function(prot.int){
-  replicate.counts <- prot.int %>% group_by(ProteinId, Condition) %>%
-    summarize(NReplicates= sum(Imputed==0)+sum(Imputed==1))
-  replicate.counts <- dcast(replicate.counts, ProteinId ~ Condition, value.var = "NReplicates")
-  colnames(replicate.counts)[-1] <- str_c("Replicates: ", colnames(replicate.counts)[-1])
-  replicate.counts
-}
-
-# adds prot.int information to protein.summarized experiment with statistics
-# to deliver fully contained experiment object
-get_complete_protein_summarized_experiment <- function(protein.summarized.experiment, prot.int){
-  
-  complete.protein.summarized.experiment <- protein.summarized.experiment
-    
-  # replaceIntensity with missing values to normalized log scale with imputed values
-  prot.int.wide <- dcast(prot.int, ProteinId ~ IntensityColumn, value.var = "log2NIntNorm")
-  assay(complete.protein.summarized.experiment) <- prot.int.wide[,-1]
-
-  
-  # add imputed and replicate counts to the final object
-  imputed.counts <- get_imputed_counts(prot.int)
-  rowData(complete.protein.summarized.experiment) <- merge(rowData(complete.protein.summarized.experiment),
-                                                           imputed.counts, by = "ProteinId", all.x = T)
-  
-  replicate.counts <- get_replicate_counts(prot.int)
-  rowData(complete.protein.summarized.experiment) <- merge(rowData(complete.protein.summarized.experiment),
-                                                           replicate.counts, by = "ProteinId", all.x = T)
-
-  complete.protein.summarized.experiment
-}
-
-```
-
-
-
-## Enrichment functions
-
-```{r Enrichment Compatibility Functions}
-
-# filters out stats, assay and experiment design not column not 
-# relevant to the specified comparison
-filter_for_comparison_cols <- function(complete.protein.summarized.experiment,
-                                             comparison){
-  
-  conditions <- unique(complete.protein.summarized.experiment$Condition)
-  condition1 <- get_condition_string(conditions, comparison, 1)
-  condition2 <- get_condition_string(conditions, comparison, 2)
-  
-  
-  ### Deal with Statistics in rowData
-  row.data <- rowData(complete.protein.summarized.experiment)
-  row.data.cols <- colnames(row.data)
-  # we want the limma stats which have the comparison string
-  # we want the replicates and imputed counts which have the conditions strings
-  # we want the basic protein info cols (prot, gene, desc)
-  cols.index = grepl("ProteinId", row.data.cols, fixed=T)+
-    grepl("GeneId", row.data.cols, fixed=T)+
-    grepl("Description", row.data.cols, fixed=T)+
-    grepl(str_c("Imputed: ",condition1), row.data.cols, fixed = T)+
-    grepl(str_c("Replicates: ",condition1), row.data.cols, fixed = T)+
-    grepl(str_c("Imputed: ",condition2), row.data.cols, fixed = T)+
-    grepl(str_c("Replicates: ",condition2), row.data.cols, fixed = T)+
-    grepl(comparison, row.data.cols, fixed = T)
-  
-  required.cols <- row.data.cols[which(as.logical(cols.index))]
-  
-  row.data <- row.data[,required.cols]
-  
-  # gotta rename the stats columns now
-  colnames(row.data) <-
-    gsub(str_c(" ",comparison), "",
-         colnames(row.data),
-         fixed=T)
-  
-  rowData(complete.protein.summarized.experiment) <- row.data 
-  
-  ### Filter colData Experiment Design
-  index <- complete.protein.summarized.experiment$Condition %in% c(condition1, condition2)
-  complete.protein.summarized.experiment <- complete.protein.summarized.experiment[,index]
-  
-  complete.protein.summarized.experiment
-}
-
-
-# filters out rows in the assay that have na statistics in the statisticss
-filter_for_comparison_rows <- function(comparison.protein.summarized.experiment){
-  row.data <- rowData(comparison.protein.summarized.experiment)
-  row.index.valid <- !is.na(row.data$P.Value)
-  row.index.valid
-  comparison.protein.summarized.experiment <-
-    comparison.protein.summarized.experiment[row.index.valid,]
-  
-  # How do we know if this breaks? 
-  comparison.protein.summarized.experiment
-}
-
-# This is a simple check to validate the intensity/cls vector match the statistics
-validate_comparison <- function(rse){
-    assay.data <- as_data_frame(assay(rse))
-    row_data_fc <- rowData(rse)$FC
-    calc_fc <- rowMeans(assay.data[,rse$GROUP == 0]) - rowMeans(assay.data[,rse$GROUP == 1])
-    stopifnot((row_data_fc - calc_fc) < 2**(-10))
-}
-
-# This is an orchestrator for create each comparison table input for enrichment
-# from a completed protein summarized experiment
-create_enrichment_comparison <- function(complete.protein.summarized.experiment,
-                                         comparison){
-  
-  # 1. Filter for statistics in rowData that we care about
-  comparison.protein.summarized.experiment <- filter_for_comparison_cols(
-    complete.protein.summarized.experiment,
-    comparison
-  )
-  
-  # 2. Filter for rows where we haven't imputed too much
-  comparison.protein.summarized.experiment <- filter_for_comparison_rows(
-    comparison.protein.summarized.experiment
-  )
-  
-  # 3. Add class/group vectors so we know how to do enrichment
-  
-  conditions <- unique(comparison.protein.summarized.experiment$Condition)
-  condition2 <- get_condition_string(conditions, comparison, 2)
-  comparison.protein.summarized.experiment$GROUP = 
-    comparison.protein.summarized.experiment$Condition == condition2
-  
-  
-  validate_comparison(comparison.protein.summarized.experiment)
-  
-  # need to set columns first
-  rownames(comparison.protein.summarized.experiment) <-
-    rowData(comparison.protein.summarized.experiment)$ProteinId
-  
-  ### Temporary Code while Enrichment Browser is in use ###
-  #need to map column names correctly to what EnrichmentBrowser expects
-  rowData(comparison.protein.summarized.experiment) = 
-    as_data_frame(rowData(comparison.protein.summarized.experiment)) %>%
-    rename(FC = logFC,
-           ADJ.PVAL = adj.P.Val)
-  
-  comparison.protein.summarized.experiment
-}
-```
-
-# Code/Testing
-
-## IO
-
-```{r}
-upload_folder ="/home/joseph/experiments/frag_pipe_test/"
-protein.intensities <- read.table(file.path(upload_folder, "protein_intensities.tsv"), sep = "\t")
-experiment.design <- read.table(file.path(upload_folder, "experiment_design.tsv"), sep = "\t")
-
-```
-
-## Imports
-
-### Max Quant 
-
-```{r LFQ Fracs}
-
-# hmmm seems like the columns we need aren't the columns that will help you do 
-# qc on fracs...
-
-experiment_home = "~/github_repos/LFQProcessing/acceptance_test_data/LFQ/LFQ_Fracs/"
-protein.intensities = read.csv(file.path(experiment_home, "proteinGroups.txt"), sep = "\t", stringsAsFactors = F)
-protein.intensities <- convert_protein_groups_to_universal(protein.intensities)
-protein.intensities
-
-colnames(protein.intensities)
-
-cols <- colnames(protein.intensities)[grepl("LFQ.intensity.", colnames(protein.intensities))]
-runs <- gsub("LFQ.intensity.", "", cols)
-groups <- gsub("_","",str_extract(runs,"_(.*)_"))
-  
-experiment.design <-as_data_frame(cbind(cols,runs,groups))
-colnames(experiment.design) <- c("IntensityColumn", "Replicate", "Condition")
-experiment.design
-
-protein.summarized.experiment = construct_summarized_experiment(experiment.design, protein.intensities)
-
-```
-
-```{r iPRG2015 dataset}
-
-experiment_home = "~/github_repos/LFQProcessing/acceptance_test_data/LFQ/iPRG2015/"
-protein.intensities = read.csv(file.path(experiment_home, "proteinGroups.txt"), sep = "\t", stringsAsFactors = F)
-protein.intensities <- convert_protein_groups_to_universal(protein.intensities)
-protein.intensities
-
-colnames(protein.intensities)
-
-cols <- colnames(protein.intensities)[grepl("LFQ.intensity.", colnames(protein.intensities))]
-runs <- gsub("LFQ.intensity.", "", cols)
-groups <- gsub("_.*$","",runs)
-
-experiment.design <-as_data_frame(cbind(cols,runs,groups))
-colnames(experiment.design) <- c("IntensityColumn", "Replicate", "Condition")
-experiment.design
-
-
-```
-
-```{r TMT Mouse dataset}
-
-experiment_home = "~/github_repos/LFQProcessing/acceptance_test_data/TMT/pxd_019880_mouse/"
-protein.intensities = read.csv(file.path(experiment_home, "proteinGroups.txt"), sep = "\t", stringsAsFactors = F)
-protein.intensities <- convert_protein_groups_to_universal(protein.intensities)
-#protein.intensities
-
-colnames(protein.intensities)
-
-cols <- colnames(protein.intensities)[grepl("Reporter.intensity.corrected.", colnames(protein.intensities))]
-runs <- gsub("Reporter.intensity.corrected.", "", cols)
-
-old_des <- read.csv(file.path(experiment_home, "experimentDesign_original.txt"), sep = "\t", stringsAsFactors = F)
-groups <- old_des$condition 
-
-# Manually check the ordering assumpting here is valid
-
-experiment.design <-as_data_frame(cbind(cols,runs,groups))
-colnames(experiment.design) <- c("IntensityColumn", "Replicate", "Condition")
-experiment.design
-
-
-write.table(experiment.design, file.path(experiment_home,"experiment_design.tsv"),sep = "\t", quote=F)
-write.table(protein.intensities, file.path(experiment_home,"protein_intensities.tsv"),sep = "\t",quote = F)
-
-       
-```
-
-### Frag Pipe
-
-- combined proteins has protein intensities
-- 
-
-```{r frag_pipe_parser}
-experiment_home = "~/experiments/frag_pipe_test"
-experiment_home = "/home/joseph/experiments/frag_pipe_test"
-
-protein.intensities = read.csv(file.path(experiment_home, "combined_protein.tsv"), sep = "\t", stringsAsFactors = F)
-
-cols <- colnames(protein.intensities)[grepl("Total.Intensity", colnames(protein.intensities))]
-runs <- gsub(".Total.Intensity", "", cols)
-groups <- gsub("_[0-9]*$","",runs)
-
-experiment.design <-as_data_frame(cbind(cols,runs,groups))
-colnames(experiment.design) <- c("IntensityColumn", "Replicate", "Condition")
-experiment.design
-
-protein.id.column = "Protein.ID"
-gene.id.column = "Gene.Names"
-description.id.column = "Description"
-
-protein.intensities = protein.intensities[,c(protein.id.column,
-                                             gene.id.column,
-                                             description.id.column,
-                                             experiment.design$IntensityColumn)]
-
-protein.intensities = protein.intensities %>% 
-  rename(
-    ProteinId = protein.id.column,
-    GeneId = gene.id.column,
-    Description = description.id.column
-  )
-
-
-#write.table(experiment.design, file.path(experiment_home,"experiment_design.tsv"),sep = "\t", quote=F)
-#write.table(protein.intensities, file.path(experiment_home,"protein_intensities.tsv"),sep = "\t",quote = F)
-
-          
-protein.summarized.experiment = construct_summarized_experiment(experiment.design, protein.intensities)
-
-```
-
-
-### PD
-
-```{r PD 1 iPRG2015}
-# this is stuff the app does
-experiment_home = "~/experiments/PD_test"
-
-protein.intensities = read.csv(file.path(experiment_home, "iPRG-no_clustering-no_mbr_Proteins.txt"), sep = "\t", stringsAsFactors = F)
-
-cols <- colnames(protein.intensities)[grepl("apQuant.Area.", colnames(protein.intensities))]
-runs <- gsub("apQuant.Area.", "", cols)
-groups <- str_extract(runs,"sample[0-9]")
-
-experiment.design <-as_data_frame(cbind(cols,runs,groups))
-colnames(experiment.design) <- c("IntensityColumn", "Replicate", "Condition")
-experiment.design
-
-protein.id.column = "Accession"
-gene.id.column = NULL
-description.id.column = "Description"
-
-protein.intensities = protein.intensities[,c(protein.id.column,
-                                             gene.id.column,
-                                             description.id.column,
-                                             experiment.design$IntensityColumn)]
-protein.intensities = protein.intensities %>% 
-  rename(
-    ProteinId = protein.id.column,
-    GeneId = gene.id.column,
-    Description = description.id.column
-  )
-
-
-write.table(experiment.design, file.path(experiment_home,"experiment_design.tsv"),sep = "\t", quote=F)
-write.table(protein.intensities, file.path(experiment_home,"protein_intensities.tsv"),sep = "\t",quote = F)
-
-# this is where we'd pick up in the workflow
-protein.intensities <- read.table(file.path(upload_folder, "protein_intensities.tsv"), sep = "\t", stringsAsFactors = F)
-experiment.design <- read.table(file.path(upload_folder, "experiment_design.tsv"), sep = "\t", stringsAsFactors = F)
-protein.summarized.experiment <- construct_summarized_experiment(experiment.design, protein.intensities)
-  
-assay(protein.summarized.experiment)
-```
-
-```{r PD 2 Spikes}
-# this is stuff the app does
-experiment_home = "~/experiments/PD_test"
-
-protein.intensities = read.csv(file.path(experiment_home, "PXD001385-no_clustering-no_mbr_Proteins.txt"), 
-                               sep = "\t", stringsAsFactors = F)
-
-cols <- colnames(protein.intensities)[grepl("apQuant.Area.", colnames(protein.intensities))]
-runs <- gsub("apQuant.Area.", "", cols)
-groups <- gsub(".*_","",str_extract(runs,"_.*ng"))
-
-experiment.design <-as_data_frame(cbind(cols,runs,groups))
-colnames(experiment.design) <- c("IntensityColumn", "Replicate", "Condition")
-experiment.design
-
-protein.id.column = "Accession"
-gene.id.column = NULL
-description.id.column = "Description"
-
-protein.intensities = protein.intensities[,c(protein.id.column,
-                                             gene.id.column,
-                                             description.id.column,
-                                             experiment.design$IntensityColumn)]
-protein.intensities = protein.intensities %>% 
-  rename(
-    ProteinId = protein.id.column,
-    GeneId = gene.id.column,
-    Description = description.id.column
-  )
-
-
-write.table(experiment.design, file.path(experiment_home,"experiment_design.tsv"),sep = "\t", quote=F)
-write.table(protein.intensities, file.path(experiment_home,"protein_intensities.tsv"),sep = "\t",quote = F)
-
-# this is where we'd pick up in the workflow
-protein.intensities <- read.table(file.path(upload_folder, "protein_intensities.tsv"), sep = "\t", stringsAsFactors = F)
-experiment.design <- read.table(file.path(upload_folder, "experiment_design.tsv"), sep = "\t", stringsAsFactors = F)
-protein.summarized.experiment <- construct_summarized_experiment(experiment.design, protein.intensities)
-  
-assay(protein.summarized.experiment)
-```
-
-```{r PD 3 UPS Spikes}
-# this is stuff the app does
-experiment_home = "~/experiments/PD_test"
-
-protein.intensities = read.csv(file.path(experiment_home, "PXD001819-no_clustering-no_mbr_Proteins.txt"), 
-                               sep = "\t", stringsAsFactors = F)
-
-cols <- colnames(protein.intensities)[grepl("apQuant.Area.", colnames(protein.intensities))]
-runs <- gsub("apQuant.Area.", "", cols)
-groups <- gsub("_R.*$","",runs)
-
-experiment.design <-as_data_frame(cbind(cols,runs,groups))
-colnames(experiment.design) <- c("IntensityColumn", "Replicate", "Condition")
-experiment.design
-
-protein.id.column = "Accession"
-gene.id.column = NULL
-description.id.column = "Description"
-
-protein.intensities = protein.intensities[,c(protein.id.column,
-                                             gene.id.column,
-                                             description.id.column,
-                                             experiment.design$IntensityColumn)]
-protein.intensities = protein.intensities %>% 
-  rename(
-    ProteinId = protein.id.column,
-    GeneId = gene.id.column,
-    Description = description.id.column
-  )
-
-
-write.table(experiment.design, file.path(experiment_home,"experiment_design.tsv"),sep = "\t", quote=F)
-write.table(protein.intensities, file.path(experiment_home,"protein_intensities.tsv"),sep = "\t",quote = F)
-
-# this is where we'd pick up in the workflow
-protein.intensities <- read.table(file.path(upload_folder, "protein_intensities.tsv"), sep = "\t", stringsAsFactors = F)
-experiment.design <- read.table(file.path(upload_folder, "experiment_design.tsv"), sep = "\t", stringsAsFactors = F)
-protein.summarized.experiment <- construct_summarized_experiment(experiment.design, protein.intensities)
-  
-assay(protein.summarized.experiment)
-```
-
-### Spectronaught
-
-https://www.ebi.ac.uk/pride/archive/projects/PXD025359
-
-
-Greate candidate for being able to handle more parameters in the model
-
-```{r}
-library(openxlsx)
-experiment_home <- "/home/joseph/experiments/Spectronaught"
-
-protein.intensities = read.xlsx(file.path(experiment_home, "S4_Protein_Report_Fiber_types_Spectronaut_Pulsar_no_norm.xlsx"))
-colnames(protein.intensities)
-
-experiment.annotation = read.xlsx(file.path(experiment_home, "S3_Study_annotation.xlsx"))
-
-uniprot_pattern = "[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}"
-major_ids <- str_extract(protein.intensities$PG.ProteinAccessions, uniprot_pattern)
-protein.intensities$ProteinId <- major_ids
-protein.intensities = protein.intensities[!is.na(major_ids),]
-protein.intensities$ProteinId
-protein.intensities$Description <- protein.intensities$PG.ProteinDescriptions
-protein.intensities$GeneId <- ""
-
-
-protein.intensities  = protein.intensities %>% 
-  mutate_all(funs(str_replace(., "Filtered", "0")))
-protein.intensities  = protein.intensities %>% 
-  mutate_all(funs(str_replace(., "NaN", "0")))
-
-cols <- colnames(protein.intensities)[grepl(".raw.PG.Quantity", colnames(protein.intensities))]
-runs <- gsub("^.*\\.","",gsub(".raw.PG.Quantity", "", cols))
-
-experiment.design <-as_data_frame(cbind(cols,runs))
-colnames(experiment.design) <- c("IntensityColumn", "Replicate")
-experiment.annotation$Replicate <- experiment.annotation$MS.ID
-
-experiment.design <- merge(experiment.design, experiment.annotation, by = "Replicate")
-experiment.design$Condition <- make.names(experiment.design$Fiber.Type)
-experiment.design
-
-protein.intensities[,experiment.design$IntensityColumn] = sapply(protein.intensities[,experiment.design$IntensityColumn],
-                                                                 as.numeric)
-
-write.table(experiment.design, file.path(experiment_home,"experiment_design.tsv"),sep = "\t", quote=F)
-write.table(protein.intensities, file.path(experiment_home,"protein_intensities.tsv"),sep = "\t",quote = F)
-
-```
-
-
-## Processing
-
-```{r Generic Discovery Pipeline}
-results <- run_binary_limma_pipeline(protein.summarized.experiment)
-protein.summarized.experiment <- results[[1]]
-prot.int <- results[[2]]
-```
-
 
 ## QC
+
 ### Data QC
 
 ```{r clustering}
@@ -558,9 +47,6 @@ as.data.table(long)
 ```
 
 ```{r Protein Counts}
-
-
-
 protein_counts_by_replicate(protein.summarized.experiment)
 ```
 
@@ -583,9 +69,6 @@ plot_imputed_vs_not(prot.int)
 ```
 
 ```{r Measurement Distribution}
-
-
-
 plot_measurement_distributions(prot.int)
 #plot_measurement_distributions(prot.int, T)
 plot_measurement_distributions(prot.int,F, "log2NIntNorm")
@@ -958,4 +441,73 @@ plot_enr_volcano <- function(enr_table){
 
 plot_enr_volcano(enrichment.table$Reactome)
 ```
+
+
+# Functions
+
+
+## Plotting
+
+```{r}
+# This is useful just for checking results.
+plot_volcano <- function(comparison.statistics){
+  p <- ggplot(comparison.statistics, 
+              aes(FoldChange, -log10(AdjustedPValue), fdr = AdjustedPValue, ProteinId = ProteinId)) + 
+    geom_point() +
+    geom_hline(yintercept=-log10(0.05)) 
+  ggplotly(p)
+}
+```
+
+
+## End of Workflow Construct Export Object
+
+I realized that being ready to write proteinz viz wasn't the same as being ready to do enrichment or write protein counts and intensities or QC. Here's a couple functions 
+and an orchestrator that could bring it all together.
+
+```{r}
+
+# count the imputatatiosn in each condition and write to wide table
+get_imputed_counts <- function(prot.int){
+  imputed.counts <- prot.int %>% group_by(ProteinId, Condition) %>%
+    summarize(NImputed = sum(Imputed))
+  imputed.counts <- dcast(imputed.counts, ProteinId ~ Condition, value.var = "NImputed")
+  colnames(imputed.counts)[-1] <- str_c("Imputed: ", colnames(imputed.counts)[-1])
+  imputed.counts
+}
+
+# count the replicates in each condition and write to wide table
+get_replicate_counts <- function(prot.int){
+  replicate.counts <- prot.int %>% group_by(ProteinId, Condition) %>%
+    summarize(NReplicates= sum(Imputed==0)+sum(Imputed==1))
+  replicate.counts <- dcast(replicate.counts, ProteinId ~ Condition, value.var = "NReplicates")
+  colnames(replicate.counts)[-1] <- str_c("Replicates: ", colnames(replicate.counts)[-1])
+  replicate.counts
+}
+
+# adds prot.int information to protein.summarized experiment with statistics
+# to deliver fully contained experiment object
+get_complete_protein_summarized_experiment <- function(protein.summarized.experiment, prot.int){
+  
+  complete.protein.summarized.experiment <- protein.summarized.experiment
+    
+  # replaceIntensity with missing values to normalized log scale with imputed values
+  prot.int.wide <- dcast(prot.int, ProteinId ~ IntensityColumn, value.var = "log2NIntNorm")
+  assay(complete.protein.summarized.experiment) <- prot.int.wide[,-1]
+
+  
+  # add imputed and replicate counts to the final object
+  imputed.counts <- get_imputed_counts(prot.int)
+  rowData(complete.protein.summarized.experiment) <- merge(rowData(complete.protein.summarized.experiment),
+                                                           imputed.counts, by = "ProteinId", all.x = T)
+  
+  replicate.counts <- get_replicate_counts(prot.int)
+  rowData(complete.protein.summarized.experiment) <- merge(rowData(complete.protein.summarized.experiment),
+                                                           replicate.counts, by = "ProteinId", all.x = T)
+
+  complete.protein.summarized.experiment
+}
+
+```
+
 

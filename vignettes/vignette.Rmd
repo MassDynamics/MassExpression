@@ -1,0 +1,35 @@
+---
+title: "MassExpression"
+author: "Mass Dynamics"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+    fig_caption: yes
+    toc_float: true
+vignette: >
+  %\VignetteIndexEntry{MassExpression}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message = FALSE,
+                      warning = FALSE,
+                      collapse = TRUE,
+                      comment = "#>")
+```
+
+
+
+# Run example end-to-end
+
+```{r anna-test}
+outputFolder <- "output"
+fp_exp <- fragpipe_data$design
+fp_proteins <- fragpipe_data$intensities
+
+IntensityExperiment <- runGenericDiscovery(experimentDesign = fp_exp, proteinIntensities = fp_proteins)
+
+writeProteinViz(outputFolder = outputFolder, IntensityExperiment=IntensityExperiment)
+```

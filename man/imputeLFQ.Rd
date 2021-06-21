@@ -24,10 +24,10 @@ quantification data with missing values imputed
 This function does MNAR imputation
 }
 \examples{
- dt_int <- imputeLFQ(myQuantDT = dt_int,
- id_type = "id",
- int_type = "log2NInt", #log2Intensity
- 0.3,
- 1.8,
- )
+ ## dt_int <- imputeLFQ(myQuantDT = dt_int,
+ ## id_type = "id",
+ ## int_type = "log2NInt", #log2Intensity
+ ## 0.3,
+ ## 1.8,
+ ## )
 }

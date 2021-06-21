@@ -96,7 +96,7 @@ limmaStatsFun <- function(ID_type,
     right <- pairwise.comp[irow, right]
     
     myContrasts = c(myContrasts,
-                    str_c(left, "-", right))
+                    str_c("condition",left, "-", "condition",right))
   }
   
   
@@ -153,7 +153,7 @@ limmaStatsFun <- function(ID_type,
       left <- pairwise.comp[ipair, left]
       right <- pairwise.comp[ipair, right]
       myContrasts = c(myContrasts,
-                      str_c(left, "-", right))
+                      str_c("condition",left, "-", "condition",right))
       contrast.matrix <- eval(as.call(c(
         as.symbol("makeContrasts"),
         as.list(myContrasts),

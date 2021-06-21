@@ -12,7 +12,7 @@ print(here())
 # This is the final report that once would get from DIA-NN.
 # Using R package diann one can parse that output further to obtain peptides and protein groups.
 # For the moment we assume that the user gave us a matrix of proteins inten and sample infos as input
-df <- diann_load("data-s3/dia-nn/test-data-rpackage/data/diann_report.tsv")
+df <- diann_load("../data-s3/dia-nn/test-data-rpackage/data/diann_report.tsv")
 protein.groups <- diann_maxlfq(df[df$Q.Value <= 0.01 & df$PG.Q.Value <= 0.01,],
                                              group.header="Protein.Group",
                                              id.header = "Precursor.Id",
@@ -36,18 +36,19 @@ sample_data_diann <- sample_data_diann %>% dplyr::rename(Condition = groups,
                                                          IntensityColumn = runs) %>%
   mutate(Replicate = paste0("F",1:nrow(sample_data_diann)))
 
-save(assay_diann,sample_data_diann,file = "./data/example_diann_input.rda")
+diann_data <- list(intensities = assay_diann, design = sample_data_diann)
+save(diann_data, file = "./data/example_diann.rda")
 
 
 ################
 # MaxQuant-SILAC
 ################
 
-pg <- read_delim("data-s3/maxquant/SILAC/paper-sample-dataset/proteinGroups.txt",  "\t",
+pg <- read_delim("../data-s3/maxquant/SILAC/paper-sample-dataset/proteinGroups.txt",  "\t",
                  escape_double = FALSE, trim_ws = TRUE, col_types = cols(Reverse = col_character()))
-summary <- read_delim("data-s3/maxquant/SILAC/paper-sample-dataset/summary.txt",  "\t",
+summary <- read_delim("../data-s3/maxquant/SILAC/paper-sample-dataset/summary.txt",  "\t",
                  escape_double = FALSE, trim_ws = TRUE)
-design <- read_delim("data-s3/maxquant/SILAC/paper-sample-dataset/experimentalDesign.txt",  "\t", escape_double = FALSE, trim_ws = TRUE)
+design <- read_delim("../data-s3/maxquant/SILAC/paper-sample-dataset/experimentalDesign.txt",  "\t", escape_double = FALSE, trim_ws = TRUE)
 sample_data_mq_silac <- design %>% filter(Experiment %in% c("Heart", "COL", "PAN")) %>%
   unite(runs, Fraction, Experiment, sep = "_",remove = FALSE)
 
@@ -61,7 +62,9 @@ assay_mq_silac <- pg_silac %>% rename(protein_id = all_of(protein.id.col),
                                 "PAN"  = `Ratio H/L normalized PAN`,
                                 "COL" = `Ratio H/L normalized COL`)
 
-save(assay_mq_silac,sample_data_mq_silac,metadata_mq_silac, file = "./data/example_silac_input.rda")
+mq_silac_data <- list(intensities = assay_mq_silac, design = sample_data_mq_silac, metadata = metadata_mq_silac)
+
+save(mq_silac_data, file = "./data/example_mq_silac.rda")
 
 
 
@@ -69,7 +72,7 @@ save(assay_mq_silac,sample_data_mq_silac,metadata_mq_silac, file = "./data/examp
 ## fragpipe
 ###########
 
-protein.intensities = read.csv("data-s3/frag-pipe/combined_protein.tsv", sep = "\t", stringsAsFactors = F)
+protein.intensities = read.csv("../data-s3/frag-pipe/combined_protein.tsv", sep = "\t", stringsAsFactors = F)
 cols <- colnames(protein.intensities)[grepl("Total.Intensity", colnames(protein.intensities))]
 runs <- gsub(".Total.Intensity", "", cols)
 groups <- gsub("_[0-9]*$","",runs)
@@ -93,4 +96,27 @@ protein.intensities = protein.intensities %>%
 
 design_fragpipe <- experiment.design
 assay_fragpipe <- protein.intensities 
-save(assay_fragpipe,design_fragpipe, file = "./data/example_fragpipe_input.rda")
+
+fragpipe_data <- list(intensities = assay_fragpipe, design = design_fragpipe)
+
+save(fragpipe_data, file = "./data/example_fragpipe.rda")
+
+
+#### Maxquant LFQ HER2
+
+experiment_home <- "../data-s3/maxquant/LFQ/HER2/data/"
+protein.intensities <- read.csv(file.path(experiment_home, "proteinGroups.txt"), sep = "\t", stringsAsFactors = F)
+assay_mq_lfq <- convert_protein_groups_to_universal(protein.intensities)
+
+cols <- colnames(assay_mq_lfq)[grepl("LFQ.intensity.", colnames(assay_mq_lfq))]
+runs <- gsub("LFQ.intensity.", "", cols)
+groups <- gsub("_","",str_extract(runs,"_(.*)_"))
+
+experiment.design <- as_data_frame(cbind(cols,runs,groups))
+colnames(experiment.design) <- c("IntensityColumn", "Replicate", "Condition")
+design_mq_lfq <- experiment.design
+
+mq_lfq_data <- list(intensities = assay_mq_lfq, design = design_mq_lfq)
+
+save(mq_lfq_data, file = "./data/example_mq_lfq.rda")
+
