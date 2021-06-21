@@ -4,3 +4,5 @@
 .Ruserdata
 data-s3
 MassExpression.Rproj
+.DS_Store
+R/.DS_Store
