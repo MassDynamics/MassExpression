@@ -51,7 +51,6 @@ Unmet goals:
 - enrichment hooked up
 
 # Functions
-
 ## Utilities, Object Construction and Parsing
 
 ```{r Utilities}
@@ -424,7 +423,6 @@ plot_measurement_distributions <- function(prot.int,
 
 ## Processing
 
-
 ```{r impute LFQ data func}
 #' 
 #'
@@ -713,8 +711,6 @@ run_binary_limma_pipeline <- function(protein.summarized.experiment){
   
   list(protein.summarized.experiment,prot.int)
 }
-
-
 ```
 
 ## Export MD JSons
@@ -814,7 +810,7 @@ and an orchestrator that could bring it all together.
 
 ```{r}
 
-# count the imputatatiosn in each condition and write to wide table
+# count the imputations in each condition and write to wide table
 get_imputed_counts <- function(prot.int){
   imputed.counts <- prot.int %>% group_by(ProteinId, Condition) %>%
     summarize(NImputed = sum(Imputed))
@@ -930,7 +926,7 @@ validate_comparison <- function(rse){
 
 # This is an orchestrator for create each comparison table input for enrichment
 # from a completed protein summarized experiment
-create_enrichment_comparison <- function(complete.protein.summarized.experiment,
+create_comparison_experiments <- function(complete.protein.summarized.experiment,
                                          comparison){
   
   # 1. Filter for statistics in rowData that we care about
@@ -945,7 +941,6 @@ create_enrichment_comparison <- function(complete.protein.summarized.experiment,
   )
   
   # 3. Add class/group vectors so we know how to do enrichment
-  
   conditions <- unique(comparison.protein.summarized.experiment$Condition)
   condition2 <- get_condition_string(conditions, comparison, 2)
   comparison.protein.summarized.experiment$GROUP = 
@@ -967,7 +962,72 @@ create_enrichment_comparison <- function(complete.protein.summarized.experiment,
   
   comparison.protein.summarized.experiment
 }
+
 ```
+
+
+```{r}
+get_list_comparison_experiments <- function(complete.protein.summarized.experiment){
+  
+  comparisons = 
+    get_comparison_strings(rowData(complete.protein.summarized.experiment))
+  
+  
+  comparison.experiments <- list()
+  
+  for (comparison in comparisons){
+    comparison.experiments[[comparison]] = create_comparison_experiments(
+      complete.protein.summarized.experiment, comparison
+    )
+  }
+  
+  comparison.experiments
+}
+
+comparison.experiments <- 
+  get_list_comparison_experiments(complete.protein.summarized.experiment)
+
+
+
+
+
+save(protein.summarized.experiment, 
+     complete.protein.summarized.experiment, 
+     prot.int,
+     comparison.experiments,
+     file = "DiscoveryQuant.RData")
+
+
+load("DiscoveryQuant.RData")
+```
+
+```{r}
+library(EnrichmentAnalysisStepR)
+gmt_folder = "/home/joseph/github_repos/enrichment-step/gene_sets/10090/"
+enrichment_results <- enrichment_workflow_runner(
+  comparison.experiments,
+  gmt_folder 
+)
+```
+
+```{r}
+
+upload_folder = "/home/joseph/experiments/her_data_gsea_test"
+
+if (file.exists(file.path(upload_folder,"DiscoveryQuant.RData"))){
+  print("Found Discovery Data Export. Loading data")
+  load(file.path(upload_folder,"DiscoveryQuant.RData"))
+} else {
+  print("No Discovery Data Export Found. Using Object Export")
+  md.quant.exports <- parse_md_quant_folder(upload_folder)
+  comparison.experiments <- construct_list_summarized_experiments(md.quant.exports)
+}
+
+
+
+
+```
+
 
 # Code/Testing
 
@@ -1099,7 +1159,7 @@ protein.intensities = protein.intensities %>%
   )
 
 
-#write.table(experiment.design, file.path(experiment_home,"experiment_design.tsv"),sep = "\t", quote=F)
+#write.table(experiment.design, file.path(experiment_home,"experiment_design.tsv"),sep = "\t", quote=F.)
 #write.table(protein.intensities, file.path(experiment_home,"protein_intensities.tsv"),sep = "\t",quote = F)
 
           
@@ -1705,6 +1765,12 @@ comparison.protein.summarized.experiment <-
 enrichment.table <- perform_comparison_enrichment(comparison.protein.summarized.experiment,
                               "/home/joseph/github_repos/enrichment-step/gene_sets/10090",
                               method = "camera")
+```
+
+
+
+```{r}
+
 ```
 
 ```{r}
