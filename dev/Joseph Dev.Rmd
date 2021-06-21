@@ -32,7 +32,9 @@ library(jsonlite)
 # Load test data 
 
 ```{r}
-
+ls("package:MassExpression")
+diann_prtein <- assay_diann
+diann_exp <- sample_data_diann
 ```
 
 
@@ -111,7 +113,7 @@ construct_summarized_experiment <- function(experiment.design, protein.intensiti
                                           colData = experiment.design)
   
   colnames(summarized.experiment) <- experiment.design$IntensityColumn
-  rownames(summarized.experiment) <- rowData(protein.summarized.experiment)$ProteinId
+  rownames(summarized.experiment) <- rowData(summarized.experiment)$ProteinId
   stopifnot(colnames(summarized.experiment) == 
               colData(summarized.experiment)$IntensityColumn)
   
@@ -119,7 +121,7 @@ construct_summarized_experiment <- function(experiment.design, protein.intensiti
 }
 
 
-protein.summarized.experiment <- construct_summarized_experiment(experiment.design, protein.intensities)
+# protein.summarized.experiment <- construct_summarized_experiment(experiment.design, protein.intensities)
 
 ```
 
@@ -863,15 +865,10 @@ plot_volcano <- function(comparison.statistics){
 ## Runner
 
 ```{r}
-
 # This function orchestrates the MassExpression workflow (could be called by a 
 # workflow step)
-run_generic_discovery <- function(upload_folder, output_folder){
+run_generic_discovery <- function(protein.intensities, experiment.design){
   
-  #IO 
-  protein.intensities <- read.table(file.path(upload_folder, "protein_intensities.tsv"), sep = "\t", stringsAsFactors = F)
-  experiment.design <- read.table(file.path(upload_folder, "experiment_design.tsv"), sep = "\t",  stringsAsFactors = F)
-
   # Create Data Rep
   protein.summarized.experiment <- construct_summarized_experiment(experiment.design, protein.intensities)
   
@@ -1050,6 +1047,14 @@ create_enrichment_comparison <- function(complete.protein.summarized.experiment,
 # Code/Testing
 
 ## IO
+
+```{r anna-test, eval=FALSE}
+fp_exp <- design_fragpipe
+fp_proteins <- assay_fragpipe
+
+run_generic_discovery(protein.intensities = fp_proteins, experiment.design = fp_exp)
+```
+
 
 ```{r}
 upload_folder ="/home/joseph/experiments/frag_pipe_test/"

@@ -12,3 +12,4 @@ Depends:
   R (>= 3.5)
 Imports:
   SummarizedExperiment
+RoxygenNote: 7.1.1
