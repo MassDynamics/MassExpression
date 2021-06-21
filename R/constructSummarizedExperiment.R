@@ -4,6 +4,8 @@
 #' @param proteinIntensities XX
 #' @return A SummarizedExperiment object
 #' @export
+#' @importFrom SummarizedExperiment SummarizedExperiment rowData
+#' @importFrom S4Vectors SimpleList
 
 
 constructSummarizedExperiment <- function(experimentDesign, proteinIntensities){

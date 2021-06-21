@@ -29,13 +29,6 @@ library(jsonlite)
 
 ```
 
-# Load test data 
-
-```{r}
-ls("package:MassExpression")
-diann_prtein <- assay_diann
-diann_exp <- sample_data_diann
-```
 
 
 Remaining Tasks:
@@ -728,74 +721,6 @@ run_binary_limma_pipeline <- function(protein.summarized.experiment){
 
 ```{r protein viz export functions}
 
-# this function takes the statistics table from limma and retrieves a single 
-# comparison's worth of statistics.
-filter_stats_table_on_comparison <- function(statistics.table, comparison){
-  example_col = str_c("P.Value ",comparison)
-  stopifnot(example_col %in% colnames(statistics.table))
-  statistics.table <- 
-  
-  # filter rows on valid statistics  
-  statistics.table[!is.na(statistics.table[[example_col]]),]
-  
-  # filter columns for ProteinId and condition
-  
-  statistics.columns <- str_c(c("logFC ","adj.P.Val ",
-                                "P.Value ",
-                                "CI.L ", "CI.R "), 
-                              comparison)
-
-  stopifnot(statistics.columns %in% colnames(statistics.table))
-  
-  statistics.table <- statistics.table[,c("ProteinId",statistics.columns)]
-  
-  colnames(statistics.table) <- gsub(str_c(" ",comparison), "",colnames(statistics.table))
-    
-  statistics.table
-}
-
-# this function ensures that all the missing columns are filled with NA's
-# It should probably flag important columns that are missing in the future. 
-fill_out_missing_columns <- function(comparison.statistics){
-  
-  columns.possible=  c("ProteinId","GeneId","Description",
-                        "logFC","adj.P.Val","P.Value",
-                         "CI.L", "CI.R")
-  
-  columns.present = intersect(columns.possible, colnames(comparison.statistics))
-  columns.absent <- columns.possible[!(columns.possible %in% columns.present)]
-  comparison.statistics[,columns.absent]<-NA
-  
-  comparison.statistics
-}
-
-# MD's protein viz needs specific attribute names so this function
-# does that renaming
-rename_comparison_statistics_export <- function(comparison.statistics){
-  
-  comparison.statistics = as_data_frame(comparison.statistics) %>% 
-    dplyr::rename(
-      ProteinId = ProteinId,
-      GeneName = GeneId,
-      Description = Description,
-      PValue = P.Value,
-      AdjustedPValue = adj.P.Val,
-      FoldChange = logFC,
-      ConfLow = CI.L, 
-      ConfHigh = CI.R
-    )
-
-  comparison.statistics
-} 
-
-# This functions works out which comparisons were calcualted by limma
-# It's currently all of them but order dependent so not trivial.
-get_comparison_strings <- function(results.quant){
-  cols <- colnames(results.quant)
-  cols <- cols[grepl("logFC ", colnames(results.quant))]
-  comparison.strings <- gsub("logFC ", "", cols)
-  comparison.strings
-}
 
 
 ```
