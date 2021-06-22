@@ -7,11 +7,11 @@
 #' intensities for each protein Id and intensity column
 #' 
 #' @param IntensityExperiment Output from constructSummarizedExperiment
-#' @export get_long_protein_intensity
+#' @export makeLongIntensityDF
 #' @importFrom SummarizedExperiment rowData colData assay
 #' @import data.table
 
-get_long_protein_intensity <- function(IntensityExperiment){
+makeLongIntensityDF <- function(IntensityExperiment){
   wide <- as.data.table(assay(IntensityExperiment))
   colnames(wide) <- IntensityExperiment$IntensityColumn
   wide$ProteinId <- rowData(IntensityExperiment)$ProteinId
@@ -23,19 +23,89 @@ get_long_protein_intensity <- function(IntensityExperiment){
 
 #' This function performs the log2 conversion and writes the imputed column
 #' @param IntensityExperiment Output from constructSummarizedExperiment
-#' @export prepare_prot_int
+#' @export prepareIntensityDF
 #' @import data.table
 
-prepare_prot_int <- function(IntensityExperiment){
-  prot.int <- get_long_protein_intensity(IntensityExperiment)
-  stopifnot(dim(prot.int)[1]>0)
-  prot.int <- as.data.table(prot.int)
-  prot.int[, Imputed := 0L]
-  prot.int[Intensity == 0, Imputed := 1L]
-  prot.int[, log2NInt := 0.0]
-  prot.int[Intensity > 0 , log2NInt := log2(Intensity)]
+prepareIntensityDF <- function(IntensityExperiment){
+  protInt <- makeLongIntensityDF(IntensityExperiment)
+  stopifnot(dim(protInt)[1]>0)
+  protInt <- as.data.table(protInt)
+  protInt[, Imputed := 0L]
+  protInt[Intensity == 0, Imputed := 1L]
+  protInt[, log2NInt := 0.0]
+  protInt[Intensity > 0 , log2NInt := log2(Intensity)]
   
-  prot.int 
+  protInt 
 }
 
 
+#' Count the number of imputed features by condition and write to wide table
+#' @param intensityDF Long format table with raw and imputed intensities. Each row is a feature (protein/peptide).  
+#' @export computeImputedCounts
+#' @importFrom dplyr group_by 
+#' @importFrom stringr str_c
+
+computeImputedCounts <- function(intensityDF){
+  imputedCounts <- intensityDF %>% group_by(ProteinId, Condition) %>%
+    summarize(NImputed = sum(Imputed))
+  
+  imputedCounts <- imputedCounts %>% pivot_wider(id_cols = "ProteinId",
+                                                 names_from = "Condition",
+                                                 values_from = "NImputed")
+  
+  colnames(imputedCounts)[-1] <- str_c("NImputed: ", colnames(imputedCounts)[-1])
+  return(imputedCounts)
+}
+
+#' Count the replicates in each condition and write to wide table
+#' @param intensityDF Long format table with raw and imputed intensities. Each row is a feature (protein/peptide).
+#' @export computeReplicateCounts
+#' @importFrom dplyr group_by 
+#' @importFrom stringr str_c
+
+computeReplicateCounts <- function(intensityDF){
+  replicateCounts <- intensityDF %>% group_by(ProteinId, Condition) %>%
+    summarize(NReplicates = n())
+  
+  replicateCounts <- replicateCounts %>% pivot_wider(id_cols = "ProteinId",
+                                                 names_from = "Condition",
+                                                 values_from = "NReplicates")
+  colnames(replicateCounts)[-1] <- str_c("NReplicates: ", colnames(replicateCounts)[-1])
+  return(replicateCounts)
+}
+
+
+#' Adds `intensityDF` information to `IntensityExperiment` with statistics about 
+#' the number of replicates and number of imputed values in each condition of interest
+#' @param IntensityExperiment output from `constructSummarizedExperiment`
+#' @param intensityDF Long format table with raw and imputed intensities. Each row is a feature (protein/peptide).
+#' @export createCompleteIntensityExperiment
+#' @importFrom SummarizedExperiment rowData
+#' @importFrom tidyr pivot_wider
+
+createCompleteIntensityExperiment <- function(IntensityExperiment, intensityDF){
+  
+  CompleteIntensityExperiment <- IntensityExperiment
+  
+  # replace Intensity with missing values to normalized log scale with imputed values
+  intensityDFWide <- intensityDF %>% pivot_wider(id_cols = "ProteinId", 
+                                               names_from = "IntensityColumn", 
+                                               values_from = "log2NIntNorm")
+  
+  intensityMatrixWide <- intensityDFWide %>% dplyr::select(-ProteinId)
+  intensityMatrixWide <- as.matrix(intensityMatrixWide)
+  rownames(intensityMatrixWide) <- intensityDFWide$ProteinId
+  
+  assay(CompleteIntensityExperiment) <- intensityMatrixWide
+
+  # add imputed and replicate counts to the final object
+  imputedCounts <- computeImputedCounts(intensityDF)
+  rowData(CompleteIntensityExperiment) <- merge(rowData(CompleteIntensityExperiment),
+                                                           imputedCounts, by = "ProteinId", all.x = T)
+  
+  replicateCounts <- computeReplicateCounts(intensityDF)
+  rowData(CompleteIntensityExperiment) <- merge(rowData(CompleteIntensityExperiment),
+                                                           replicateCounts, by = "ProteinId", all.x = T)
+  
+  return(CompleteIntensityExperiment)
+}

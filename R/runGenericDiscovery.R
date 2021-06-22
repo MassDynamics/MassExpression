@@ -10,13 +10,8 @@ runGenericDiscovery <- function(experimentDesign, proteinIntensities){
   IntensityExperiment <- constructSummarizedExperiment(experimentDesign = experimentDesign, 
                                                        proteinIntensities = proteinIntensities)
 
-  
-  # Get Binary Statistic Comparisons and Long for Protein Intensity
+  # Get Binary Statistic Comparisons and complete experiment containinig imputed Protein Intensity
   results <- runLimmaPipeline(IntensityExperiment)
-  IntensityExperiment <- results[[1]]
   
-  return(IntensityExperiment)
-  
-  # Currently object not used
-  # intensities <- results[[2]]
+  return(results)
 }

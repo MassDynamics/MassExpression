@@ -2,7 +2,7 @@
 % Please edit documentation in R/runLimmaPipeline.R
 \name{runLimmaPipeline}
 \alias{runLimmaPipeline}
-\title{This function orchestrates imputation, normalization and the binary limmastatistics accross all experimental comparisons}
+\title{This function orchestrates imputation, normalization and the binary limma statistics accross all experimental comparisons}
 \usage{
 runLimmaPipeline(IntensityExperiment)
 }
@@ -10,5 +10,5 @@ runLimmaPipeline(IntensityExperiment)
 \item{experimentDesign}{Output from constructSummarizedExperiment}
 }
 \description{
-This function orchestrates imputation, normalization and the binary limmastatistics accross all experimental comparisons
+This function orchestrates imputation, normalization and the binary limma statistics accross all experimental comparisons
 }

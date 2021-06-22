@@ -8,8 +8,7 @@
 
 runLimmaPipeline <- function(IntensityExperiment){
   
-  
-  intensityDF <- prepare_prot_int(IntensityExperiment)
+  intensityDF <- prepareIntensityDF(IntensityExperiment)
   
   # Create Median Normalized Measurements in each Condition/Replicate
   intensityDF[Imputed == F, log2NIntNorm := log2NInt - median(log2NInt), by = list(Condition,Replicate)]
@@ -33,13 +32,20 @@ runLimmaPipeline <- function(IntensityExperiment){
                                    rep_col_name = "Replicate",
                                    funDT = intensityDF)
   stats = resultsQuant[["stats"]]
-  eset = resultsQuant[["eset"]]
+  
+  # data used for DE analysis - filtered, imputed, normalised
+  # eset not used for now but would be good to produce stats QC related to limma: variance plots
+  # eset = resultsQuant[["eset"]]
   
   # Add DE analysis results to rowData
   rowData(IntensityExperiment) = merge(rowData(IntensityExperiment), 
                                        stats, by = "ProteinId", all.x = T)
   
+  # SummarizedExperiment which contains the complete essay with imputed data and statistics
+  # about the number of proteins imputed in each condition 
+  CompleteIntensityExperiment <- createCompleteIntensityExperiment(IntensityExperiment=IntensityExperiment,
+                                                                   intensityDF = intensityDF)
   
-  
-  list(IntensityExperiment=IntensityExperiment,IntensityDF=intensityDF)
+  list(IntensityExperiment=IntensityExperiment,
+       CompleteIntensityExperiment=CompleteIntensityExperiment)
 }

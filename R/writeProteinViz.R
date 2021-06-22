@@ -44,9 +44,10 @@ writeProteinViz <- function(outputFolder, IntensityExperiment){
   
   names(proteinViz) <- NULL
   
+  print(outputFolder)
   dir.create(outputFolder)
-  path = file.path(outputFolder,"protein_viz.json")
-  write_json(proteinViz,path, digits = NA, na = "null")
+  outPath = file.path(outputFolder,"protein_viz.json")
+  write_json(proteinViz,outPath, digits = NA, na = "null")
 }
 
 
