@@ -1,4 +1,4 @@
-#' This function orchestrates imputation, normalization and the binary limmastatistics accross all experimental comparisons
+#' This function orchestrates imputation, normalization and the binary limma statistics accross all experimental comparisons
 #' 
 #' @param experimentDesign Output from constructSummarizedExperiment
 #' @export runLimmaPipeline
@@ -25,17 +25,19 @@ runLimmaPipeline <- function(IntensityExperiment){
   # RunId will be unique to a row wherease replicate may not
   intensityDF[, RunId := str_c(Condition, Replicate, sep = ".")]
   
-  #Run LIMMA
+  # Run LIMMA
   resultsQuant <- limmaStatsFun(ID_type = "ProteinId",
                                    int_type = "log2NIntNorm",
                                    condition_col_name = "Condition",
                                    run_id_col_name = "RunId",
                                    rep_col_name = "Replicate",
                                    funDT = intensityDF)
+  stats = resultsQuant[["stats"]]
+  eset = resultsQuant[["eset"]]
   
   # Add DE analysis results to rowData
   rowData(IntensityExperiment) = merge(rowData(IntensityExperiment), 
-                                       resultsQuant, by = "ProteinId", all.x = T)
+                                       stats, by = "ProteinId", all.x = T)
   
   
   

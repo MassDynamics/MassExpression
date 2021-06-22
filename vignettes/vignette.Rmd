@@ -20,6 +20,9 @@ knitr::opts_chunk$set(echo = TRUE,
                       comment = "#>")
 ```
 
+```{r}
+library(MassExpression)
+```
 
 
 # Run example end-to-end
@@ -31,9 +34,27 @@ intensities <- fragpipe_data$intensities
 
 IntensityExperiment <- runGenericDiscovery(experimentDesign = design, proteinIntensities = intensities)
 
+debugonce(runGenericDiscovery(experimentDesign = design, proteinIntensities = intensities))
+
 writeProteinViz(outputFolder = outputFolder, IntensityExperiment=IntensityExperiment)
 ```
 
+## Create output artefacts
+
+```{r}
+# Get Binary Statistic Comparisons and Long for Protein Intensity
+results <- run_binary_limma_pipeline(protein.summarized.experiment)
+protein.summarized.experiment <- results[[1]]
+prot.int <- results[[2]]
+
+# Construct Single Object with Update data
+complete.protein.summarized.experiment <-
+  get_complete_protein_summarized_experiment(protein.summarized.experiment,
+                                             prot.int)
+
+# Write Discovery Outputs
+write_protein_viz(output_folder, protein.summarized.experiment)
+```
 
 
 ```{r mq-lfq, eval=FALSE}

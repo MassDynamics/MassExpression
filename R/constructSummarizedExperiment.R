@@ -4,7 +4,7 @@
 #' @param proteinIntensities XX
 #' @return A SummarizedExperiment object
 #' @export
-#' @importFrom SummarizedExperiment SummarizedExperiment rowData
+#' @importFrom SummarizedExperiment SummarizedExperiment rowData colData
 #' @importFrom S4Vectors SimpleList
 
 
@@ -31,13 +31,13 @@ constructSummarizedExperiment <- function(experimentDesign, proteinIntensities){
   
   # construct summarized experiment object
   IntensityExperiment <- SummarizedExperiment(rowData = rowFeatures,
-                                              assays= SimpleList(counts=assayData),
+                                              assays= SimpleList(raw=assayData),
                                               colData = experimentDesign)
   
   colnames(IntensityExperiment) <- experimentDesign$IntensityColumn
   rownames(IntensityExperiment) <- rowData(IntensityExperiment)$ProteinId
   stopifnot(colnames(IntensityExperiment) == 
-              colData(IntensityExperiment)$IntensityColumn)
+              SummarizedExperiment::colData(IntensityExperiment)$IntensityColumn)
   
   return(IntensityExperiment)
 }

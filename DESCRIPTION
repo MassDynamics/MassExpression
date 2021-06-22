@@ -9,13 +9,13 @@ License: use_mit_license()
 Encoding: UTF-8
 LazyData: true
 Depends:
-  R (>= 3.5)
-Imports:
-  SummarizedExperiment,
+  R (>= 3.5),
+  foreach,
   Biobase,
+  SummarizedExperiment
+Imports:
   limma,
   data.table,
-  foreach,
   stringr,
   dplyr, 
   S4Vectors,

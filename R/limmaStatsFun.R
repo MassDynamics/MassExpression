@@ -3,8 +3,8 @@
 
 #' @export
 #' @import limma
-#' @importFrom foreach foreach
-#' @importFrom Biobase ExpressionSet
+#' @import foreach
+#' @import Biobase 
 #' @importFrom stringr str_order str_c str_sort
 #' @importFrom data.table rbindlist dcast.data.table as.data.table
 
@@ -21,7 +21,7 @@ limmaStatsFun <- function(ID_type,
   
   if (all.comparisons) {
     comination_mat <- combn(x = funDT[, unique(get(condition_col_name))], 2)
-    pairwise.comp <- foreach (i = 1:ncol(comination_mat)) %do% {
+    pairwise.comp <- foreach (i = 1:ncol(comination_mat), .packages="foreach") %do% {
       return(data.table(
         left = comination_mat[1,i],
         right = comination_mat[2,i]
@@ -187,5 +187,5 @@ limmaStatsFun <- function(ID_type,
   
   stats[, ID := str_replace_all(ID, "ID.", "")]
   setnames(stats, "ID", ID_type)
-  return(stats)
+  return(list(stats=stats, eset = eset))
 }

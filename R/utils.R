@@ -8,7 +8,7 @@
 #' 
 #' @param IntensityExperiment Output from constructSummarizedExperiment
 #' @export get_long_protein_intensity
-#' @importFrom SummarizedExperiment rowData assay
+#' @importFrom SummarizedExperiment rowData colData assay
 #' @import data.table
 
 get_long_protein_intensity <- function(IntensityExperiment){
@@ -16,7 +16,7 @@ get_long_protein_intensity <- function(IntensityExperiment){
   colnames(wide) <- IntensityExperiment$IntensityColumn
   wide$ProteinId <- rowData(IntensityExperiment)$ProteinId
   long <- melt(wide, id.vars = c("ProteinId"), variable.name = "IntensityColumn", value.name = "Intensity")
-  long <- merge(long, colData(IntensityExperiment), by =  "IntensityColumn")
+  long <- merge(long, SummarizedExperiment::colData(IntensityExperiment), by =  "IntensityColumn")
   as.data.table(long)
 }
 
