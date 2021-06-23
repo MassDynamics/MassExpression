@@ -8,7 +8,7 @@
 
 runLimmaPipeline <- function(IntensityExperiment){
   
-  longIntensityDT <- preparelongIntensityDT(IntensityExperiment)
+  longIntensityDT <- prepareLongIntensityDF(IntensityExperiment)
   
   # Create Median Normalized Measurements in each Condition/Replicate
   longIntensityDT[Imputed == F, log2NIntNorm := log2NInt - median(log2NInt), by = list(Condition,Replicate)]

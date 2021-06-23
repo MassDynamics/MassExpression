@@ -23,9 +23,9 @@ makeLongIntensityDF <- function(IntensityExperiment){
 
 #' This function performs the log2 conversion and writes the imputed column
 #' @param IntensityExperiment Output from constructSummarizedExperiment
-#' @export prepareIntensityDF
+#' @export prepareLongIntensityDF
 
-prepareIntensityDF <- function(IntensityExperiment){
+prepareLongIntensityDF <- function(IntensityExperiment){
   protInt <- makeLongIntensityDF(IntensityExperiment)
   stopifnot(dim(protInt)[1]>0)
   protInt <- as.data.table(protInt)
@@ -82,27 +82,27 @@ computeReplicateCounts <- function(intensityDF){
 #' 
 #' @importFrom SummarizedExperiment rowData
 
-createCompleteIntensityExperiment <- function(IntensityExperiment, intensityDF){
+createCompleteIntensityExperiment <- function(IntensityExperiment, longIntensityDT){
   
   CompleteIntensityExperiment <- IntensityExperiment
   
   # replace Intensity with missing values to normalized log scale with imputed values
-  intensityDFWide <- intensityDF %>% pivot_wider(id_cols = "ProteinId", 
+  wideIntensityDT <- longIntensityDT %>% pivot_wider(id_cols = "ProteinId", 
                                                names_from = "IntensityColumn", 
                                                values_from = "log2NIntNorm")
   
-  intensityMatrixWide <- intensityDFWide %>% dplyr::select(-ProteinId)
+  intensityMatrixWide <- wideIntensityDT %>% dplyr::select(-ProteinId)
   intensityMatrixWide <- as.matrix(intensityMatrixWide)
-  rownames(intensityMatrixWide) <- intensityDFWide$ProteinId
+  rownames(intensityMatrixWide) <- wideIntensityDT$ProteinId
   
   assay(CompleteIntensityExperiment) <- intensityMatrixWide
 
   # add imputed and replicate counts to the final object
-  imputedCounts <- computeImputedCounts(intensityDF)
+  imputedCounts <- computeImputedCounts(longIntensityDT)
   rowData(CompleteIntensityExperiment) <- merge(rowData(CompleteIntensityExperiment),
                                                            imputedCounts, by = "ProteinId", all.x = T)
   
-  replicateCounts <- computeReplicateCounts(intensityDF)
+  replicateCounts <- computeReplicateCounts(longIntensityDT)
   rowData(CompleteIntensityExperiment) <- merge(rowData(CompleteIntensityExperiment),
                                                            replicateCounts, by = "ProteinId", all.x = T)
   

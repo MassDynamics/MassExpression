@@ -20,5 +20,7 @@ Imports:
   dplyr, 
   S4Vectors,
   jsonlite,
-  tidyr
+  tidyr,
+  plotly,
+  ggplot2
 RoxygenNote: 7.1.1

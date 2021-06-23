@@ -1,0 +1,94 @@
+---
+title: "QCreport"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r data-needed}
+library(dplyr)
+library(stringr)
+
+design <- fragpipe_data$design
+intensities <- fragpipe_data$intensities
+
+listIntensityExperiments <- runGenericDiscovery(experimentDesign = design, proteinIntensities = intensities)
+
+CompleteIntensityExperiment <- listIntensityExperiments$CompleteIntensityExperiment
+IntensityExperiment <- listIntensityExperiments$IntensityExperiment
+
+# Create this combined object as output from the pipeline
+colNew <- colnames(as_tibble(rowData(CompleteIntensityExperiment)))
+imputedColNames <- colNew[str_detect(colNew, pattern = "NImputed|NReplicates")]
+featureData <- as_tibble(rowData(IntensityExperiment)) %>% 
+  left_join(as_tibble(rowData(CompleteIntensityExperiment))[,c("ProteinId","GeneId",imputedColNames)]) 
+
+CombinedIntensityExperiment <- SummarizedExperiment(assays = SimpleList(raw = assay(IntensityExperiment),
+                                                                        imputed = assay(CompleteIntensityExperiment)),
+                                                    rowData = featureData, colData = colData(IntensityExperiment))
+```
+
+```{r}
+intMat <- assays(CombinedIntensityExperiment)[['raw']]
+imputedIntMat <- assays(CombinedIntensityExperiment)[['imputed']]
+design <- as_data_frame(colData(CombinedIntensityExperiment))
+```
+
+# Experiment description
+
+The experiment contains `r nrow(design)` samples; the condition of interest has `r length(unique(design))` categories: `r paste(unique(design),collapse=" ")`.  
+
+
+# Dimensionality reduction {.tabset .tabset-fade .tabset-pills}
+
+## Initial data
+
+Log2 transformation was applied prior to performing dimensionality reduction. 
+
+**Add scatterplot with 3rd and 4rth dim**
+
+```{r pca-raw}
+pca_plot_experiment(intensities = intMat, design=design, log=TRUE)
+```
+
+
+**axes are leading logFC between samples - Add scatterplot with 3rd and 4rth dim and avoid plotting the first plot**
+
+```{r mds-raw}
+mds_plot_experiment(intMat, design, log = TRUE)
+```
+
+
+## Imputed data
+
+```{r pca-imputed}
+pca_plot_experiment(intensities = imputedIntMat, design=design)
+```
+
+
+```{r mds-imputed}
+mds_plot_experiment(imputedIntMat, design)
+```
+
+
+# Missingness {.tabset .tabset-fade .tabset-pills}
+
+
+## By sample
+
+**Change name from Replicate to Samples**
+**Difference between intensity column and replicate - would the missing values be summed if replicate have repeated values? Tech Replicate share the exact same biology, they were run in 2 different runs**
+
+```{r sample-missingness}
+replicate_missingness_experiment(intensities, design)
+```
+
+
+## 
+
+
+
+
+

@@ -5,7 +5,7 @@
 \title{Adds `intensityDF` information to `IntensityExperiment` with statistics about 
 the number of replicates and number of imputed values in each condition of interest}
 \usage{
-createCompleteIntensityExperiment(IntensityExperiment, intensityDF)
+createCompleteIntensityExperiment(IntensityExperiment, longIntensityDT)
 }
 \arguments{
 \item{IntensityExperiment}{output from `constructSummarizedExperiment`}
