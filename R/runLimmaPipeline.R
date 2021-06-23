@@ -8,13 +8,13 @@
 
 runLimmaPipeline <- function(IntensityExperiment){
   
-  intensityDF <- prepareIntensityDF(IntensityExperiment)
+  longIntensityDT <- preparelongIntensityDT(IntensityExperiment)
   
   # Create Median Normalized Measurements in each Condition/Replicate
-  intensityDF[Imputed == F, log2NIntNorm := log2NInt - median(log2NInt), by = list(Condition,Replicate)]
+  longIntensityDT[Imputed == F, log2NIntNorm := log2NInt - median(log2NInt), by = list(Condition,Replicate)]
   
   # Imputation
-  intensityDF <- imputeLFQ(intensityDF, 
+  longIntensityDT <- imputeLFQ(longIntensityDT, 
                          id_type = "ProteinId", 
                          int_type = "log2NIntNorm",
                          f_imputeStDev = 0.3,
@@ -22,7 +22,7 @@ runLimmaPipeline <- function(IntensityExperiment){
   
   
   # RunId will be unique to a row wherease replicate may not
-  intensityDF[, RunId := str_c(Condition, Replicate, sep = ".")]
+  longIntensityDT[, RunId := str_c(Condition, Replicate, sep = ".")]
   
   # Run LIMMA
   resultsQuant <- limmaStatsFun(ID_type = "ProteinId",
@@ -30,7 +30,7 @@ runLimmaPipeline <- function(IntensityExperiment){
                                    condition_col_name = "Condition",
                                    run_id_col_name = "RunId",
                                    rep_col_name = "Replicate",
-                                   funDT = intensityDF)
+                                   funDT = longIntensityDT)
   stats = resultsQuant[["stats"]]
   
   # data used for DE analysis - filtered, imputed, normalised
@@ -44,7 +44,7 @@ runLimmaPipeline <- function(IntensityExperiment){
   # SummarizedExperiment which contains the complete essay with imputed data and statistics
   # about the number of proteins imputed in each condition 
   CompleteIntensityExperiment <- createCompleteIntensityExperiment(IntensityExperiment=IntensityExperiment,
-                                                                   intensityDF = intensityDF)
+                                                                   longIntensityDT = longIntensityDT)
   
   list(IntensityExperiment=IntensityExperiment,
        CompleteIntensityExperiment=CompleteIntensityExperiment)
