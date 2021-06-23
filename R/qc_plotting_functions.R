@@ -132,5 +132,44 @@ replicate_missingness_experiment <- function(intensities, design){
   
 }
 
+#' Histogram of the distribution of missingness by protein where missingness is defined as 0 values.
+#' 
+#' @param intensities Matrix of intensities (rows are features, columns are samples)
+#' 
+#' @export protein_missingness_experiment
 
+
+protein_missingness_experiment <- function(intensities){
+  
+  num.samples <- dim(intensities)[2]
+  missing.vector <- rowSums(0 == intensities)
+  missing.vector <- 1-missing.vector/num.samples
+  tot.features <- nrow(intensities) 
+  
+  # number of proteins with the max number of missing values
+  ymax = max(table(missing.vector)) #/length(missing.vector)
+  
+  dt = as.data.frame(list(missing.vector = missing.vector))
+  prot30perc <- sum(missing.vector <= 0.3)
+  p <- ggplot(dt, aes(x = missing.vector)) +
+    annotate('rect', xmin = -0.05, xmax = 0.3, ymin = 0, ymax = ymax, alpha=0.2)  +
+    geom_histogram(binwidth = max(0.1, round(1/max(num.samples), 2)), fill="skyblue2") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.2),
+          panel.grid.major.y = element_blank(),
+          panel.border = element_blank(),
+          axis.ticks.y = element_blank()
+    ) +
+    scale_x_continuous("% of missing values per protein", 
+                       labels = scales::percent, 
+                       limits = c(-0.05, 1.15), 
+                       breaks = seq(0, 1, 0.1)) +
+    labs(y = "Number of proteins") +
+    annotate('text', x = 0.5, y = 0.8*ymax, 
+             label=str_c("Number of proteins with\n <= 30% missing values: ", prot30perc, "\n",
+                         round(prot30perc/tot.features,2)*100, "% of total proteins") )
+  
+  p
+  
+}
 

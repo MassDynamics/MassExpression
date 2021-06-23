@@ -7,34 +7,38 @@
 #' intensities for each protein Id and intensity column
 #' 
 #' @param IntensityExperiment Output from constructSummarizedExperiment
-#' @export makeLongIntensityDF
+#' @export SEToLongDT
 #' @importFrom SummarizedExperiment rowData colData assay
+#'
 #' @import data.table
+#' @importFrom tidyr pivot_longer
 
-makeLongIntensityDF <- function(IntensityExperiment){
-  wide <- as.data.table(assay(IntensityExperiment))
-  colnames(wide) <- IntensityExperiment$IntensityColumn
+SEToLongDT <- function(IntensityExperiment){
+  wide <- data.frame(assay(IntensityExperiment))
   wide$ProteinId <- rowData(IntensityExperiment)$ProteinId
-  long <- melt(wide, id.vars = c("ProteinId"), variable.name = "IntensityColumn", value.name = "Intensity")
-  long <- merge(long, SummarizedExperiment::colData(IntensityExperiment), by =  "IntensityColumn")
+  long <- wide %>% pivot_longer(cols = all_of(colnames(assay(IntensityExperiment))), 
+                                names_to = "IntensityColumn", 
+                                values_to = "Intensity")
+  
+  long <- long %>% dplyr::left_join(as_tibble(colData(IntensityExperiment)))
   as.data.table(long)
 }
 
 
-#' This function performs the log2 conversion and writes the imputed column
-#' @param IntensityExperiment Output from constructSummarizedExperiment
-#' @export prepareLongIntensityDF
 
-prepareLongIntensityDF <- function(IntensityExperiment){
-  protInt <- makeLongIntensityDF(IntensityExperiment)
+#' This function performs the log2 conversion and initialise the imputed column
+#' @param IntensityExperiment Output from constructSummarizedExperiment
+#' @export initialiseLongIntensityDT
+
+initialiseLongIntensityDT <- function(IntensityExperiment){
+  protInt <- SEToLongDT(IntensityExperiment)
   stopifnot(dim(protInt)[1]>0)
   protInt <- as.data.table(protInt)
   protInt[, Imputed := 0L]
   protInt[Intensity == 0, Imputed := 1L]
   protInt[, log2NInt := 0.0]
   protInt[Intensity > 0 , log2NInt := log2(Intensity)]
-  
-  protInt 
+  as.data.table(protInt) 
 }
 
 

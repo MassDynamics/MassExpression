@@ -30,78 +30,75 @@ library(tidyverse)
 library(MassExpression)
 ```
 
-The data contains `r nrow(design)` experiments; the condition of interest has `r length(unique(design))`` levels in the condition of interest. 
+
+```{r imputed-data}
+
+design <- fragpipe_data$design
+intensities <- fragpipe_data$intensities
+
+listIntensityExperiments <- runGenericDiscovery(experimentDesign = design, proteinIntensities = intensities)
+
+CompleteIntensityExperiment <- listIntensityExperiments$CompleteIntensityExperiment
+IntensityExperiment <- listIntensityExperiments$IntensityExperiment
+
+intensities <- assay(IntensityExperiment)
+design <- data.frame(colData(IntensityExperiment))
+
+# mds_plot_experiment(intensities, design)[[1]]
+```
+
+
+- density plot after imputation and filtering
 
 ## QC functions
 
+**protein_counts_by_replicate**: removed as we already had the number of proteins per samples with non zero values. This will just return the same 
+number per sample given how we built the long format. 
+
 ```{r}
-# this function creates a histogram missingness by protein row
-# where missingness is defined as 0 values
-protein_missingness_experiment <- function(intensities, design){
+cvdt <- prot_int[Imputed == 0][, countRep := .N, by = .(id, condition)]
+cvdt[, countRepMax := max(countRep), by = .(id, condition)]
+cvdt[, ReplicatePC := countRep/countRepMax]
+cvdt[, intensity := as.double(intensity)]
+cvdt <- cvdt[ReplicatePC >= 0.5, .(cv = sd(intensity)/mean(intensity)), by = .(id, condition)]
+```
 
-  num.samples <- dim(intensities)[2]
-  missing.vector <- rowSums(0 == intensities)
+
+- dispersion versus mean
+
+```{r}
+longIntensityDT <- initialiseLongIntensityDT(IntensityExperiment)
+
+plot_protein_cv_distribution <- function(longIntensityDT){
   
-  missing.vector <- missing.vector/num.samples
-  ymax = max(table(missing.vector))#/length(missing.vector)
+    cvdt <- longIntensityDT[Imputed == 0][, countRep := .N, by = .(Replicate, Condition)]
+    cvdt[, countRepMax := max(countRep), by = .(Replicate, Condition)]
+    cvdt[, ReplicatePC := countRep/countRepMax]
+    cvdt[, intensity := as.double(Intensity)]
+    cvdt <- cvdt[ReplicatePC >= 0.5, .(cv = sd(intensity)/mean(intensity)), 
+                 by = .(Replicate, Condition)]
   
-  
-  dt = as.data.frame(list(missing.vector = missing.vector))
-  p <- ggplot(dt, aes(x = missing.vector)) +
-    annotate('rect', xmin = 0.7, xmax = 1.05, ymin = 0, ymax = ymax, alpha=0.2)  +
-    geom_histogram(binwidth = max(0.1, round(1/max(num.samples), 2)), fill="skyblue2") +
+  p <- ggplot(cvdt, aes(x=cv, fill=Condition, colour=Condition)) +
+    geom_density(alpha=0.4) +
     theme_minimal() +
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.2),
-          panel.grid.major.y = element_blank(),
-          panel.border = element_blank(),
-          axis.ticks.y = element_blank()
-    ) +
-    scale_x_continuous("Percentage of measurements per protein", 
-                       labels = scales::percent, 
-                       limits = c(-0.05, 1.15), 
-                       breaks = seq(0, 1, 0.1)) +
-    annotate('text', x = 0.5, y = 0.8*ymax, 
-             label=str_c("Number of proteins with\nmissing values <= 30%:\n ", sum(missing.vector >= 0.7)))
-  
-  p
-  
-}
-
-# this protein plots the number of identifications ??
-protein_counts_by_replicate <- function(protein.summarized.experiment){
-  
-  long <- get_long_protein_intensity(protein.summarized.experiment)
-
-  dt <- long[, .N, by = .(Condition, Replicate)]
-  dt[, Replicate := str_c(Condition, Replicate, sep = " - ")]
-  p <- ggplot(dt, aes(x = as.factor(Replicate), y = N, color = Condition, label=Replicate)) +
-    geom_segment( aes(x=as.factor(Replicate), xend=as.factor(Replicate), y=0, yend=N), color="skyblue") +
-    geom_point(size=2, alpha=0.9) +
-    coord_flip() +
-    theme_minimal() +
-    scale_x_discrete("Condition - Replicate") +
-    scale_y_continuous("# Identifications") +
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.2),
-          panel.grid.major.y = element_blank(),
-          panel.border = element_blank(),
-          axis.ticks.y = element_blank()
-    )
+    scale_x_continuous("% CV", labels = scales::percent) +
+    ggtitle("Protein Intensity CV")
   
   p
 }
 
-# This protein plots the CV distributuions of a protein summarized
+# This protein plots the CV distributions of a protein summarized
 # experiment object. Might need to distinguish pre/post workflow versions
-plot_protein_cv_distribution <- function(protein.summarized.experiment){
+
+# CV for each protein across conditions
+
+plot_protein_cv_distribution <- function(longIntensityDT){
   
-  long <- get_long_protein_intensity(protein.summarized.experiment)
-  cvdt <- long[, CountRep := .N, by = .(ProteinId, Condition)]
-  
-  cvdt[, CountRepMax := max(CountRep), by = .(ProteinId, Condition)]
-  cvdt[, ReplicatePC := CountRep/CountRepMax]
-  cvdt[, Intensity := as.double(Intensity)]
-  cvdt <- cvdt[ReplicatePC >= 0.5, .(cv = sd(Intensity)/mean(Intensity)), by = .(ProteinId, Condition)]
-  
+  cvdt <- longIntensityDT %>% group_by(ProteinId, Condition) %>%
+    summarise(cv = sd(Intensity)/mean(Intensity), 
+              sd = sd(Intensity), 
+              m = mean(Intensity))
+
   p <- ggplot(cvdt, aes(x=cv, fill=Condition, colour=Condition)) +
     geom_density(alpha=0.4) +
     theme_minimal() +
@@ -203,26 +200,6 @@ density_plot <- function(intensities, design, log=FALSE){
 ```
 
 
-```{r imputed-data}
-
-design <- fragpipe_data$design
-intensities <- fragpipe_data$intensities
-
-listIntensityExperiments <- runGenericDiscovery(experimentDesign = design, proteinIntensities = intensities)
-
-CompleteIntensityExperiment <- listIntensityExperiments$CompleteIntensityExperiment
-IntensityExperiment <- listIntensityExperiments$IntensityExperiment
-
-intensities <- assay(IntensityExperiment)
-design <- data.frame(colData(IntensityExperiment))
-
-# mds_plot_experiment(intensities, design)[[1]]
-```
-
-```{r}
-# mds_plot_experiment(intensities, design)[[2]]
-```
-
 
 ```{r}
 plot_rle_boxplot(intensities, design)
@@ -230,15 +207,6 @@ plot_rle_boxplot(intensities, design)
 
 # Data QC
 
-
-```{r Replicate missingness}
-replicate_missingness_experiment1(intensities, design)
-```
-
-```{r Protein Missingness}
-# not sure why 1 range isn't being rendered
-protein_missingness_experiment(IntensityExperiment)
-```
 
 ```{r}
 wide <- as.data.table(assay(protein.summarized.experiment))
@@ -249,7 +217,7 @@ as.data.table(long)
 ```
 
 ```{r Protein Counts}
-protein_counts_by_replicate(protein.summarized.experiment)
+protein_counts_by_replicate(IntensityExperiment)
 ```
 
 ```{r CV Distribution}
