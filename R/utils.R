@@ -24,7 +24,6 @@ makeLongIntensityDF <- function(IntensityExperiment){
 #' This function performs the log2 conversion and writes the imputed column
 #' @param IntensityExperiment Output from constructSummarizedExperiment
 #' @export prepareIntensityDF
-#' @import data.table
 
 prepareIntensityDF <- function(IntensityExperiment){
   protInt <- makeLongIntensityDF(IntensityExperiment)
@@ -42,12 +41,14 @@ prepareIntensityDF <- function(IntensityExperiment){
 #' Count the number of imputed features by condition and write to wide table
 #' @param intensityDF Long format table with raw and imputed intensities. Each row is a feature (protein/peptide).  
 #' @export computeImputedCounts
-#' @importFrom dplyr group_by 
+#' 
+#' @importFrom dplyr group_by summarize 
 #' @importFrom stringr str_c
+#' @importFrom tidyr pivot_wider
 
 computeImputedCounts <- function(intensityDF){
   imputedCounts <- intensityDF %>% group_by(ProteinId, Condition) %>%
-    summarize(NImputed = sum(Imputed))
+    dplyr::summarize(NImputed = sum(Imputed))
   
   imputedCounts <- imputedCounts %>% pivot_wider(id_cols = "ProteinId",
                                                  names_from = "Condition",
@@ -60,12 +61,10 @@ computeImputedCounts <- function(intensityDF){
 #' Count the replicates in each condition and write to wide table
 #' @param intensityDF Long format table with raw and imputed intensities. Each row is a feature (protein/peptide).
 #' @export computeReplicateCounts
-#' @importFrom dplyr group_by 
-#' @importFrom stringr str_c
 
 computeReplicateCounts <- function(intensityDF){
   replicateCounts <- intensityDF %>% group_by(ProteinId, Condition) %>%
-    summarize(NReplicates = n())
+    dplyr::summarize(NReplicates = dplyr::n())
   
   replicateCounts <- replicateCounts %>% pivot_wider(id_cols = "ProteinId",
                                                  names_from = "Condition",
@@ -80,8 +79,8 @@ computeReplicateCounts <- function(intensityDF){
 #' @param IntensityExperiment output from `constructSummarizedExperiment`
 #' @param intensityDF Long format table with raw and imputed intensities. Each row is a feature (protein/peptide).
 #' @export createCompleteIntensityExperiment
+#' 
 #' @importFrom SummarizedExperiment rowData
-#' @importFrom tidyr pivot_wider
 
 createCompleteIntensityExperiment <- function(IntensityExperiment, intensityDF){
   

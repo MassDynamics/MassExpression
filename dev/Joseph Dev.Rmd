@@ -1355,6 +1355,7 @@ prot.int <- results[[2]]
 
 
 ## QC
+
 ### Data QC
 
 ```{r clustering}
@@ -1379,9 +1380,6 @@ as.data.table(long)
 ```
 
 ```{r Protein Counts}
-
-
-
 protein_counts_by_replicate(protein.summarized.experiment)
 ```
 
@@ -1392,26 +1390,20 @@ plot_protein_cv_distribution(protein.summarized.experiment)
 ### Processing QC
 
 ```{r CV Distribution}
-
 plot_protein_cv_distribution(protein.summarized.experiment)
 ```
 
 ```{r Imputation}
-
-
 plot_imputed_vs_not(prot.int)
-
 ```
 
 ```{r Measurement Distribution}
-
-
-
 plot_measurement_distributions(prot.int)
 #plot_measurement_distributions(prot.int, T)
 plot_measurement_distributions(prot.int,F, "log2NIntNorm")
 plot_measurement_distributions(prot.int, T, "log2NIntNorm")
 ```
+
 
 ### New QC Concepts:
 
