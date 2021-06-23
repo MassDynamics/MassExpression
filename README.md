@@ -26,17 +26,29 @@ listIntensityExperiments <- runGenericDiscovery(experimentDesign = design, prote
   - `IntensityExperiment`: contains the raw data (including missing values) and the results of the limma statistics (which can be accessed with `rowData(IntensityExperiment)`) 
   - `CompleteIntensityExperiment`: contains the imputed data and summary statistics about the number of replicates and imputed proteins in each group of the conditions of interest. 
 
+```
+
+# Outputs
+
+The MassExpression package should produce outputs in several different formats, each serving a different purpose:
+
+1. Results Tables (these are standard human readable tables with parsed/transformed data, processed data and statistics)
+2. JSON Objects. (these are designed as inputs to a RAILS database for internal MD use)
+    a. protein_viz.json (this is the data required for the volcano plot analysis feature. It is the LIMMA statistics for each binary comparison).
+    b. protein_counts_and_intensities.json (this is the protein intensities in long form broken down by each protein/experimental condition with associate statistics and imputation flag.)
+3. .RData object (this is a catchall for experiment data we want to )
+
 **Save artefacts**
 
 The DE results from `IntensityExperiment` are going to be displayed for a user and therefore they need to be parsed into a `json` output (using the `writeProteinViz` function).  
 
 ```{r}
 CompleteIntensityExperiment <- listIntensityExperiments$CompleteIntensityExperiment
-IntensityExperiment <- listIntensityExperiments$IntensityExperiment
-writeProteinViz(outputFolder = outputFolder, IntensityExperiment=IntensityExperiment)
+results <- listIntensityExperiments$IntensityExperiment
+writeProteinViz(outputFolder = outputFolder, IntensityExperiment=results$IntensityExperiment)
 ```
 
-**Schema of the json output**
+**Schema of the protein_counts_and_intensities.json output**
 
 ```
 [
