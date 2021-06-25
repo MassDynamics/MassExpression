@@ -430,11 +430,11 @@ plot_condition_cv_distribution <- function(Experiment){
 
 plot_volcano <- function(comparison.statistics){
   p <- ggplot(comparison.statistics, 
-              aes(FoldChange, -log10(AdjustedPValue), fdr = AdjustedPValue, ProteinId = ProteinId)) + 
+              aes(FoldChange, -log10(PValue), fdr = AdjustedPValue, ProteinId = ProteinId)) + 
     geom_point() +
-    ggtitle(comparison.statistics$comparison) +
+    ggtitle(comparison.statistics$comparison[1]) +
     geom_hline(yintercept=-log10(0.05)) 
-  ggplotly(p)
+  p
 }
 
 
@@ -447,7 +447,7 @@ plot_ma <- function(comparison.statistics){
   p <- ggplot(comparison.statistics, 
               aes(x = AveExpr, y = FoldChange, ProteinId = ProteinId)) + 
     geom_point() +
-    ggtitle(comparison.statistics$comparison) +
+    ggtitle(comparison.statistics$comparison[1]) +
     geom_hline(yintercept=0)
-  ggplotly(p)
+  p
 }

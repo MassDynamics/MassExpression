@@ -11,16 +11,69 @@ intensities <- mq_lfq_data$intensities
 
 listIntensityExperiments <- runGenericDiscovery(experimentDesign = design, proteinIntensities = intensities)
 
-# debugonce(runGenericDiscovery(experimentDesign = design, proteinIntensities = intensities))
+CompleteIntensityExperiment <- listIntensityExperiments$CompleteIntensityExperiment
+IntensityExperiment <- listIntensityExperiments$IntensityExperiment
+
+
+rmarkdown::render('QCreport.Rmd', params = list(listInt = listIntensityExperiments, 
+                                                        experiment= "MaxQuant LFQ HER2"),
+                  output_file = "MQ-HER2-QC")
+```
+
+
+## DIA-NN data
+
+```{r}
+load("../data-private/example_diann_sheep.rda")
+design <- diann_sheep_data$design
+intensities <- diann_sheep_data$intensities
+
+listIntensityExperiments <- runGenericDiscovery(experimentDesign = design, 
+                                                proteinIntensities = intensities, 
+                                                output_folder = "~/Desktop/test")
 
 CompleteIntensityExperiment <- listIntensityExperiments$CompleteIntensityExperiment
 IntensityExperiment <- listIntensityExperiments$IntensityExperiment
+
+
+rmarkdown::render('QCreport.Rmd', params = list(listInt = listIntensityExperiments, 
+                                                        experiment= "DIA-NN Sheep Plasma"),
+                  output_file = "DIA-NN-Sheep")
 ```
 
 
+## Proteome Discoverer
 
 ```{r}
-rmarkdown::render('QCreport.Rmd', params = list(IntensityExperiment = IntensityExperiment, 
-                                            CompleteIntensityExperiment = CompleteIntensityExperiment))
+design <- pd_iPRG_data$design
+intensities <- pd_iPRG_data$intensities
+
+listIntensityExperiments <- runGenericDiscovery(experimentDesign = design,
+                                                proteinIntensities = intensities)
+
+CompleteIntensityExperiment <- listIntensityExperiments$CompleteIntensityExperiment
+IntensityExperiment <- listIntensityExperiments$IntensityExperiment
+
+
+rmarkdown::render('QCreport.Rmd', params = list(listInt = listIntensityExperiments, 
+                                                        experiment= "PD LFQ"),
+                  output_file = "Proteome Discoverer")
 ```
 
+
+## Fragpipe
+
+```{r}
+design <- fragpipe_data$design
+intensities <- fragpipe_data$intensities
+
+listIntensityExperiments <- runGenericDiscovery(experimentDesign = design, proteinIntensities = intensities)
+
+CompleteIntensityExperiment <- listIntensityExperiments$CompleteIntensityExperiment
+IntensityExperiment <- listIntensityExperiments$IntensityExperiment
+
+
+rmarkdown::render('QCreport.Rmd', params = list(listInt = listIntensityExperiments, 
+                                                        experiment= "Fragpipe LFQ"),
+                  output_file = "Fragpipe")
+```

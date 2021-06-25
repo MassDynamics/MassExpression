@@ -988,9 +988,6 @@ comparison.experiments <-
   get_list_comparison_experiments(complete.protein.summarized.experiment)
 
 
-
-
-
 save(protein.summarized.experiment, 
      complete.protein.summarized.experiment, 
      prot.int,

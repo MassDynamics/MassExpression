@@ -6,6 +6,9 @@ output:
     theme: united
     toc: yes
     toc_float: yes
+params:
+  listInt: empty
+  experiment: experiment_name
 ---
 
 
@@ -19,23 +22,23 @@ library(stringr)
 library(MassExpression)
 library(plotly)
 
-design <- mq_lfq_data$design
-intensities <- mq_lfq_data$intensities
+#design <- mq_lfq_data$design
+#intensities <- mq_lfq_data$intensities
 
 #debugonce(runGenericDiscovery(experimentDesign = design, proteinIntensities = intensities))
-listIntensityExperiments <- runGenericDiscovery(experimentDesign = design, proteinIntensities = intensities)
+#listIntensityExperiments <- runGenericDiscovery(experimentDesign = design, proteinIntensities = intensities)
 
-CompleteIntensityExperiment <- listIntensityExperiments$CompleteIntensityExperiment
-IntensityExperiment <- listIntensityExperiments$IntensityExperiment
+#CompleteIntensityExperiment <- listIntensityExperiments$CompleteIntensityExperiment
+#IntensityExperiment <- listIntensityExperiments$IntensityExperiment
+
+
+CompleteIntensityExperiment <- params$listInt$CompleteIntensityExperiment
+IntensityExperiment <- params$listInt$IntensityExperiment
+
 ```
 
-# Things still to do:
-- Write comments in each section 
-- Decide between PCA/MDS 
-- Decide about showing the different intensity distributions
-- Change in experimental design
 
-# 1. Experiment Health
+# 1. Experiment Health for: `r params$experiment`
 
 The experiment contains `r nrow(design)` samples; the condition of interest has `r length(unique(design$Condition))` categories: `r paste(unique(design$Condition),collapse=", ")`.  
 
@@ -150,8 +153,11 @@ for(lfc in logfcs){
   comp_name <- str_remove(lfc, "logFC.")
   adj <- paste0("adj.P.Val.",comp_name)
   adjp <- colnames(stats)[str_detect(colnames(stats), adj)]
+  pval <- paste0("P.Value.",comp_name)
+  pval_col <- colnames(stats)[str_detect(colnames(stats), pval)]
   comparison.statistics <- data.frame(FoldChange=stats[,lfc],
                                       AdjustedPValue=stats[,adjp], 
+                                      PValue = stats[,pval_col],
                                       ProteinId=stats$ProteinId, comparison=comp_name)
   print(plot_volcano(comparison.statistics))
   
@@ -176,7 +182,7 @@ for(lfc in logfcs){
 
 ## Histogram of pvalues
 
-```{r}
+```{r }
 pvals <- colnames(stats)[str_detect(colnames(stats), "P.Value.")]
 
 for(pval in pvals){

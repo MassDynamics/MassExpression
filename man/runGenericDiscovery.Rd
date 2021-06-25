@@ -4,12 +4,22 @@
 \alias{runGenericDiscovery}
 \title{This function orchestrates the MassExpression workflow (could be called by a  workflow step)}
 \usage{
-runGenericDiscovery(experimentDesign, proteinIntensities)
+runGenericDiscovery(
+  experimentDesign,
+  proteinIntensities,
+  normalise = FALSE,
+  output_folder
+)
 }
 \arguments{
 \item{experimentDesign}{XX.}
 
 \item{proteinIntensities}{XX}
+}
+\value{
+List of two SummarisedExperiment objects: `IntensityExperiment` 
+containing the raw intensities and  `CompleteIntensityExperiment` including 
+imputed intensities.
 }
 \description{
 This function orchestrates the MassExpression workflow (could be called by a  workflow step)

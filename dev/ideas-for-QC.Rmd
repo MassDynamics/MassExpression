@@ -3,6 +3,14 @@ title: "Ideas for QC"
 output: html_notebook
 ---
 
+# Things still to do:
+
+- Write comments in each section 
+- Decide between PCA/MDS 
+- Decide about showing the different intensity distributions
+- Change in experimental design
+
+
 The intensities plotted in each plot should just come from the assay provided in input. 
 
 - PCA or MDS : SummExp one for raw data and one for imputed (and normalised)
