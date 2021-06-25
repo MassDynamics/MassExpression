@@ -6,7 +6,7 @@
 corresponding gene and description and adds them to a protein intensity table 
 coming from maxquant}
 \usage{
-assign_uniprot_ids_mq(protein.intensities)
+assign_uniprot_ids_mq(proteinGroups)
 }
 \description{
 This function uses regex to get the first uniprot assession and the

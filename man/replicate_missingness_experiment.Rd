@@ -4,12 +4,10 @@
 \alias{replicate_missingness_experiment}
 \title{this function creates a lollipop plot of missingness by intensity column where missingness is defined as a value equal to 0 .}
 \usage{
-replicate_missingness_experiment(intensities, design)
+replicate_missingness_experiment(Experiment)
 }
 \arguments{
-\item{intensities}{Matrix of intensities (rows are features, columns are samples)}
-
-\item{design}{Experimental design}
+\item{Experiment}{SummarizedExperiment object}
 }
 \description{
 this function creates a lollipop plot of missingness by intensity column where missingness is defined as a value equal to 0 .

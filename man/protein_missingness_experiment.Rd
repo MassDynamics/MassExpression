@@ -4,10 +4,10 @@
 \alias{protein_missingness_experiment}
 \title{Histogram of the distribution of missingness by protein where missingness is defined as 0 values.}
 \usage{
-protein_missingness_experiment(intensities)
+protein_missingness_experiment(Experiment)
 }
 \arguments{
-\item{intensities}{Matrix of intensities (rows are features, columns are samples)}
+\item{Experiment}{SummarizedExperiment object}
 }
 \description{
 Histogram of the distribution of missingness by protein where missingness is defined as 0 values.

@@ -32,7 +32,6 @@ library(MassExpression)
 
 
 ```{r imputed-data}
-
 design <- fragpipe_data$design
 intensities <- fragpipe_data$intensities
 
@@ -42,9 +41,8 @@ CompleteIntensityExperiment <- listIntensityExperiments$CompleteIntensityExperim
 IntensityExperiment <- listIntensityExperiments$IntensityExperiment
 
 intensities <- assay(IntensityExperiment)
+intensities_imp <- assay(CompleteIntensityExperiment)
 design <- data.frame(colData(IntensityExperiment))
-
-# mds_plot_experiment(intensities, design)[[1]]
 ```
 
 
@@ -66,12 +64,145 @@ cvdt <- cvdt[ReplicatePC >= 0.5, .(cv = sd(intensity)/mean(intensity)), by = .(i
 
 - dispersion versus mean
 
-```{r}
-longIntensityDT <- initialiseLongIntensityDT(IntensityExperiment)
 
-plot_protein_cv_distribution <- function(longIntensityDT){
+```{r}
+Experiment <- CompleteIntensityExperiment
+protein_counts_by_replicate <- function(Experiment){
   
-    cvdt <- longIntensityDT[Imputed == 0][, countRep := .N, by = .(Replicate, Condition)]
+  longIntensityDF <- as_tibble(SEToLongDT(Experiment))
+  if(sum(str_detect(colnames(longIntensityDF), "NImputed")) != 0){
+      imputedColNames <- str_detect(colnames(longIntensityDF), "NImputed")
+      longIntensityDF$Imputed  <- rowSums(longIntensityDF[,imputedColNames]) > 0 
+      longIntensityDF <- longIntensityDF[!longIntensityDF$Imputed, ]
+  }else{
+    longIntensityDF <- longIntensityDF[longIntensityDF$Intensity > 0, ]
+  }
+
+  dt <- longIntensityDF %>% 
+    group_by(Condition, Replicate) %>%
+    summarise(N = n()) %>%
+    mutate(Replicate = fct_reorder(Replicate, as.numeric(as.factor(Condition))))
+  
+  p <- ggplot(dt, aes(x = as.factor(Replicate), y = N, color = Condition, label=Replicate)) +
+    geom_segment( aes(x=as.factor(Replicate), xend=as.factor(Replicate), y=0, yend=N), color="skyblue") +
+    geom_point(size=2, alpha=0.9) +
+    coord_flip() +
+    theme_minimal() +
+    scale_x_discrete("Condition - Replicate") +
+    scale_y_continuous("# Identified proteins") +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.2),
+          panel.grid.major.y = element_blank(),
+          panel.border = element_blank(),
+          axis.ticks.y = element_blank()
+    )
+  
+  p
+}
+```
+
+## CV trials
+
+```{r}
+plot_condition_cv_distribution <- function(Experiment){
+  Experiment <- CompleteIntensityExperiment
+  imputedColNames <- str_detect(colnames(rowData(Experiment)), "NImputed")
+  nImp <- rowSums(as.matrix(rowData(Experiment)[, imputedColNames]))/ncol(Experiment)
+  
+  Experiment <- Experiment[nImp <= 0.5,]
+  useProt <- rownames(Experiment)
+  longIntensityDT <- initialiseLongIntensityDT(IntensityExperiment)
+  longIntensityDT <- longIntensityDT %>% filter(ProteinId %in% useProt)
+  
+  
+  cvdt <- longIntensityDT[, countRep := .N, by = .(Replicate, Condition)]
+  cvdt[, countRepMax := max(countRep), by = .(Replicate, Condition)]
+  cvdt[, ReplicatePC := countRep/countRepMax]
+  cvdt[, intensity := as.double(Intensity)]
+  cvdt <- cvdt[ReplicatePC >= 0.5, .(cv = sd(intensity)/mean(intensity)), 
+               by = .(Replicate, Condition)]
+  
+  cvdt <- longIntensityDT %>% group_by(ProteinId, Condition) %>%
+    summarise(m = mean(Intensity), 
+              sd = sd(Intensity), 
+              cv = sd(Intensity)/mean(Intensity))
+  
+  p <- ggplot(cvdt, aes(x=cv, fill=Condition, colour=Condition)) +
+    geom_density(alpha=0.4) +
+    theme_minimal() +
+    scale_x_continuous("% CV", labels = scales::percent) +
+    ggtitle("Protein Intensity CV")
+  
+  p
+  
+  ggplot(cvdt, aes(x=log2(m), y = cv, fill=Condition, colour=Condition))+
+    geom_point()
+  
+}
+```
+
+
+```{r}
+#' @export protein_missingness_experiment_1
+protein_missingness_experiment_1 <- function(Experiment){
+  
+  num.replicates <- dim(assay(Experiment))[2]
+  
+  missing.vector <- rowSums(0 == (assay(Experiment)))
+  missing.vector <- missing.vector/num.replicates
+  ymax = max(table(missing.vector))#/length(missing.vector)
+  
+  
+  dt = as.data.frame(list(missing.vector = missing.vector))
+  p <- ggplot(dt, aes(x = missing.vector)) +
+    annotate('rect', xmin = 0.7, xmax = 1.05, ymin = 0, ymax = ymax, alpha=0.2)  +
+    geom_histogram(binwidth = max(0.1, round(1/max(num.replicates), 2)), fill="skyblue2") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.2),
+          panel.grid.major.y = element_blank(),
+          panel.border = element_blank(),
+          axis.ticks.y = element_blank()
+    ) +
+    scale_x_continuous("Percentage of measurements per protein", 
+                       labels = scales::percent, 
+                       limits = c(-0.05, 1.15), 
+                       breaks = seq(0, 1, 0.1)) +
+    annotate('text', x = 0.5, y = 0.8*ymax, 
+             label=str_c("Number of proteins with\nmissing values <= 30%:\n ", sum(missing.vector >= 0.7)))
+  
+  p
+  
+}
+
+
+```
+
+
+```{r}
+plot_protein_cv_distribution <- function(Experiment){
+  longIntensityDF <-as_tibble(SEToLongDT(Experiment))
+  imputedColNames <- str_detect(colnames(longIntensityDF), "NImputed")
+  longIntensityDF$Imputed  <- rowSums(longIntensityDF[,imputedColNames]) > 0 
+  longIntensityDF <- longIntensityDF[!longIntensityDF$Imputed, ]
+  
+  cvdt <- as_tibble(longIntensityDF) %>% 
+    group_by(ProteinId, Condition) %>%
+    summarise(m = mean(Intensity), sd = sd(Intensity)) %>%
+    mutate(cv = sd/m)
+  
+  p <- ggplot(cvdt, aes(x=log2(cv), fill=Condition, colour=Condition)) +
+  geom_density(alpha=0.4) +
+  theme_minimal() +
+  scale_x_continuous("% CV", labels = scales::percent) +
+  ggtitle("Protein Intensity CV")
+  p
+}
+```
+
+
+```{r}
+plot_protein_cv_distribution <- function(Experiment){
+    longIntensityDT <- initialiseLongIntensityDT(Experiment)
+    cvdt <- longIntensityDT[, countRep := .N, by = .(Replicate, Condition)]
     cvdt[, countRepMax := max(countRep), by = .(Replicate, Condition)]
     cvdt[, ReplicatePC := countRep/countRepMax]
     cvdt[, intensity := as.double(Intensity)]
@@ -92,46 +223,26 @@ plot_protein_cv_distribution <- function(longIntensityDT){
 
 # CV for each protein across conditions
 
-plot_protein_cv_distribution <- function(longIntensityDT){
-  
-  cvdt <- longIntensityDT %>% group_by(ProteinId, Condition) %>%
-    summarise(cv = sd(Intensity)/mean(Intensity), 
-              sd = sd(Intensity), 
-              m = mean(Intensity))
+# cv - complete data but initial intensities
 
-  p <- ggplot(cvdt, aes(x=cv, fill=Condition, colour=Condition)) +
-    geom_density(alpha=0.4) +
-    theme_minimal() +
-    scale_x_continuous("% CV", labels = scales::percent) +
-    ggtitle("Protein Intensity CV")
-  
-  p
-}
-
-# Plots imputed vs not distribution to show how mnar imputation works
-plot_imputed_vs_not <- function(prot.int){
-  prot.int$Imputed <- as.character(prot.int$Imputed)
-  p <- ggplot(prot.int, aes(x=log2NIntNorm, fill=Imputed, 
-                            colour = Imputed)) +
-    geom_density(alpha=0.4) +
-    theme_minimal() +
-    ggtitle("Intensity (Imputed vs Not)")
-  
-  
-  p
-
-}
 
 #This shows the intensities by each condition/replicate
-plot_measurement_distributions <- function(prot.int, 
-                                           use_imputed = F, 
-                                           measurement = "log2NInt"){
+plot_measurement_distributions <- function(Experiment, 
+                                           use_imputed = F){ 
+                                           #measurement = "log2NInt"){
+  
+  longIntensityDF <- as_tibble(SEToLongDT(Experiment))
+  if(sum(str_detect(colnames(longIntensityDF), "NImputed")) == 0){
+    stop("Imputation column information not present.")
+  }
+  imputedColNames <- str_detect(colnames(longIntensityDF), "NImputed")
+  longIntensityDF$Imputed  <- rowSums(longIntensityDF[,imputedColNames]) > 0 
   
   if (!use_imputed){
-    prot.int <- prot.int[Imputed==F]
+    longIntensityDF <- longIntensityDF[!longIntensityDF$Imputed,]
   }
   
-  p <- ggplot(prot.int , aes(x=Replicate, y=get(measurement), fill=Condition, colour=Condition)) +
+  p <- ggplot(longIntensityDF , aes(x=Replicate, y=Intensity, fill=Condition, colour=Condition)) +
     geom_boxplot() +
     theme_minimal() +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.2),

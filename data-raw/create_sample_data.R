@@ -103,20 +103,12 @@ save(fragpipe_data, file = "./data/example_fragpipe.rda")
 
 
 #### Maxquant LFQ HER2
-
-experiment_home <- "../data-s3/maxquant/LFQ/HER2/data/"
+experiment_home <- "../data-s3/data-formats/maxquant/LFQ/HER2/data/"
 protein.intensities <- read.csv(file.path(experiment_home, "proteinGroups.txt"), sep = "\t", stringsAsFactors = F)
-assay_mq_lfq <- convert_protein_groups_to_universal(protein.intensities)
+design <- read.csv(file.path(experiment_home, "experimentDesign_original.txt"), sep = "\t", stringsAsFactors = F)
 
-cols <- colnames(assay_mq_lfq)[grepl("LFQ.intensity.", colnames(assay_mq_lfq))]
-runs <- gsub("LFQ.intensity.", "", cols)
-groups <- gsub("_","",str_extract(runs,"_(.*)_"))
-
-experiment.design <- as_data_frame(cbind(cols,runs,groups))
-colnames(experiment.design) <- c("IntensityColumn", "Replicate", "Condition")
-design_mq_lfq <- experiment.design
-
-mq_lfq_data <- list(intensities = assay_mq_lfq, design = design_mq_lfq)
+# debugonce(MaxQuantTranform(protein.intensities, design))
+mq_lfq_data <- MaxQuantTranform(protein.intensities, design)
 
 save(mq_lfq_data, file = "./data/example_mq_lfq.rda")
 

@@ -4,7 +4,7 @@
 \alias{filter_columns_mq}
 \title{This function removes bad rows in a maxquant protein intensity object}
 \usage{
-filter_columns_mq(protein.intensities)
+filter_columns_mq(proteinGroups)
 }
 \description{
 This function removes bad rows in a maxquant protein intensity object

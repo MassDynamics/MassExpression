@@ -4,14 +4,12 @@
 \alias{pca_plot_experiment}
 \title{Plot first 2 dimensions of PCA}
 \usage{
-pca_plot_experiment(intensities, design, log = FALSE)
+pca_plot_experiment(Experiment, log = FALSE)
 }
 \arguments{
-\item{intensities}{Matrix of intensities (rows are features, columns are samples)}
+\item{Experiment}{SummarizedExperiment object}
 
-\item{design}{Experimental design}
-
-\item{log}{logical}
+\item{log}{logical. Whether data should be logged before plotting}
 }
 \description{
 Plot first 2 dimensions of PCA

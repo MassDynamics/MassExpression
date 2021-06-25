@@ -1,0 +1,31 @@
+---
+title: "Ideas for QC"
+output: html_notebook
+---
+
+The intensities plotted in each plot should just come from the assay provided in input. 
+
+- PCA or MDS : SummExp one for raw data and one for imputed (and normalised)
+- **Potential add**: 
+  - density distributions before and after imputations (and normalised) (SummExp of initial data and imputed)
+  - boxplots of RLE before and after imputation (and normalised) (SummExp of initial data and imputed)
+- Missingness: 
+  - missing prot by sample (SummExp of initial data) `replicate_missingness_experiment`
+  - histogram of missingness of proteins (SummExp of initial data) `protein_missingness_experiment`. 
+  - - **Potential add**: Heatmap of samples by missingness (changing the intensity matrix to binary)
+    - can this be useful? missingness can really be related to biology - what does it mean?
+- Variability
+  - CV by protein (SummExp of initial data and imputed)
+  - CV by samples (SummExp of initial data and imputed)
+- - **Potential add**: PCA by protein? 
+  - what does this tell us?
+
+
+- **Potential add**: Stretch goals - Stats QC:
+  - For each comparisons would be good to have the MA plot (SA plot?) and histogram of pvalues.  
+
+
+**Change name from Replicate to Samples**
+**Difference between intensity column and replicate - would the missing values be summed if replicate have repeated values? Tech Replicate share the exact same biology, they were run in 2 different runs**
+
+**ADD heatmap of clustering by missing values**

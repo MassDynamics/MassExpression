@@ -22,5 +22,6 @@ Imports:
   jsonlite,
   tidyr,
   plotly,
-  ggplot2
+  ggplot2,
+  forcats
 RoxygenNote: 7.1.1

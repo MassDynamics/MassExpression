@@ -1,0 +1,26 @@
+---
+title: "render-qc-report"
+output: html_document
+---
+
+```{r data-needed, include=FALSE}
+library(MassExpression)
+
+design <- mq_lfq_data$design
+intensities <- mq_lfq_data$intensities
+
+listIntensityExperiments <- runGenericDiscovery(experimentDesign = design, proteinIntensities = intensities)
+
+# debugonce(runGenericDiscovery(experimentDesign = design, proteinIntensities = intensities))
+
+CompleteIntensityExperiment <- listIntensityExperiments$CompleteIntensityExperiment
+IntensityExperiment <- listIntensityExperiments$IntensityExperiment
+```
+
+
+
+```{r}
+rmarkdown::render('QCreport.Rmd', params = list(IntensityExperiment = IntensityExperiment, 
+                                            CompleteIntensityExperiment = CompleteIntensityExperiment))
+```
+

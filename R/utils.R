@@ -12,6 +12,7 @@
 #'
 #' @import data.table
 #' @importFrom tidyr pivot_longer
+#' @importFrom dplyr left_join as_tibble
 
 SEToLongDT <- function(IntensityExperiment){
   wide <- data.frame(assay(IntensityExperiment))
@@ -20,7 +21,8 @@ SEToLongDT <- function(IntensityExperiment){
                                 names_to = "IntensityColumn", 
                                 values_to = "Intensity")
   
-  long <- long %>% dplyr::left_join(as_tibble(colData(IntensityExperiment)))
+  long <- long %>% left_join(as_tibble(colData(IntensityExperiment)))
+  long <- long %>% left_join(as_tibble(rowData(IntensityExperiment)))
   as.data.table(long)
 }
 

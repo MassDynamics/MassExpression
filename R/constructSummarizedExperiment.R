@@ -26,7 +26,7 @@ constructSummarizedExperiment <- function(experimentDesign, proteinIntensities){
   colnames(assayData) <- experimentDesign$IntensityColumn
   rownames(assayData) <- proteinIntensities$ProteinId
   
-  rowFeatures <- proteinIntensities[,rowDataPresent] 
+  rowFeatures <- proteinIntensities[,rowDataPresent,drop=FALSE] 
   rowFeatures[,rowDataAbsent] <- NA
   
   # construct summarized experiment object

@@ -20,7 +20,7 @@ limmaStatsFun <- function(ID_type,
   
   
   if (all.comparisons) {
-    comination_mat <- combn(x = funDT[, unique(get(condition_col_name))], 2)
+     comination_mat <- combn(x = funDT[, unique(get(condition_col_name))], 2)
     pairwise.comp <- foreach (i = 1:ncol(comination_mat), .packages="foreach") %do% {
       return(data.table(
         left = comination_mat[1,i],
@@ -95,9 +95,10 @@ limmaStatsFun <- function(ID_type,
     left <- pairwise.comp[irow, left]
     right <- pairwise.comp[irow, right]
     
-    myContrasts = c(myContrasts,
-                    str_c("condition",left, "-", "condition",right))
+    newContrast <- str_c("condition",left, "-", "condition",right)
+    myContrasts = c(myContrasts, newContrast)
   }
+  # mappingContrastConditions <- cbind(pairwise.comp, myContrasts)
   
   
   contrast.matrix <- eval(as.call(c(

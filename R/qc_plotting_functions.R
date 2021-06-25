@@ -1,20 +1,44 @@
-
-#' Plot first 2 dimensions of PCA
+#' Extract the essay and colData (design data frame) from a SummarizedExperiment object
 #' 
-#' @param intensities Matrix of intensities (rows are features, columns are samples)
-#' @param design Experimental design
-#' @param log logical
+#' @param Experiment SummarizedExperiment object
+#' @param log logical. Whether data should be logged before plotting
 #' 
-#' @export pca_plot_experiment
+#' @export preparePlottingData
 #' 
 #' @import ggplot2 
-#' @importFrom dplyr as_data_frame 
+#' @importFrom dplyr as_tibble
+#' @importFrom SummarizedExperiment colData assay
 
-pca_plot_experiment <- function(intensities, design, log=FALSE){
+preparePlottingData <- function(Experiment, log=FALSE){
+  if(length(assay(IntensityExperiment)) > 1){
+    warnings("More than one essay is present in the SummarizedExperiment. 
+             Only the first one will be used.")
+  }
+  intensities <- assay(Experiment)
+  design <- as_tibble(colData(Experiment))
   
   if(log){
     intensities <- log2(intensities+0.5)
   }
+  
+  list(intensities=intensities, design=design)
+} 
+
+
+#' Plot first 2 dimensions of PCA
+#' 
+#' @param Experiment SummarizedExperiment object
+#' @param log logical. Whether data should be logged before plotting
+#' 
+#' @export pca_plot_experiment
+#' 
+#' @import ggplot2 
+
+pca_plot_experiment <- function(Experiment, log=FALSE){
+  # prepare data for plotting
+  toPlot <- preparePlottingData(Experiment, log)
+  intensities <- toPlot$intensities
+  design <- toPlot$design
   
   res.pca <- FactoMineR::PCA(t(intensities), graph = FALSE, ncp = 2)
   
@@ -22,19 +46,18 @@ pca_plot_experiment <- function(intensities, design, log=FALSE){
   eig.val <- data.table(dims = rownames(eig.val), eig.val)
   
   samples.pca <- factoextra::get_pca_ind(res.pca)
-  samples.coord <- as_data_frame(samples.pca$coord)
+  samples.coord <- as_tibble(samples.pca$coord)
   samples.coord$IntensityColumn = design$IntensityColumn
   
   samples.coord <- merge(samples.coord, design)
-  print(colnames(samples.coord))
   
-  
-  p <- ggplot(as_data_frame(samples.coord), aes(x = Dim.1, y=Dim.2, colour=Condition, fill=Condition, label=Replicate)) +
+  p <- ggplot(as_tibble(samples.coord), aes(x = Dim.1, y=Dim.2, colour=Condition, fill=Condition, label=Replicate)) +
     stat_ellipse(geom = "polygon", alpha=0.1) +
     geom_point(size = 3, alpha = 0.7) +
     theme_minimal() +
     scale_x_continuous(str_c("PCA 1 - ", eig.val[dims == "Dim.1", round(variance.percent,1)], "%")) +
-    scale_y_continuous(str_c("PCA 2 - ", eig.val[dims == "Dim.2", round(variance.percent,1)], "%"))
+    scale_y_continuous(str_c("PCA 2 - ", eig.val[dims == "Dim.2", round(variance.percent,1)], "%"))+
+    ggtitle("PCA plot")
   
   
   num_dimensions = sum(eig.val>0.01)-2
@@ -53,17 +76,17 @@ pca_plot_experiment <- function(intensities, design, log=FALSE){
 
 #' Plot first 2 dimensions of Multi-Dimensional Scaling plot
 #' 
-#' @param intensities Matrix of intensities (rows are features, columns are samples)
-#' @param design Experimental design
-#' @param log logical
+#' @param Experiment SummarizedExperiment object
+#' @param log logical. Whether data should be logged before plotting
 #' 
 #' @export mds_plot_experiment
 
-mds_plot_experiment <- function(intensities, design, log=FALSE){
+mds_plot_experiment <- function(Experiment, log=FALSE){
   
-  if(log){
-    intensities <- log2(intensities+0.5)
-  }
+  # prepare data for plotting
+  toPlot <- preparePlottingData(Experiment, log)
+  intensities <- toPlot$intensities
+  design <- toPlot$design
   
   pi <- limma::plotMDS(intensities, plot=FALSE)
   x <- pi$x
@@ -102,22 +125,25 @@ mds_plot_experiment <- function(intensities, design, log=FALSE){
 
 #' this function creates a lollipop plot of missingness by intensity column where missingness is defined as a value equal to 0 .
 #' 
-#' @param intensities Matrix of intensities (rows are features, columns are samples)
-#' @param design Experimental design
+#' @param Experiment SummarizedExperiment object
 #' 
 #' @export replicate_missingness_experiment
 
-replicate_missingness_experiment <- function(intensities, design){
+replicate_missingness_experiment <- function(Experiment){
+  # prepare data for plotting
+  intensities <- preparePlottingData(Experiment)[['intensities']]
   
   missing.vector <- colSums(0 == intensities)
-  missing.table <- as_data_frame(cbind(names(missing.vector), missing.vector))
+  missing.table <- as_tibble(cbind(names(missing.vector), missing.vector))
   colnames(missing.table) <- c("IntensityColumn", "MissingValues")
   missing.table <- merge(missing.table, design)
-  missing.table <- as_data_frame(missing.table)
+  missing.table <- as_tibble(missing.table)
   
   
-  p <- ggplot(missing.table, aes(x = Replicate, y = as.numeric(MissingValues), color = Condition, label=as.factor(Replicate))) +
-    geom_segment( aes(x= Replicate, xend= Replicate, y=0, yend=as.numeric(MissingValues)), color="grey") +
+  p <- ggplot(missing.table, aes(x = Replicate, y = as.numeric(MissingValues), 
+                                 color = Condition, label=as.factor(Replicate))) +
+    geom_segment( aes(x= Replicate, xend= Replicate, y=0, yend=as.numeric(MissingValues)), 
+                  color="grey") +
     geom_point(size=2, alpha=0.9) +
     coord_flip() +
     theme_minimal() +
@@ -132,18 +158,63 @@ replicate_missingness_experiment <- function(intensities, design){
   
 }
 
-#' Histogram of the distribution of missingness by protein where missingness is defined as 0 values.
+
+#' Lollipop plot of the number of proteins identified by replicate
 #' 
-#' @param intensities Matrix of intensities (rows are features, columns are samples)
+#'
+#' @param Experiment SummarizedExperiment object
+#' @export protein_counts_by_replicate
+
+
+protein_counts_by_replicate <- function(Experiment){
+  
+  longIntensityDF <- as_tibble(SEToLongDT(Experiment))
+  if(sum(str_detect(colnames(longIntensityDF), "NImputed")) != 0){
+    imputedColNames <- str_detect(colnames(longIntensityDF), "NImputed")
+    longIntensityDF$Imputed  <- rowSums(longIntensityDF[,imputedColNames]) > 0 
+    longIntensityDF <- longIntensityDF[!longIntensityDF$Imputed, ]
+  }else{
+    longIntensityDF <- longIntensityDF[longIntensityDF$Intensity > 0, ]
+  }
+  
+  dt <- longIntensityDF %>% 
+    group_by(Condition, Replicate) %>%
+    summarise(N = n()) %>%
+    mutate(Replicate = forcats::fct_reorder(Replicate, as.numeric(as.factor(Condition))))
+  
+  p <- ggplot(dt, aes(x = as.factor(Replicate), y = N, color = Condition, label=Replicate)) +
+    geom_segment( aes(x=as.factor(Replicate), xend=as.factor(Replicate), y=0, yend=N), 
+                  color="light grey") +
+    geom_point(size=2, alpha=0.9) +
+    coord_flip() +
+    theme_minimal() +
+    scale_x_discrete("Condition - Replicate") +
+    scale_y_continuous("# Identified proteins") +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.2),
+          panel.grid.major.y = element_blank(),
+          panel.border = element_blank(),
+          axis.ticks.y = element_blank()
+    )
+  
+  p
+}
+
+
+
+
+#' Histogram of the distribution of missingness by protein where missingness is defined as 0 values.
+#'
+#' @param Experiment SummarizedExperiment object
 #' 
 #' @export protein_missingness_experiment
 
-
-protein_missingness_experiment <- function(intensities){
+protein_missingness_experiment <- function(Experiment){
+  # prepare data for plotting
+  intensities <- preparePlottingData(Experiment)[['intensities']]
   
   num.samples <- dim(intensities)[2]
   missing.vector <- rowSums(0 == intensities)
-  missing.vector <- 1-missing.vector/num.samples
+  missing.vector <- (missing.vector/num.samples)
   tot.features <- nrow(intensities) 
   
   # number of proteins with the max number of missing values
@@ -151,25 +222,232 @@ protein_missingness_experiment <- function(intensities){
   
   dt = as.data.frame(list(missing.vector = missing.vector))
   prot30perc <- sum(missing.vector <= 0.3)
-  p <- ggplot(dt, aes(x = missing.vector)) +
-    annotate('rect', xmin = -0.05, xmax = 0.3, ymin = 0, ymax = ymax, alpha=0.2)  +
+  p <- ggplot(dt, aes(x = 1-missing.vector)) +
+    annotate('rect', xmin = 0.7, xmax = 1.05, ymin = 0, ymax = ymax, alpha=0.2)  +
     geom_histogram(binwidth = max(0.1, round(1/max(num.samples), 2)), fill="skyblue2") +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.2),
+          #panel.grid.major.y = element_blank(),
+          #panel.border = element_blank(),
+          #axis.ticks.y = element_blank()
+    ) +
+    scale_x_continuous("% of measurements per protein", 
+                       labels = scales::percent, 
+                       limits = c(-0.1, 1.15), 
+                       breaks = seq(0, 1, 0.1)) +
+    labs(y = "Number of proteins") +
+    annotate('text', x = 0.3, y = 0.8*ymax, 
+             label=str_c("Number of proteins with\n at least 30% available values: ", 
+                         prot30perc, "\n",
+                         round(prot30perc/tot.features,2)*100, "% of the total proteins") )
+  
+  p
+  
+}
+
+
+
+
+#' Boxplot of the distribution of the relative log expression values across samples. 
+#'
+#' @param Experiment SummarizedExperiment object
+#' 
+#' @export plot_rle_boxplot
+#' @importFrom tidyr pivot_longer
+
+plot_rle_boxplot <- function(Experiment, log=FALSE){
+  
+  # prepare data for plotting
+  toPlot <- preparePlottingData(Experiment, log)
+  intensities <- toPlot$intensities
+  design <- toPlot$design
+  
+  med_rows <- matrixStats::rowMedians(intensities)
+  intRLE <- intensities - med_rows
+  longIntRLE <- as_tibble(intRLE) %>% pivot_longer(cols = dplyr::all_of(colnames(intRLE)), 
+                                                   names_to = "IntensityColumn", 
+                                                   values_to = "intRLE")
+  
+  longIntRLE <- longIntRLE %>% dplyr::left_join(design)
+  
+  p = ggplot(longIntRLE, aes(x = IntensityColumn, y = intRLE)) + 
+    geom_boxplot(aes(fill = Condition)) + 
+    theme_minimal() + 
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.2),
+          panel.grid.major.y = element_blank(),
+          panel.border = element_blank(),
+          axis.ticks.y = element_blank()) +
+    scale_x_discrete("Replicate") +
+    scale_y_continuous("Log2 Reporter Intensity") +
+    ggtitle("Intensities are centered on protein's medians") + 
+    geom_hline(yintercept = 0, linetype="dotted")
+    #coord_flip()
+  
+  fig <- plotly::ggplotly(p, tooltip = c("y")) %>% plotly::config(displayModeBar = T, 
+                                                 modeBarButtons = list(list('toImage')),
+                                                 displaylogo = F)
+  # this code will be needed if you want to make an interactive version
+  fig$x$data <- lapply(fig$x$data, FUN = function(x){
+    # When creating plot p with ggplot if you specify fill = cut use x$fill$color instead of $line$color
+    x$marker$outliercolor = x$line$color 
+    # When creating plot p with ggplot if you specify fill = cut use x$fill$color instead $line$color
+    x$marker$color = x$line$color
+    # When creating plot p with ggplot if you specify fill = cut use x$fill$color instead $line$color
+    x$marker$line = x$line$color 
+    return(x)
+  })
+  
+  
+  p
+
+}
+
+#' Boxplot of the distribution of the log expression values across samples. 
+#'
+#' @param Experiment SummarizedExperiment object
+#' @param use_imputed logical
+#' @export plot_measurement_boxplot
+#' @importFrom stringr str_detect
+
+plot_measurement_boxplot <- function(Experiment, log=FALSE){ 
+  
+  longIntensityDF <- as_tibble(SEToLongDT(Experiment))
+  if(log){
+    longIntensityDF$Intensity <- log2(longIntensityDF$Intensity+0.5)
+  }
+  
+  p <- ggplot(longIntensityDF , aes(x=Replicate, y=Intensity, 
+                                    fill=Condition)) +
+    geom_boxplot() +
     theme_minimal() +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.2),
           panel.grid.major.y = element_blank(),
           panel.border = element_blank(),
           axis.ticks.y = element_blank()
     ) +
-    scale_x_continuous("% of missing values per protein", 
-                       labels = scales::percent, 
-                       limits = c(-0.05, 1.15), 
-                       breaks = seq(0, 1, 0.1)) +
-    labs(y = "Number of proteins") +
-    annotate('text', x = 0.5, y = 0.8*ymax, 
-             label=str_c("Number of proteins with\n <= 30% missing values: ", prot30perc, "\n",
-                         round(prot30perc/tot.features,2)*100, "% of total proteins") )
+    geom_hline(yintercept = 0, linetype="dotted", colour="grey") +
+    scale_x_discrete("Replicate") +
+    scale_y_continuous("Log2 Reporter Intensity")
+  
+  fig <- ggplotly(p, tooltip = c("y"))%>% config(displayModeBar = T, 
+                                                 modeBarButtons = list(list('toImage')),
+                                                 displaylogo = F)
+  # this code will be needed if you want to make an interactive version
+  fig$x$data <- lapply(fig$x$data, FUN = function(x){
+    # When creating plot p with ggplot if you specify fill = cut use x$fill$color instead of $line$color
+    x$marker$outliercolor = x$line$color 
+    # When creating plot p with ggplot if you specify fill = cut use x$fill$color instead $line$color
+    x$marker$color = x$line$color
+    # When creating plot p with ggplot if you specify fill = cut use x$fill$color instead $line$color
+    x$marker$line = x$line$color 
+    return(x)
+  })
+  
+  
+  p
+}
+
+
+#' Density distribution of intensity values
+#'
+#' @param Experiment SummarizedExperiment object
+#' 
+#' @export plot_density_distr
+plot_density_distr <- function(Experiment, log=FALSE){
+  # prepare data for plotting
+  toPlot <- preparePlottingData(Experiment, log)
+  intensities <- toPlot$intensities
+  design <- toPlot$design
+  
+  long_int <- as_tibble(intensities) %>% pivot_longer(cols = colnames(intensities), 
+                                           names_to = "IntensityColumn", 
+                                           values_to = "Intensity")
+  long_int <- long_int %>% left_join(design)
+  p = ggplot(long_int, aes(x = Intensity, fill = Condition, colour=Condition)) + 
+    geom_density(alpha=0.6) +
+    theme_minimal() +
+    labs(x = "log2 Reporter Intensity", y = "Density")
+  p
+}
+
+
+#' Distribution of imputed versus non imputed values. 
+#'
+#' @param Experiment SummarizedExperiment object
+#' @export plot_imputed_vs_not
+
+plot_imputed_vs_not <- function(RawDataExperiment, ImputedDataExperiment){
+  longRawDF <- SEToLongDT(RawDataExperiment)
+  longRawDF$Imputed <- longRawDF$Intensity == 0
+  longRawDF <- longRawDF[,c("ProteinId","Imputed","IntensityColumn")]
+  
+  # the intensity plotted are the ones present in the assay experiment
+  longIntensityDF <- SEToLongDT(ImputedDataExperiment)
+  longIntensityDF <- as_tibble(longIntensityDF) %>% left_join(as_tibble(longRawDF))
+  
+  p <- ggplot(longIntensityDF, aes(x=Intensity, fill=Imputed, 
+                                   colour = Imputed)) +
+   facet_wrap(~Condition) +
+    geom_density(alpha=0.4) +
+    theme_minimal() +
+    ggtitle("Intensity (Imputed vs Not)") +
+    labs(x = "Log2 Reporter Intensity")
   
   p
   
 }
 
+#' CV distributuions of a protein summarized by condition of interest
+#' @param Experiment SummarizedExperiment object
+#' @export plot_condition_cv_distribution
+
+plot_condition_cv_distribution <- function(Experiment){
+  longIntensityDF <- SEToLongDT(Experiment)
+  longIntensityDF$Imputed <- longIntensityDF$Intensity == 0
+  
+  cvdt <- longIntensityDF[Imputed == 0][, countRep := .N, by = .(ProteinId, Condition)]
+  cvdt[, countRepMax := max(countRep), by = .(ProteinId, Condition)]
+  cvdt[, ReplicatePC := countRep/countRepMax]
+  cvdt[, intensity := as.double(Intensity)]
+  cvdt <- cvdt[ReplicatePC >= 0.5]
+  
+  cvdt <- cvdt[ReplicatePC >= 0.5, .(cv = sd(intensity)/mean(intensity)), by = .(ProteinId, Condition)]
+  
+  p <- ggplot(cvdt, aes(x=cv, fill=Condition, colour=Condition)) +
+    geom_density(alpha=0.4) +
+    theme_minimal() +
+    scale_x_continuous("% CV", labels = scales::percent) +
+    ggtitle("Protein Intensity CV")
+  
+  p
+  
+}
+
+
+#' Volcano plot of results
+#' @param Experiment SummarizedExperiment object
+#' @export plot_volcano
+
+plot_volcano <- function(comparison.statistics){
+  p <- ggplot(comparison.statistics, 
+              aes(FoldChange, -log10(AdjustedPValue), fdr = AdjustedPValue, ProteinId = ProteinId)) + 
+    geom_point() +
+    ggtitle(comparison.statistics$comparison) +
+    geom_hline(yintercept=-log10(0.05)) 
+  ggplotly(p)
+}
+
+
+
+#' MA plot of results
+#' @param Experiment SummarizedExperiment object
+#' @export plot_ma
+
+plot_ma <- function(comparison.statistics){
+  p <- ggplot(comparison.statistics, 
+              aes(x = AveExpr, y = FoldChange, ProteinId = ProteinId)) + 
+    geom_point() +
+    ggtitle(comparison.statistics$comparison) +
+    geom_hline(yintercept=0)
+  ggplotly(p)
+}
