@@ -26,7 +26,6 @@ listIntensityExperiments <- runGenericDiscovery(experimentDesign = design, prote
   - `IntensityExperiment`: contains the raw data (including missing values) and the results of the limma statistics (which can be accessed with `rowData(IntensityExperiment)`) 
   - `CompleteIntensityExperiment`: contains the imputed data and summary statistics about the number of replicates and imputed proteins in each group of the conditions of interest. 
 
-```
 
 # Outputs
 
