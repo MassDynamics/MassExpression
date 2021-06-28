@@ -10,7 +10,7 @@
 runGenericDiscovery <- function(experimentDesign, proteinIntensities, 
                                 normalise=FALSE, 
                                 output_folder=".",
-                                save=FALSE){
+                                save=TRUE){
   
   # Create Data Rep
   IntensityExperiment <- constructSummarizedExperiment(experimentDesign = experimentDesign, 

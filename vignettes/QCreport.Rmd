@@ -22,16 +22,6 @@ library(stringr)
 library(MassExpression)
 library(plotly)
 
-#design <- mq_lfq_data$design
-#intensities <- mq_lfq_data$intensities
-
-#debugonce(runGenericDiscovery(experimentDesign = design, proteinIntensities = intensities))
-#listIntensityExperiments <- runGenericDiscovery(experimentDesign = design, proteinIntensities = intensities)
-
-#CompleteIntensityExperiment <- listIntensityExperiments$CompleteIntensityExperiment
-#IntensityExperiment <- listIntensityExperiments$IntensityExperiment
-
-
 CompleteIntensityExperiment <- params$listInt$CompleteIntensityExperiment
 IntensityExperiment <- params$listInt$IntensityExperiment
 
