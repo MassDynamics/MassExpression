@@ -1,19 +1,28 @@
 ---
-title: "Mass Dynamics Quality Control Report"
+title: "Mass Dynamics QC Report"
 output:
   html_document:
     code_folding: hide
     theme: united
     toc: yes
-    toc_float: yes
+    fig_caption: yes
+    df_print: paged
+  pdf_document:
+    toc: yes
+    toc_depth: 3
+    fig_caption: false
+  always_allow_html: true
 params:
   listInt: empty
-  experiment: experiment_name
+  experiment: empty
+  output_figure: empty
 ---
 
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+print(params$listInt)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, 
+                      fig.path = file.path(params$output_figure,"figures/"))
 ```
 
 ```{r data-needed, include=FALSE}

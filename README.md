@@ -27,12 +27,27 @@ normalise_flag <- FALSE
 
 # Workflow runner
 # If save = FALSE the output is printed into memory 
-runGenericDiscovery(experimentDesign = design, 
+listIntensityExperiments = runGenericDiscovery(experimentDesign = design, 
                     proteinIntensities = intensities,
                     normalise = normalise_flag, 
                     output_folder = output_folder,
-                    save=TRUE)
+                    save=FALSE)
+
+# Render and save QC report 
+rmarkdown::render('vignettes/QCreport.Rmd', 
+                  params = list(listInt = listIntensityExperiments,
+                                experiment = "Mass Dynamics QC report",
+                                output_figure = output_folder),
+                                output_dir = output_folder,
+                  output_file = "test-data-qc.html",
+                  output_format=html_document(
+                            self_contained=FALSE,
+                            lib_dir=file.path(output_folder,"qc_report_files")))
+
 ```
+
+
+
 
 `listIntensityExperiments` is a list containing two `SummarizedExperiment` objects:
   - `IntensityExperiment`: contains the raw data (including missing values) and the results of the limma statistics (which can be accessed with `rowData(IntensityExperiment)`) 
