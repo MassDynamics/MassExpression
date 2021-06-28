@@ -15,11 +15,23 @@ data(package="MassExpression")
 # Run example end-to-end
 
 ```{r fragpipe}
-outputFolder <- "../../output"
+library(MassExpression)
+
+output_foler <- "/path/to/output"
+
 design <- fragpipe_data$design
 intensities <- fragpipe_data$intensities
 
-listIntensityExperiments <- runGenericDiscovery(experimentDesign = design, proteinIntensities = intensities)
+# The flag should eventually come from the metadata 
+normalise_flag <- FALSE
+
+# Workflow runner
+# If save = FALSE the output is printed into memory 
+runGenericDiscovery(experimentDesign = design, 
+                    proteinIntensities = intensities,
+                    normalise = normalise_flag, 
+                    output_folder = output_folder,
+                    save=TRUE)
 ```
 
 `listIntensityExperiments` is a list containing two `SummarizedExperiment` objects:

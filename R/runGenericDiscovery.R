@@ -32,7 +32,7 @@ runGenericDiscovery <- function(experimentDesign, proteinIntensities,
          CompleteIntensityExperiment, 
          comparisonExperiments,
          file = file.path(output_folder, "DiscoveryQuant.RData"))
+  }else{
+    return(results)
   }
-  
-  return(results)
 }
