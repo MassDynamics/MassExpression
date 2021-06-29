@@ -37,6 +37,7 @@ runLimmaPipeline <- function(IntensityExperiment, normalise=FALSE){
                                    rep_col_name = "Replicate",
                                    funDT = longIntensityDT)
   stats = resultsQuant[["stats"]]
+  conditionComparisonMapping = resultsQuant[["conditionComparisonMapping"]]
   
   # data used for DE analysis - filtered, imputed, normalised
   # eset not used for now but would be good to produce stats QC related to limma: variance plots
@@ -49,7 +50,8 @@ runLimmaPipeline <- function(IntensityExperiment, normalise=FALSE){
   # SummarizedExperiment which contains the complete essay with imputed data and statistics
   # about the number of proteins imputed in each condition 
   CompleteIntensityExperiment <- createCompleteIntensityExperiment(IntensityExperiment=IntensityExperiment,
-                                                                   longIntensityDT = longIntensityDT)
+                                                                   longIntensityDT = longIntensityDT,
+                                                                   conditionComparisonMapping = conditionComparisonMapping)
   
   list(IntensityExperiment=IntensityExperiment,
        CompleteIntensityExperiment=CompleteIntensityExperiment)
