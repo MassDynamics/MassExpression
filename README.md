@@ -37,7 +37,7 @@ CompleteIntensity <-  listIntensityExperiments$CompleteIntensityExperiment
 saveOutput(Intensity, CompleteIntensity, output_folder)
 
 # Render and save QC report 
-qc_report <- system.file("rmd","QC_Report.Rmd", package = "MassExpression")
+qc_report <- system.file("rmd","QC_report.Rmd", package = "MassExpression")
 rmarkdown::render(qc_report, 
                   params = list(listInt = listIntensityExperiments,
                                 experiment = "Mass Dynamics QC report",
@@ -47,7 +47,6 @@ rmarkdown::render(qc_report,
                   output_format=rmarkdown::html_document(
                             self_contained=FALSE,
                             lib_dir=file.path(output_folder,"qc_report_files")))
-
 ```
 
 
