@@ -1,12 +1,10 @@
-
 #' This function creates a list of intensity experiments pertaining to each
 #' comparison calculated by the limma pipeline
 #' @export listComparisonExperiments
 listComparisonExperiments <- function(CompleteIntensityExperiment){
   
-  comparisons = 
-    get_comparison_strings(rowData(CompleteIntensityExperiment))
-  
+  conditionComparisonMapping = metadata(CompleteIntensityExperiment)$conditionComparisonMapping
+  comparisons <- conditionComparisonMapping$comparison.string
   
   comparisonExperiments <- list()
   
@@ -23,7 +21,7 @@ listComparisonExperiments <- function(CompleteIntensityExperiment){
 # relevant to the specified comparison
 #' @export filterComparisonColumns
 filterComparisonColumns <- function(CompleteIntensityExperiment,
-                                       comparison){
+                                    comparison){
   
   conditions <- unique(CompleteIntensityExperiment$Condition)
   condition1 <- get_condition_string(conditions, comparison, 1)
@@ -33,6 +31,7 @@ filterComparisonColumns <- function(CompleteIntensityExperiment,
   ### Deal with Statistics in rowData
   row.data <- rowData(CompleteIntensityExperiment)
   intensityColumns <- colnames(row.data)
+  
   # we want the limma stats which have the comparison string
   # we want the replicates and imputed counts which have the conditions strings
   # we want the basic protein info cols (prot, gene, desc)
@@ -91,7 +90,13 @@ validateComparison <- function(rse){
 # from a completed protein summarized experiment
 #' @export createComparisonExperiment
 createComparisonExperiment <- function(CompleteIntensityExperiment,
-                                          comparison){
+                                       comparison){
+  
+  
+  conditionComparisonMapping <- metadata(CompleteIntensityExperiment)$conditionComparisonMapping
+  up.condition <- getUpCondition(conditionComparisonMapping, comparison)
+  down.condition <- getDownCondition(conditionComparisonMapping, comparison)
+  
   
   # 1. Filter for statistics in rowData that we care about
   comparisonIntensityExperiment <- filterComparisonColumns(
@@ -105,17 +110,13 @@ createComparisonExperiment <- function(CompleteIntensityExperiment,
   )
   
   # 3. Add class/group vectors so we know how to do enrichment
-  conditions <- unique(comparisonIntensityExperiment$Condition)
-  condition2 <- get_condition_string(conditions, comparison, 2)
-  comparisonIntensityExperiment$GROUP = 
-    comparisonIntensityExperiment$Condition == condition2
+  comparisonIntensityExperiment$GROUP = comparisonIntensityExperiment$Condition == down.condition
   
+  #4. need to set columns first
+  rownames(comparisonIntensityExperiment) <- rowData(comparisonIntensityExperiment)$ProteinId
   
+  # 5. Validate FC before assigning
   validateComparison(comparisonIntensityExperiment)
-  
-  # need to set columns first
-  rownames(comparisonIntensityExperiment) <-
-    rowData(comparisonIntensityExperiment)$ProteinId
   
   ### Temporary Code while Enrichment Browser is in use ###
   #need to map column names correctly to what EnrichmentBrowser expects
@@ -123,6 +124,10 @@ createComparisonExperiment <- function(CompleteIntensityExperiment,
     as_data_frame(rowData(comparisonIntensityExperiment)) %>%
     rename(FC = logFC,
            ADJ.PVAL = adj.P.Val)
+  
+  #6. Tag metadata
+  metadata(comparisonIntensityExperiment)$up.condition <- up.condition
+  metadata(comparisonIntensityExperiment)$down.condition <- down.condition
   
   comparisonIntensityExperiment
 }
