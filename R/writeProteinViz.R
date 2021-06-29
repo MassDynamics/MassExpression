@@ -10,18 +10,22 @@
 
 writeProteinViz <- function(IntensityExperiment, outputFolder){
   
-  comparisonStrings <- get_comparison_strings(rowData(IntensityExperiment))
-  conditions <- unique(IntensityExperiment$Condition)
+
+  
+  conditionComparisonMapping = metadata(IntensityExperiment)$conditionComparisonMapping
+  comparisons <- conditionComparisonMapping$comparison.string
+  
+  stopifnot(length(comparisons)>0)
   
   proteinViz = list()
   
-  for (comparison in comparisonStrings){
+  for (comparison in comparisons){
     
-    # print(comparison)
+    print(comparison)
     
     #get up and down
-    condition1 <- get_condition_string(conditions, comparison, position = 1)
-    condition2 <- get_condition_string(conditions, comparison, position = 2)
+    up.condition <- getUpCondition(conditionComparisonMapping, comparison)
+    down.condition <- getDownCondition(conditionComparisonMapping, comparison)
     
     # get statistics
     comparisonStatistics <- rowData(IntensityExperiment)
@@ -34,10 +38,10 @@ writeProteinViz <- function(IntensityExperiment, outputFolder){
     fdrLine <- max(sigProteinsPValue,na.rm = T)
     
     x = list(conditionComparison = unbox(comparison),
-             up.condition = unbox(condition1),
-             down.condition = unbox(condition2),
+             up.condition = unbox(up.condition),
+             down.condition = unbox(down.condition),
              fdrLimit =  unbox(fdrLine),
-             data = as.data.table(comparisonStatistics))
+             data = as.data.frame(comparisonStatistics))
     
     proteinViz[[comparison]] = x
   }
@@ -51,54 +55,6 @@ writeProteinViz <- function(IntensityExperiment, outputFolder){
 }
 
 
-
-
-
-#' Use literal string match to find condition name in comparison string
-#' @export detect_condition_string
-detect_condition_string <- function(conditions, string){
-  for (condition in conditions){
-    if (grepl(condition, string, fixed = T)){
-      return(condition)
-    } 
-  }
-  stop("Couldn't match a condition the assay data and comparisons")
-}
-
-#' Use literal string match to find condition name in comparison string
-#' @export get_condition_string
-get_condition_string <- function(conditions, comparison, position = 1){
-  
-  stopifnot((position == 1) | (position == 2))
-  
-  match1 <- detect_condition_string(conditions,comparison) 
-  comparison_remainder = gsub(match1, "",comparison, fixed = T)
-  match2 <- detect_condition_string(conditions, comparison_remainder)   
-  
-  stopifnot(match2 != match1)
-  
-  position_match_1 <- gregexpr(pattern = match1,
-                               comparison,
-                               fixed = T)[[1]][1]
-  
-  position_match_2 <- gregexpr(pattern = match2,
-                               comparison,
-                               fixed = T)[[1]][1]
-  if (position == 1){ # give the first match
-    if (position_match_1 > position_match_2){
-      return(match2)
-    } else {
-      return(match1)
-    }
-  } else if (position == 2) { # give the second match
-    if (position_match_2 > position_match_1){
-      return(match2)
-    } else {
-      return(match1)
-    }
-  }
-  stop("Something went wrong, shouldn't be accessible. ")
-}
 
 
 
@@ -168,14 +124,3 @@ rename_comparison_statistics_export <- function(comparisonStatistics){
   comparisonStatistics
 } 
 
-
-#' This functions works out which comparisons were calculated by limma.
-#' Currently, it calculates all of them but it assumes order dependence so not trivial.
-#' @export get_comparison_strings
-
-get_comparison_strings <- function(results.quant){
-  cols <- colnames(results.quant)
-  cols <- cols[grepl("logFC ", colnames(results.quant))]
-  comparison.strings <- gsub("logFC ", "", cols)
-  comparison.strings
-}

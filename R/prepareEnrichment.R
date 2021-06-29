@@ -23,10 +23,9 @@ listComparisonExperiments <- function(CompleteIntensityExperiment){
 filterComparisonColumns <- function(CompleteIntensityExperiment,
                                     comparison){
   
-  conditions <- unique(CompleteIntensityExperiment$Condition)
-  condition1 <- get_condition_string(conditions, comparison, 1)
-  condition2 <- get_condition_string(conditions, comparison, 2)
-  
+  conditionComparisonMapping = metadata(CompleteIntensityExperiment)$conditionComparisonMapping
+  condition1 <- getUpCondition(conditionComparisonMapping, comparison)
+  condition2 <- getDownCondition(conditionComparisonMapping, comparison)
   
   ### Deal with Statistics in rowData
   row.data <- rowData(CompleteIntensityExperiment)
