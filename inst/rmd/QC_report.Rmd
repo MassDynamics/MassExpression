@@ -103,15 +103,15 @@ design <- colData(IntensityExperiment)
   </span>
 </details> 
 
-```{r pca-imputed}
+```{r pca-imputed, eval=TRUE}
 ## PCA
-p=pca_plot_experiment(CompleteIntensityExperiment)
+pca_object=pca_plot_experiment(CompleteIntensityExperiment)
 #subplot(p[[1]], p[[2]], nrows=2, heights=c(0.7,0.3))
-p[[1]]
+pca_object[[1]]
 ```
 
-```{r }
-p[[2]]
+```{r eval=TRUE}
+pca_object[[2]]
 ```
 
 ```{r mds-imputed, eval=FALSE}
@@ -167,10 +167,6 @@ protein_counts_by_replicate(IntensityExperiment)
 
 ## Imputed data
 
-```{r density-imputed}
-plot_density_distr(CompleteIntensityExperiment)
-```
-
 
 ```{r}
 plot_measurement_boxplot(CompleteIntensityExperiment)
@@ -184,11 +180,7 @@ plot_rle_boxplot(CompleteIntensityExperiment)
 
 ## Initial data
 
-```{r density-raw}
-plot_density_distr(IntensityExperiment, log=TRUE)
-```
-
-```{r eval=FALSE}
+```{r eval=TRUE}
 plot_measurement_boxplot(IntensityExperiment)
 ```
 
