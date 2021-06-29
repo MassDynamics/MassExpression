@@ -131,14 +131,15 @@ mds_plot_experiment <- function(Experiment, log=FALSE){
 
 replicate_missingness_experiment <- function(Experiment){
   # prepare data for plotting
-  intensities <- preparePlottingData(Experiment)[['intensities']]
-  
+  prep_data <- preparePlottingData(Experiment)
+  intensities <- prep_data[['intensities']]
+  design <- prep_data[['design']]
+
   missing.vector <- colSums(0 == intensities)
-  missing.table <- as_tibble(cbind(names(missing.vector), missing.vector))
-  colnames(missing.table) <- c("IntensityColumn", "MissingValues")
-  missing.table <- merge(missing.table, design)
-  missing.table <- as_tibble(missing.table)
-  
+  missing.table <- data.frame(IntensityColumn = as.character(names(missing.vector)),
+                              MissingValues = as.numeric(missing.vector))
+  missing.table <- missing.table %>% left_join(design) %>%
+    mutate(Replicate = reorder(Replicate, as.numeric(as.factor(Condition))))
   
   p <- ggplot(missing.table, aes(x = Replicate, y = as.numeric(MissingValues), 
                                  color = Condition, label=as.factor(Replicate))) +

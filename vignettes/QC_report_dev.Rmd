@@ -90,7 +90,7 @@ intensities <- fragpipe_data$intensities
 # 1. Experiment Design
 
 ```{r eval=TRUE, warning=FALSE, echo=FALSE, error=FALSE, message=FALSE, results='asis'}
-kable(Replicate, col.names = c("IntensityColumn", "Replicate", "Condition"))
+knitr::kable(design, col.names = c("IntensityColumn", "Replicate", "Condition"))
 ```
 
 # 2. Experiment Health
@@ -100,14 +100,14 @@ kable(Replicate, col.names = c("IntensityColumn", "Replicate", "Condition"))
 <details>
   <summary>Experiment Health Details</summary>
   <span>
-    <p>The multi-dimensional scaling (MDS) plot is used to visualise differences between replicates that are induced by their intensity profiles. MDS transform high-dimensional data, like thousands of measured proteins or peptides intensities, into a reduced set of dimensions which capture the largest variability between the replicates in the experiment. The first two dimensions explain the greatest variability between the replicates and they are a useful visual tool to confirm known clustering of the replicates or identify potential problems in the data. The axes in the MDS plot represent the 'leading log-fold-changes', which are the root-mean-square average of the log-fold-changes for the features that are most different between pairs of samples. </p>
+    <p>The multi-dimensional scaling (MDS) plot is used to visualise differences between replicates that are induced by their intensity profiles. MDS transforms high-dimensional data, like thousands of measured proteins or peptides intensities, into a reduced set of dimensions. The first two dimensions explain the greatest variability between the replicates and they are a useful visual tool to confirm known clustering of the replicates or identify potential problems in the data. The axes in the MDS plot represent the 'leading log-fold-changes', which are the root-mean-square average of the log-fold-changes for the features that are most different between pairs of samples. </p>
     <p>For a healthy experiment we expect:</p>
     <ul>
       <li>Technical Replicates to cluster tightly together.</li>
       <li>Biological Replicates to cluster more than non replicates.</li>
       <li>Clustering of the condition of interest should be visible</li>
     </ul>
-    <p> If unexpected clusters occur or replicates don't cluster together it can be due to extra variability introduced by factors such as technical processing, other biological differences, sample swaps etc... The interpretation and trust in the the differential expression results should take these consideration into a account.</p>
+    <p> If unexpected clusters occur or replicates don't cluster together it can be due to extra variability introduced by factors such as technical processing, other unexplored biological differences, sample swaps etc... The interpretation and trust in the the differential expression results should take these consideration into a account. If you think that the replicates in the experiment show largely unexpected patterns, it is advisable to request support from an analyst. </p>
     <p>A scree plot shows the amount of variance explained by each dimension extracted by PCA. A high degree of variance in the first few dimensions may suggest large differences between your samples.</p>
   </span>
 </details> 
@@ -139,12 +139,11 @@ p[[2]]
 <details>
   <summary>Coefficient of Variation Details</summary>
   <span>
-    <p>The Coefficient of Variation (CV) or Relative Standard Deviation, is calculated by the ratio of the standard deviation to the mean. It is used to measure the precision of a measure, in this case protein/peptide intensity. The plot below shows the distribution of the CVs by experimental conditions where each CV is calculated by protein and by experimental condition. The CV is displayed as %CV, which is the percentage of the mean represented by the standard deviation.  
+    <p>The Coefficient of Variation (CV) or Relative Standard Deviation, is calculated by the ratio of the standard deviation to the mean. It is used to measure the precision of a measure, in this case protein/peptide intensity. The plot below shows the distribution of the CVs by experimental conditions where each CV is calculated by protein and by experimental condition. The CV is displayed as %CV, which is the percentage of the mean represented by the standard deviation.  </p>
    <p>For a healthy experiment we expect:</p>
     <ul>
       <li>The distribution of the CVs by conditions to be mostly overlapping, e.g. similar mode</li>
     </ul>
-    </p>
   </span>
 </details> 
 
@@ -152,34 +151,21 @@ p[[2]]
 plot_condition_cv_distribution(IntensityExperiment)
 ```
 
-# 2. Feature completedness {.tabset .tabset-fade .tabset-pills}
 
-## By sample
+## C. Intensity distribution across runs {.tabset .tabset-fade .tabset-pills}
 
-```{r sample-missingness}
-replicate_missingness_experiment(IntensityExperiment)
-```
-
-
-## By protein
-
-```{r protein-missingness}
-protein_missingness_experiment(IntensityExperiment)
-```
-
-```{r nprotein-sample}
-protein_counts_by_replicate(IntensityExperiment)
-```
-
-
-# 3. Intensity distribution across runs {.tabset .tabset-fade .tabset-pills}
+<details>
+  <summary>Coefficient of Variation Details</summary>
+  <span>
+    <p>It is useful to look at the distribution of the </p>
+   <p>For a healthy experiment we expect:</p>
+    <ul>
+      <li>The distribution of the CVs by conditions to be mostly overlapping, e.g. similar mode</li>
+    </ul>
+  </span>
+</details> 
 
 ## Imputed data
-
-```{r density-imputed}
-plot_density_distr(CompleteIntensityExperiment)
-```
-
 
 ```{r}
 plot_measurement_boxplot(CompleteIntensityExperiment)
@@ -193,19 +179,42 @@ plot_rle_boxplot(CompleteIntensityExperiment)
 
 ## Initial data
 
-```{r density-raw}
-plot_density_distr(IntensityExperiment, log=TRUE)
-```
-
-```{r eval=FALSE}
+```{r boxplot-initial}
 plot_measurement_boxplot(IntensityExperiment)
 ```
 
 
-```{r boxplot-imputed}
+```{r rle-boxplot-initial}
 plot_rle_boxplot(IntensityExperiment, log = TRUE)
 ```
 
+
+
+# 2. Feature completedness {.tabset .tabset-fade .tabset-pills}
+
+<details>
+  <summary>Distribution of missing values by replicate and by proteins</summary>
+  <span>
+    <p> The amount of missing values can be affected by the biological condition of the replicates or by technical factors and it can vary a lot between experiments.</p>
+   <p>For a healthy experiment we expect:</p>
+    <ul>
+      <li>The distribution of missing values by replicate to be similar, especially within the same biological conditions</li>
+    </ul>
+  </span>
+</details> 
+
+## By replicate
+
+```{r sample-missingness}
+replicate_missingness_experiment(IntensityExperiment)
+```
+
+
+## By protein
+
+```{r protein-missingness}
+protein_missingness_experiment(IntensityExperiment)
+```
 
 
 

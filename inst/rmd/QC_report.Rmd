@@ -103,25 +103,25 @@ design <- colData(IntensityExperiment)
   </span>
 </details> 
 
-```{r pca-imputed, eval=FALSE}
+```{r pca-imputed}
 ## PCA
 p=pca_plot_experiment(CompleteIntensityExperiment)
 #subplot(p[[1]], p[[2]], nrows=2, heights=c(0.7,0.3))
 p[[1]]
 ```
 
-```{r  eval=FALSE}
+```{r }
 p[[2]]
 ```
 
-```{r mds-imputed}
+```{r mds-imputed, eval=FALSE}
 # ## MDS
 p=mds_plot_experiment(CompleteIntensityExperiment)
 #subplot(p[[1]], p[[2]], nrows=2, heights=c(0.7,0.3))
 p[[1]]
 ```
 
-```{r }
+```{r eval=FALSE}
 p[[2]]
 ```
 
