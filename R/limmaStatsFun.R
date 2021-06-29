@@ -91,14 +91,22 @@ limmaStatsFun <- function(ID_type,
   design.mat <- model.matrix(~ 0 + condition,
                              data = pData(eset))
   myContrasts = NULL
+  
+  condition_seperator = "-"
+  
   for (irow in 1:pairwise.comp[, .N]) {
     left <- pairwise.comp[irow, left]
     right <- pairwise.comp[irow, right]
     
-    newContrast <- str_c("condition",left, "-", "condition",right)
+    newContrast <- str_c("condition",left, condition_seperator, "condition",right)
     myContrasts = c(myContrasts, newContrast)
   }
-  # mappingContrastConditions <- cbind(pairwise.comp, myContrasts)
+  
+  
+  conditionComparisonMapping <- assembleComparisonConditionMapping(
+    pairwise.comp, 
+    seperator = condition_seperator
+    )
   
   
   contrast.matrix <- eval(as.call(c(
@@ -188,5 +196,5 @@ limmaStatsFun <- function(ID_type,
   
   stats[, ID := str_replace_all(ID, "ID.", "")]
   setnames(stats, "ID", ID_type)
-  return(list(stats=stats, eset = eset))
+  return(list(stats=stats, eset = eset, conditionComparisonMapping = conditionComparisonMapping))
 }

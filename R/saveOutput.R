@@ -17,5 +17,5 @@ saveOutput <- function(IntensityExperiment, CompleteIntensityExperiment, output_
        comparisonExperiments,
        file = file.path(output_folder, "DiscoveryQuant.RData"))
   
-  writeProteinViz(IntensityExperiment, output_folder)
+  writeProteinViz(CompleteIntensityExperiment, output_folder)
 }

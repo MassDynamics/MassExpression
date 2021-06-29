@@ -5,10 +5,16 @@
 \title{Adds `intensityDF` information to `IntensityExperiment` with statistics about 
 the number of replicates and number of imputed values in each condition of interest}
 \usage{
-createCompleteIntensityExperiment(IntensityExperiment, longIntensityDT)
+createCompleteIntensityExperiment(
+  IntensityExperiment,
+  longIntensityDT,
+  conditionComparisonMapping
+)
 }
 \arguments{
 \item{IntensityExperiment}{output from `constructSummarizedExperiment`}
+
+\item{conditionComparisonMapping}{a dataframe matching different limma statistics comparison strings to up and down conditions}
 
 \item{intensityDF}{Long format table with raw and imputed intensities. Each row is a feature (protein/peptide).}
 }

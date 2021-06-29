@@ -1,20 +1,32 @@
 #!/usr/bin/Rscript
-install.packages("devtools", repos = "http://cran.rstudio.com/")
-install.packages("data.table", repos = "http://cran.rstudio.com/")
-install.packages("foreach", repos = "http://cran.rstudio.com/")
-install.packages("stringr", repos = "http://cran.rstudio.com/")
-install.packages("dplyr", repos = "http://cran.rstudio.com/")
-install.packages("S4Vectors", repos = "http://cran.rstudio.com/")
-install.packages("jsonlite", repos = "http://cran.rstudio.com/")
-install.packages("tidyr", repos = "http://cran.rstudio.com/")
-install.packages("plotly", repos = "http://cran.rstudio.com/")
-install.packages("ggplot2", repos = "http://cran.rstudio.com/")
-install.packages("forcats", repos = "http://cran.rstudio.com/")
-install.packages("knitr", repos = "http://cran.rstudio.com/")
-install.packages("rmarkdown", repos = "http://cran.rstudio.com/")
 
+ensure_package_installed <- function (package, repos = repos) {
+  if(!require(package, character.only=TRUE)) {
+    install.packages(package, repos = repos)
+    library(package, character.only=TRUE)
+  }
+}
+
+ensure_package_installed("gert", repos = "http://cran.rstudio.com/")
+ensure_package_installed("usethis", repos = "http://cran.rstudio.com/")
+ensure_package_installed("devtools", repos = "http://cran.rstudio.com/")
+ensure_package_installed("data.table", repos = "http://cran.rstudio.com/")
+ensure_package_installed("foreach", repos = "http://cran.rstudio.com/")
+ensure_package_installed("stringr", repos = "http://cran.rstudio.com/")
+ensure_package_installed("dplyr", repos = "http://cran.rstudio.com/")
+ensure_package_installed("jsonlite", repos = "http://cran.rstudio.com/")
+ensure_package_installed("tidyr", repos = "http://cran.rstudio.com/")
+ensure_package_installed("plotly", repos = "http://cran.rstudio.com/")
+ensure_package_installed("ggplot2", repos = "http://cran.rstudio.com/")
+ensure_package_installed("forcats", repos = "http://cran.rstudio.com/")
+ensure_package_installed("knitr", repos = "http://cran.rstudio.com/")
+ensure_package_installed("rmarkdown", repos = "http://cran.rstudio.com/")
+ensure_package_installed("statmod", repos = "http://cran.rstudio.com/")
 
 #### Install packages Bioconductor
-if (!requireNamespace("BiocManager", quietly = TRUE))
-  install.packages("BiocManager")
-BiocManager::install(c("Biobase", "limma", "SummarizedExperiment"))
+ensure_package_installed("BiocManager", repos = "http://cran.rstudio.com/")
+BiocManager::install(c("Biobase", "limma", "S4Vectors", "GenomicRanges", "GenomeInfoDb", "SummarizedExperiment"))
+
+if (!BiocManager::valid()){
+  stop("BiocManager is not valid")
+}
