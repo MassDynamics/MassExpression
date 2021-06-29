@@ -6,8 +6,11 @@ output: html_document
 ```{r data-needed, include=FALSE}
 library(MassExpression)
 
-design <- mq_lfq_data$design
-intensities <- mq_lfq_data$intensities
+# design <- mq_lfq_data$design
+# intensities <- mq_lfq_data$intensities
+
+design <- read.table("../../data/design.tsv",sep = "\t", header = TRUE)
+intensities <- read.table("../../data/intensities.tsv",sep = "\t", header = TRUE)
 
 listIntensityExperiments <- runGenericDiscovery(experimentDesign = design, 
                                                 proteinIntensities = intensities)

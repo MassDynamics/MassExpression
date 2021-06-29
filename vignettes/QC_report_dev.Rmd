@@ -142,8 +142,10 @@ p[[2]]
     <p>The Coefficient of Variation (CV) or Relative Standard Deviation, is calculated by the ratio of the standard deviation to the mean. It is used to measure the precision of a measure, in this case protein/peptide intensity. The plot below shows the distribution of the CVs by experimental conditions where each CV is calculated by protein and by experimental condition. The CV is displayed as %CV, which is the percentage of the mean represented by the standard deviation.  </p>
    <p>For a healthy experiment we expect:</p>
     <ul>
-      <li>The distribution of the CVs by conditions to be mostly overlapping, e.g. similar mode</li>
+      <li>The distribution of the CVs across conditions to be mostly overlapping, e.g. similar modes</li>
+      <li>The modes of the CVs not to be too high, ideally not above 50%</li>
     </ul>
+    <p>If the distributions show worringly large %CV, this could affect the quality of the differential expression analysis.<p>
   </span>
 </details> 
 
@@ -157,28 +159,18 @@ plot_condition_cv_distribution(IntensityExperiment)
 <details>
   <summary>Distribution of intensities</summary>
   <span>
-    <p>It is useful to inspect the distribution of the Relative Log Expression (RLE) values to identify replicates with largely unusual distributions. RLE values for each protein are obtained by substracting the median of each protein across all the samples. The RLE boxplots values should be centered on 0. </p>
+    <p>It is useful to inspect the distribution of the Relative Log Expression (RLE) values to identify replicates with largely unusual distributions. The RLE values for a protein are obtained by substracting the median of each protein across all the samples where that protein is available, i.e. non zero values. The medians of the RLE boxplots should be roughly centered on zero. </p>
    <p>For a healthy experiment we expect:</p>
     <ul>
-      <li>The RLE boxplots to have a similar median, centered around 0, across all replicates </li>
+      <li>The RLE boxplots to have a similar median, centered around zero, across all replicates </li>
     </ul>
-     <p>If some replicates show large devations of the boxplots medians from 0, it can be symptomatic of problems in the experiment. <p>
+     <p>If some replicates show large devations of the boxplots medians from zero, it can be symptomatic of problems in the experiment.<p>
   </span>
 </details> 
-
-## Imputed data
 
 
 ```{r}
 plot_rle_boxplot(CompleteIntensityExperiment)
-```
-
-
-## Initial data
-
-
-```{r rle-boxplot-initial}
-plot_rle_boxplot(IntensityExperiment, log = TRUE)
 ```
 
 
@@ -187,11 +179,12 @@ plot_rle_boxplot(IntensityExperiment, log = TRUE)
 <details>
   <summary>Distribution of missing values by replicate and by proteins</summary>
   <span>
-    <p> The amount of missing values can be affected by the biological condition of the replicates or by technical factors and it can vary a lot between experiments.</p>
+    <p> The amount of missing values can be affected by the biological condition or by technical factors and it can vary largely between experiments.</p>
    <p>For a healthy experiment we expect:</p>
     <ul>
-      <li>The distribution of missing values by replicate to be similar, especially within the same biological conditions</li>
+      <li>The distribution of missing values replicate to be similar across replicates, especially within the same biological conditions</li>
     </ul>
+    <p>There isns't a strict threshold to look for in terms of % of missing values. However, an unusually large amount of missingness in one or a few replicates can be sympthomatic of technial problems and should be taken into account when intepreting the final differential expression results.<p>
   </span>
 </details> 
 
@@ -216,6 +209,7 @@ protein_missingness_experiment(IntensityExperiment)
 plot_imputed_vs_not(RawDataExperiment = IntensityExperiment,
                     ImputedDataExperiment = CompleteIntensityExperiment)
 ```
+
 
 # 5. Model QC
 

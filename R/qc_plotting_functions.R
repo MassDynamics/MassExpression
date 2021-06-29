@@ -135,7 +135,8 @@ replicate_missingness_experiment <- function(Experiment){
   intensities <- prep_data[['intensities']]
   design <- prep_data[['design']]
 
-  missing.vector <- colSums(0 == intensities)
+  num.proteins <- dim(intensities)[1]
+  missing.vector <- round(colSums(0 == intensities)/num.proteins * 100, 1)
   missing.table <- data.frame(IntensityColumn = as.character(names(missing.vector)),
                               MissingValues = as.numeric(missing.vector))
   missing.table <- missing.table %>% left_join(design) %>%
@@ -149,7 +150,7 @@ replicate_missingness_experiment <- function(Experiment){
     coord_flip() +
     theme_minimal() +
     scale_x_discrete("Replicate") +
-    scale_y_continuous("# Missing Values") +
+    scale_y_continuous("% Missing Values") +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.2),
           panel.grid.major.y = element_blank(),
           panel.border = element_blank(),
@@ -263,6 +264,11 @@ plot_rle_boxplot <- function(Experiment, log=FALSE){
   intensities <- toPlot$intensities
   design <- toPlot$design
   
+  intensities <- data.frame(intensities)
+  intensities$ProteinId <- rownames(intensities)
+  intensities_long <- intensities %>% pivot_wider(id_cols = "ProteinId", 
+                                                  values_from)
+  
   med_rows <- matrixStats::rowMedians(intensities)
   intRLE <- intensities - med_rows
   longIntRLE <- as_tibble(intRLE) %>% pivot_longer(cols = dplyr::all_of(colnames(intRLE)), 
@@ -279,7 +285,7 @@ plot_rle_boxplot <- function(Experiment, log=FALSE){
           panel.border = element_blank(),
           axis.ticks.y = element_blank()) +
     scale_x_discrete("Replicate") +
-    scale_y_continuous("Log2 Reporter Intensity") +
+    scale_y_continuous("RLE") +
     ggtitle("Intensities are centered on protein's medians") + 
     geom_hline(yintercept = 0, linetype="dotted")
     #coord_flip()
