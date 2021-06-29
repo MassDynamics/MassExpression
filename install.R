@@ -15,7 +15,6 @@ install.packages("rmarkdown", repos = "http://cran.rstudio.com/")
 
 
 #### Install packages Bioconductor
-
 if (!requireNamespace("BiocManager", quietly = TRUE))
   install.packages("BiocManager")
 BiocManager::install(c("Biobase", "limma", "SummarizedExperiment"))
