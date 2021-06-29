@@ -61,9 +61,12 @@ library(stringr)
 library(MassExpression)
 library(plotly)
 
-CompleteIntensityExperiment <- params$listInt$CompleteIntensityExperiment
-IntensityExperiment <- params$listInt$IntensityExperiment
-design <- colData(IntensityExperiment)
+# CompleteIntensityExperiment <- params$listInt$CompleteIntensityExperiment
+# IntensityExperiment <- params$listInt$IntensityExperiment
+# design <- colData(IntensityExperiment)
+
+design <- fragpipe_data$design
+intensities <- fragpipe_data$intensities
 ```
 
 
@@ -83,6 +86,12 @@ design <- colData(IntensityExperiment)
   </span>
 </details> 
 
+
+# 1. Experiment Design
+
+```{r eval=TRUE, warning=FALSE, echo=FALSE, error=FALSE, message=FALSE, results='asis'}
+kable(Replicate, col.names = c("IntensityColumn", "Replicate", "Condition"))
+```
 
 # 2. Experiment Health
 

@@ -17,7 +17,7 @@ data(package="MassExpression")
 ```{r fragpipe}
 library(MassExpression)
 
-output_foler <- "/path/to/output"
+output_folder <- "path/to/output"
 
 design <- fragpipe_data$design
 intensities <- fragpipe_data$intensities
@@ -29,18 +29,22 @@ normalise_flag <- FALSE
 # If save = FALSE the output is printed into memory 
 listIntensityExperiments = runGenericDiscovery(experimentDesign = design, 
                     proteinIntensities = intensities,
-                    normalise = normalise_flag, 
-                    output_folder = output_folder,
-                    save=FALSE)
+                    normalise = normalise_flag)
+                    
+# Save output to folder
+Intensity <- listIntensityExperiments$IntensityExperiment
+CompleteIntensity <-  listIntensityExperiments$CompleteIntensityExperiment
+saveOutput(Intensity, CompleteIntensity, output_folder)
 
 # Render and save QC report 
-rmarkdown::render('vignettes/QCreport.Rmd', 
+qc_report <- system.file("rmd","QC_Report.Rmd", package = "MassExpression")
+rmarkdown::render(qc_report, 
                   params = list(listInt = listIntensityExperiments,
                                 experiment = "Mass Dynamics QC report",
                                 output_figure = output_folder),
                                 output_dir = output_folder,
                   output_file = "test-data-qc.html",
-                  output_format=html_document(
+                  output_format=rmarkdown::html_document(
                             self_contained=FALSE,
                             lib_dir=file.path(output_folder,"qc_report_files")))
 

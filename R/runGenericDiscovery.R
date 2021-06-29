@@ -8,9 +8,7 @@
 #' @export
 
 runGenericDiscovery <- function(experimentDesign, proteinIntensities, 
-                                normalise=FALSE, 
-                                output_folder=".",
-                                save=TRUE){
+                                normalise=FALSE){
   
   # Create Data Rep
   IntensityExperiment <- constructSummarizedExperiment(experimentDesign = experimentDesign, 
@@ -22,17 +20,6 @@ runGenericDiscovery <- function(experimentDesign, proteinIntensities,
   CompleteIntensityExperiment <- results$CompleteIntensityExperiment
   IntensityExperiment <- results$IntensityExperiment
   
-  
-  comparisonExperiments <- 
-    listComparisonExperiments(CompleteIntensityExperiment)
-  
-  if(save){
-    dir.create(file.path(output_folder), recursive = TRUE, showWarnings = FALSE)
-    save(IntensityExperiment, 
-         CompleteIntensityExperiment, 
-         comparisonExperiments,
-         file = file.path(output_folder, "DiscoveryQuant.RData"))
-  }else{
-    return(results)
-  }
+  return(results)
+
 }

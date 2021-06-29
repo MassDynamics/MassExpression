@@ -8,7 +8,7 @@
 #' @importFrom SummarizedExperiment rowData
 #' @importFrom jsonlite write_json unbox
 
-writeProteinViz <- function(outputFolder, IntensityExperiment){
+writeProteinViz <- function(IntensityExperiment, outputFolder){
   
   comparisonStrings <- get_comparison_strings(rowData(IntensityExperiment))
   conditions <- unique(IntensityExperiment$Condition)

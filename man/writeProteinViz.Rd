@@ -5,12 +5,12 @@
 \title{This function writes a protein viz object which can be passed into MD's rails
 database}
 \usage{
-writeProteinViz(outputFolder, IntensityExperiment)
+writeProteinViz(IntensityExperiment, outputFolder)
 }
 \arguments{
-\item{outputFolder}{Path to output folder}
-
 \item{IntensityExperiment}{Output from runGenericDiscovery}
+
+\item{outputFolder}{Path to output folder}
 }
 \description{
 This function writes a protein viz object which can be passed into MD's rails
