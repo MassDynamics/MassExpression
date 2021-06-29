@@ -155,21 +155,18 @@ plot_condition_cv_distribution(IntensityExperiment)
 ## C. Intensity distribution across runs {.tabset .tabset-fade .tabset-pills}
 
 <details>
-  <summary>Coefficient of Variation Details</summary>
+  <summary>Distribution of intensities</summary>
   <span>
-    <p>It is useful to look at the distribution of the </p>
+    <p>It is useful to inspect the distribution of the Relative Log Expression (RLE) values to identify replicates with largely unusual distributions. RLE values for each protein are obtained by substracting the median of each protein across all the samples. The RLE boxplots values should be centered on 0. </p>
    <p>For a healthy experiment we expect:</p>
     <ul>
-      <li>The distribution of the CVs by conditions to be mostly overlapping, e.g. similar mode</li>
+      <li>The RLE boxplots to have a similar median, centered around 0, across all replicates </li>
     </ul>
+     <p>If some replicates show large devations of the boxplots medians from 0, it can be symptomatic of problems in the experiment. <p>
   </span>
 </details> 
 
 ## Imputed data
-
-```{r}
-plot_measurement_boxplot(CompleteIntensityExperiment)
-```
 
 
 ```{r}
@@ -179,15 +176,10 @@ plot_rle_boxplot(CompleteIntensityExperiment)
 
 ## Initial data
 
-```{r boxplot-initial}
-plot_measurement_boxplot(IntensityExperiment)
-```
-
 
 ```{r rle-boxplot-initial}
 plot_rle_boxplot(IntensityExperiment, log = TRUE)
 ```
-
 
 
 # 2. Feature completedness {.tabset .tabset-fade .tabset-pills}

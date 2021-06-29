@@ -14,7 +14,7 @@ Depends:
   Biobase,
   SummarizedExperiment
 Imports:
-  limma,
+  limma (),
   data.table,
   stringr,
   dplyr, 

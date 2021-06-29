@@ -21,7 +21,7 @@ rmarkdown::render('QC_report_dev.Rmd',
                                 experiment = "Mass Dynamics QC report",
                                 output_figure = output_folder),
                                 output_dir = output_folder,
-                  output_file = "test-data-qc.html",
+                  output_file = "test-data-qc1.html",
                   output_format=rmarkdown::html_document(
                             self_contained=FALSE,
                             lib_dir=file.path(output_folder,"qc_report_files"),
