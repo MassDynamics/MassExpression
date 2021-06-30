@@ -22,6 +22,7 @@ ensure_package_installed("forcats", repos = "http://cran.rstudio.com/")
 ensure_package_installed("knitr", repos = "http://cran.rstudio.com/")
 ensure_package_installed("rmarkdown", repos = "http://cran.rstudio.com/")
 ensure_package_installed("statmod", repos = "http://cran.rstudio.com/")
+ensure_package_installed("pandoc", repos = "http://cran.rstudio.com/")
 
 #### Install packages Bioconductor
 ensure_package_installed("BiocManager", repos = "http://cran.rstudio.com/")
