@@ -28,7 +28,7 @@ ensure_package_installed("cli", repos = "http://cran.rstudio.com/")
 ensure_package_installed("BiocManager", repos = "http://cran.rstudio.com/")
 BiocManager::install(c("Biobase", "limma", "S4Vectors", "GenomicRanges", "GenomeInfoDb", "SummarizedExperiment"))
 
-if (!BiocManager::valid()){
+if (BiocManager::valid() != TRUE){
   BiocManager::valid()$out_of_date
-  stop("BiocManager is not valid")
+  stop("BiocManager is not valid", BiocManager::valid()$out_of_date)
 }
