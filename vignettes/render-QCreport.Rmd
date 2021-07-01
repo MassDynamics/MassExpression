@@ -22,11 +22,31 @@ CompleteIntensityExperiment <- listIntensityExperiments$CompleteIntensityExperim
 IntensityExperiment <- listIntensityExperiments$IntensityExperiment
 output_folder <- "~/Desktop/universal-import/"
 
+design <- read.table("~/Projects/MD/universal-import/data/design.tsv",sep = "\t", header = TRUE)
+intensities <- read.table("~/Projects/MD/universal-import/data/intensities.tsv",sep = "\t", header = TRUE)
+
+output_folder <- "~/Desktop/universal-import/"
+
+normalise_flag <- FALSE
+
+# Workflow runner
+# If save = FALSE the output is printed into memory 
+listIntensityExperiments = runGenericDiscovery(experimentDesign = design, 
+                    proteinIntensities = intensities,
+                    normalise = normalise_flag)
+                    
+# Save output to folder
+Intensity <- listIntensityExperiments$IntensityExperiment
+CompleteIntensity <-  listIntensityExperiments$CompleteIntensityExperiment
+saveOutput(Intensity, CompleteIntensity, output_folder)
+
+# Render and save QC report 
 qc_report <- system.file("rmd","QC_report.Rmd", package = "MassExpression")
 rmarkdown::render(qc_report, 
                   params = list(listInt = listIntensityExperiments,
                                 experiment = "Mass Dynamics QC report",
-                                output_figure = file.path(output_folder, "figures/")),
+                                output_figure = file.path(output_folder, "figures/"),
+                                format = "html"),
                   output_file = file.path(output_folder, "QC_report.html"),
                   output_format=rmarkdown::html_document(
                             self_contained=FALSE,
@@ -40,11 +60,18 @@ rmarkdown::render(qc_report,
 rmarkdown::render(qc_report, 
                   params = list(listInt = listIntensityExperiments,
                                 experiment = "Mass Dynamics QC report",
-                                output_figure = file.path(output_folder, "figures/")),
+                                output_figure = file.path(output_folder, "figures/"),
+                                format = "pdf"),
                   output_file = file.path(output_folder, "QC_report.pdf"),
                   output_format=rmarkdown::pdf_document(
                     toc = TRUE,
                     fig_caption= TRUE))
+                                output_figure = output_folder),
+                                output_dir = output_folder,
+                  output_file = "test-data-qc.html",
+                  output_format=rmarkdown::html_document(
+                            self_contained=FALSE,
+                            lib_dir=file.path(output_folder,"qc_report_files"))))
 ```
 
 

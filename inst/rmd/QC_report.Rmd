@@ -209,12 +209,8 @@ if (params$format == "pdf"){
   })
 
   fig
-  
-}
-
 ```
-
-
+  
 # 2. Feature completedness {.tabset .tabset-fade .tabset-pills}
 
 <details>
@@ -229,8 +225,34 @@ if (params$format == "pdf"){
   </span>
 </details> 
 
-## By replicate
+## By sample
 
 ```{r sample-missingness}
 replicate_missingness_experiment(IntensityExperiment)
+```
+
+
+## By protein
+
+```{r protein-missingness}
+protein_missingness_experiment(IntensityExperiment)
+```
+
+```{r nprotein-sample}
+protein_counts_by_replicate(IntensityExperiment)
+```
+
+
+# 3. Intensity distribution across runs {.tabset .tabset-fade .tabset-pills}
+
+```{r rle-imputed}
+plot_rle_boxplot(IntensityExperiment, CompleteIntensityExperiment)
+```
+
+
+# 4. Imputed versus non imputed log2 Intensity values
+
+```{r compare-imputed}
+plot_imputed_vs_not(RawDataExperiment = IntensityExperiment,
+                    ImputedDataExperiment = CompleteIntensityExperiment)
 ```
