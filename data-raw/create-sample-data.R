@@ -116,4 +116,3 @@ pd_iPRG_data <- list(intensities=protein.intensities, design = experiment.design
 
 save(pd_iPRG_data, file = "./data/example_pd_iRPG.rda")
 
-
