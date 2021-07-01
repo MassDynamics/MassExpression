@@ -2,6 +2,7 @@
 #' comparison calculated by the limma pipeline
 #' @export listComparisonExperiments
 #' @importFrom SummarizedExperiment rowData 
+
 listComparisonExperiments <- function(CompleteIntensityExperiment){
   
   conditionComparisonMapping = metadata(CompleteIntensityExperiment)$conditionComparisonMapping

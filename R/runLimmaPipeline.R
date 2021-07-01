@@ -1,21 +1,23 @@
 #' This function orchestrates imputation, normalization and the binary limma statistics accross all experimental comparisons
 #' 
 #' @param experimentDesign Output from constructSummarizedExperiment
-#' @param normalise logical. Whether to perform median normalisation by condition. 
+#' @param NormalisationMethod logical. Whether to perform median normalisation by condition. 
 #' @export runLimmaPipeline
 #' @import data.table
 #' @importFrom stringr str_c
 
 
-runLimmaPipeline <- function(IntensityExperiment, normalise=FALSE){
+runLimmaPipeline <- function(IntensityExperiment, NormalisationMethod){
   
   longIntensityDT <- initialiseLongIntensityDT(IntensityExperiment)
   
   # Create Median Normalized Measurements in each Condition/Replicate
-  if(normalise){
+  if (NormalisationMethod == "Median"){
     longIntensityDT[Imputed == F, log2NIntNorm := log2NInt - median(log2NInt), by = list(Condition,Replicate)]
-  }else{
-    longIntensityDT[Imputed == F, log2NIntNorm := log2NInt, by = list(Condition,Replicate)]
+  }else if(NormalisationMethod == "None") {
+    longIntensityDT[, log2NIntNorm := log2NInt]
+  } else {
+    stop(paste0("Normalisation method ",NormalisationMethod," not availble."))
   }
   
   # Imputation

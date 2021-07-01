@@ -22,14 +22,12 @@ output_folder <- "path/to/output"
 design <- fragpipe_data$design
 intensities <- fragpipe_data$intensities
 
-# The flag should eventually come from the metadata 
-normalise_flag <- FALSE
+# The flag should eventually come from the parameters file
+normalisation_method <- "None"
 
-# Workflow runner
-# If save = FALSE the output is printed into memory 
-listIntensityExperiments = runGenericDiscovery(experimentDesign = design, 
-                    proteinIntensities = intensities,
-                    normalise = normalise_flag)
+listIntensityExperiments <- runGenericDiscovery(experimentDesign = design, 
+                                                proteinIntensities = intensities, 
+                                                NormalisationMethod = normalisation_method)
                     
 # Save output to folder
 Intensity <- listIntensityExperiments$IntensityExperiment
@@ -38,15 +36,30 @@ saveOutput(Intensity, CompleteIntensity, output_folder)
 
 # Render and save QC report 
 qc_report <- system.file("rmd","QC_report.Rmd", package = "MassExpression")
+
+# Redenr HTML
 rmarkdown::render(qc_report, 
                   params = list(listInt = listIntensityExperiments,
                                 experiment = "Mass Dynamics QC report",
-                                output_figure = output_folder),
-                                output_dir = output_folder,
-                  output_file = "test-data-qc.html",
+                                output_figure = file.path(output_folder, "figures/")),
+                  output_file = file.path(output_folder, "QC_report.html"),
                   output_format=rmarkdown::html_document(
                             self_contained=FALSE,
-                            lib_dir=file.path(output_folder,"qc_report_files")))
+                            lib_dir=file.path(output_folder,"qc_report_files"),
+                            code_folding= "hide",
+                            theme="united",
+                            toc = TRUE,
+                            fig_caption= TRUE,
+                            df_print="paged"))
+# Render PDF
+rmarkdown::render(qc_report, 
+                  params = list(listInt = listIntensityExperiments,
+                                experiment = "Mass Dynamics QC report",
+                                output_figure = file.path(output_folder, "figures/")),
+                  output_file = file.path(output_folder, "QC_report.pdf"),
+                  output_format=rmarkdown::pdf_document(
+                    toc = TRUE,
+                    fig_caption= TRUE))
 ```
 
 

@@ -4,12 +4,18 @@
 \alias{runGenericDiscovery}
 \title{This function orchestrates the MassExpression workflow (could be called by a  workflow step)}
 \usage{
-runGenericDiscovery(experimentDesign, proteinIntensities, normalise = FALSE)
+runGenericDiscovery(
+  experimentDesign,
+  proteinIntensities,
+  NormalisationMethod = "None"
+)
 }
 \arguments{
 \item{experimentDesign}{XX.}
 
 \item{proteinIntensities}{XX}
+
+\item{NormalisationMethod}{Normalisation method. One of "none" or "median".}
 }
 \value{
 List of two SummarisedExperiment objects: `IntensityExperiment` 

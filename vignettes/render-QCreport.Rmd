@@ -11,27 +11,47 @@ library(MassExpression)
 
 design <- read.table("../../data/design.tsv",sep = "\t", header = TRUE)
 intensities <- read.table("../../data/intensities.tsv",sep = "\t", header = TRUE)
+# This will have to be passed with parameters files
+normalisation_method <- "None"
 
 listIntensityExperiments <- runGenericDiscovery(experimentDesign = design, 
-                                                proteinIntensities = intensities)
+                                                proteinIntensities = intensities, 
+                                                NormalisationMethod = normalisation_method)
 
 CompleteIntensityExperiment <- listIntensityExperiments$CompleteIntensityExperiment
 IntensityExperiment <- listIntensityExperiments$IntensityExperiment
 output_folder <- "~/Desktop/universal-import/"
 
-rmarkdown::render('QC_report_dev.Rmd', 
+qc_report <- system.file("rmd","QC_report.Rmd", package = "MassExpression")
+rmarkdown::render(qc_report, 
                   params = list(listInt = listIntensityExperiments,
                                 experiment = "Mass Dynamics QC report",
-                                output_figure = output_folder),
-                                output_dir = output_folder,
-                  output_file = "test-data-qc1.html",
+                                output_figure = file.path(output_folder, "figures/")),
+                  output_file = file.path(output_folder, "QC_report.html"),
                   output_format=rmarkdown::html_document(
                             self_contained=FALSE,
                             lib_dir=file.path(output_folder,"qc_report_files"),
-                            code_folding = "hide",
-                            code_download = TRUE, toc = TRUE, 
-                            theme = "united", fig_caption=TRUE, df_print="paged"))
+                            code_folding= "hide",
+                            theme="united",
+                            toc = TRUE,
+                            fig_caption= TRUE,
+                            df_print="paged"))
+
+rmarkdown::render(qc_report, 
+                  params = list(listInt = listIntensityExperiments,
+                                experiment = "Mass Dynamics QC report",
+                                output_figure = file.path(output_folder, "figures/")),
+                  output_file = file.path(output_folder, "QC_report.pdf"),
+                  output_format=rmarkdown::pdf_document(
+                    toc = TRUE,
+                    fig_caption= TRUE))
 ```
+
+
+
+
+
+
 
 
 ## DIA-NN data

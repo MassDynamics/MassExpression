@@ -69,7 +69,7 @@ pca_plot_experiment <- function(Experiment, log=FALSE){
     scale_y_continuous("% Variance") +
     ggtitle("Scree plot")
   
-  list(plotly::ggplotly(p), scree_plot)
+  list(p, scree_plot)
   
 }
 
@@ -116,7 +116,7 @@ mds_plot_experiment <- function(Experiment, log=FALSE){
     scale_y_continuous("% Variance") +
     ggtitle("Scree plot")
   
-  list(plotly::ggplotly(p), scree_plot)
+  list(p, scree_plot)
   
 } 
 
@@ -250,34 +250,46 @@ protein_missingness_experiment <- function(Experiment){
 
 
 
-#' Boxplot of the distribution of the relative log expression values across samples. 
+#' Boxplot of the distribution of the relative log expression (RLE) values across samples. 
+#' RLE values are computed using the data from the CompleteIntensityExperiment which contains 
+#' the intensity values used for the DE analysis (log-transformed, normalised when required).   
 #'
-#' @param Experiment SummarizedExperiment object
-#' 
+#' @param IntensityExperiment SummarizedExperiment object of the raw data, i.e. including missing values
+#' @param CompleteIntensityExperiment  SummarizedExperiment object of the data used for the DE analysis 
+#' (log-transformed, normalised when required). 
+#' @param includeImputed logical. Whether imputed values should be considered when computing the RLE values.
+#'  
 #' @export plot_rle_boxplot
 #' @importFrom tidyr pivot_longer
+#' @importFrom data.table data.table
 
-plot_rle_boxplot <- function(Experiment, log=FALSE){
+plot_rle_boxplot <- function(IntensityExperiment, CompleteIntensityExperiment, 
+                             includeImputed = FALSE){
+  longRawDF <- SEToLongDT(IntensityExperiment)
+  longRawDF$Imputed <- longRawDF$Intensity == 0
+  longRawDF <- longRawDF[,c("ProteinId","Imputed","IntensityColumn")]
   
-  # prepare data for plotting
-  toPlot <- preparePlottingData(Experiment, log)
-  intensities <- toPlot$intensities
-  design <- toPlot$design
+  # the intensity plotted are the ones present in the assay experiment
+  longIntensityDF <- SEToLongDT(CompleteIntensityExperiment)
+  longIntensityDF <- as_tibble(longIntensityDF) %>% 
+    left_join(as_tibble(longRawDF))
+  longIntensityDF <- data.table(longIntensityDF[!longIntensityDF$Imputed,
+                                                c("ProteinId","Imputed", "Intensity","IntensityColumn")])
   
-  intensities <- data.frame(intensities)
-  intensities$ProteinId <- rownames(intensities)
-  intensities_long <- intensities %>% pivot_wider(id_cols = "ProteinId", 
-                                                  values_from)
+  if(includeImputed){
+    longIntensityDF <- longIntensityDF[,RLE := Intensity - median(Intensity), 
+                                       by = ProteinId]
+  }else{
+    longIntensityDF <- longIntensityDF[!longIntensityDF$Imputed, 
+                                       RLE := Intensity - median(Intensity), 
+                                       by = ProteinId] 
+  }
   
-  med_rows <- matrixStats::rowMedians(intensities)
-  intRLE <- intensities - med_rows
-  longIntRLE <- as_tibble(intRLE) %>% pivot_longer(cols = dplyr::all_of(colnames(intRLE)), 
-                                                   names_to = "IntensityColumn", 
-                                                   values_to = "intRLE")
+  # Merge with design
+  design <- colData(CompleteIntensityExperiment)
+  longIntensityDF <- merge(longIntensityDF, design, by = "IntensityColumn", all.x=TRUE)
   
-  longIntRLE <- longIntRLE %>% dplyr::left_join(design)
-  
-  p = ggplot(longIntRLE, aes(x = IntensityColumn, y = intRLE)) + 
+  p = ggplot(longIntensityDF, aes(x = IntensityColumn, y = RLE)) + 
     geom_boxplot(aes(fill = Condition)) + 
     theme_minimal() + 
     theme(axis.text.x = element_text(angle = 90, vjust = 0.2),
@@ -288,23 +300,7 @@ plot_rle_boxplot <- function(Experiment, log=FALSE){
     scale_y_continuous("RLE") +
     ggtitle("Intensities are centered on protein's medians") + 
     geom_hline(yintercept = 0, linetype="dotted")
-    #coord_flip()
-  
-  fig <- plotly::ggplotly(p, tooltip = c("y")) %>% plotly::config(displayModeBar = T, 
-                                                 modeBarButtons = list(list('toImage')),
-                                                 displaylogo = F)
-  # this code will be needed if you want to make an interactive version
-  fig$x$data <- lapply(fig$x$data, FUN = function(x){
-    # When creating plot p with ggplot if you specify fill = cut use x$fill$color instead of $line$color
-    x$marker$outliercolor = x$line$color 
-    # When creating plot p with ggplot if you specify fill = cut use x$fill$color instead $line$color
-    x$marker$color = x$line$color
-    # When creating plot p with ggplot if you specify fill = cut use x$fill$color instead $line$color
-    x$marker$line = x$line$color 
-    return(x)
-  })
-  
-  
+
   p
 
 }
@@ -336,21 +332,6 @@ plot_measurement_boxplot <- function(Experiment, log=FALSE){
     scale_x_discrete("Replicate") +
     scale_y_continuous("Log2 Reporter Intensity")
   
-  fig <- ggplotly(p, tooltip = c("y"))%>% config(displayModeBar = T, 
-                                                 modeBarButtons = list(list('toImage')),
-                                                 displaylogo = F)
-  # this code will be needed if you want to make an interactive version
-  fig$x$data <- lapply(fig$x$data, FUN = function(x){
-    # When creating plot p with ggplot if you specify fill = cut use x$fill$color instead of $line$color
-    x$marker$outliercolor = x$line$color 
-    # When creating plot p with ggplot if you specify fill = cut use x$fill$color instead $line$color
-    x$marker$color = x$line$color
-    # When creating plot p with ggplot if you specify fill = cut use x$fill$color instead $line$color
-    x$marker$line = x$line$color 
-    return(x)
-  })
-  
-  
   p
 }
 
@@ -380,16 +361,17 @@ plot_density_distr <- function(Experiment, log=FALSE){
 
 #' Distribution of imputed versus non imputed values. 
 #'
-#' @param Experiment SummarizedExperiment object
+#' @param IntensityExperiment SummarizedExperiment object of raw data
+#' @param CompleteIntensityExperiment SummarizedExperiment object of the data used for the DE analysis with limma
 #' @export plot_imputed_vs_not
 
-plot_imputed_vs_not <- function(RawDataExperiment, ImputedDataExperiment){
-  longRawDF <- SEToLongDT(RawDataExperiment)
+plot_imputed_vs_not <- function(IntensityExperiment, CompleteIntensityExperiment){
+  longRawDF <- SEToLongDT(IntensityExperiment)
   longRawDF$Imputed <- longRawDF$Intensity == 0
   longRawDF <- longRawDF[,c("ProteinId","Imputed","IntensityColumn")]
   
   # the intensity plotted are the ones present in the assay experiment
-  longIntensityDF <- SEToLongDT(ImputedDataExperiment)
+  longIntensityDF <- SEToLongDT(CompleteIntensityExperiment)
   longIntensityDF <- as_tibble(longIntensityDF) %>% left_join(as_tibble(longRawDF))
   
   p <- ggplot(longIntensityDF, aes(x=Intensity, fill=Imputed, 

@@ -2,13 +2,26 @@
 % Please edit documentation in R/qc_plotting_functions.R
 \name{plot_rle_boxplot}
 \alias{plot_rle_boxplot}
-\title{Boxplot of the distribution of the relative log expression values across samples.}
+\title{Boxplot of the distribution of the relative log expression (RLE) values across samples. 
+RLE values are computed using the data from the CompleteIntensityExperiment which contains 
+the intensity values used for the DE analysis (log-transformed, normalised when required).}
 \usage{
-plot_rle_boxplot(Experiment, log = FALSE)
+plot_rle_boxplot(
+  IntensityExperiment,
+  CompleteIntensityExperiment,
+  includeImputed = FALSE
+)
 }
 \arguments{
-\item{Experiment}{SummarizedExperiment object}
+\item{IntensityExperiment}{SummarizedExperiment object of the raw data, i.e. including missing values}
+
+\item{CompleteIntensityExperiment}{SummarizedExperiment object of the data used for the DE analysis 
+(log-transformed, normalised when required).}
+
+\item{includeImputed}{logical. Whether imputed values should be considered when computing the RLE values.}
 }
 \description{
-Boxplot of the distribution of the relative log expression values across samples.
+Boxplot of the distribution of the relative log expression (RLE) values across samples. 
+RLE values are computed using the data from the CompleteIntensityExperiment which contains 
+the intensity values used for the DE analysis (log-transformed, normalised when required).
 }

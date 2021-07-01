@@ -1,7 +1,3 @@
-#########
-# DIA-NN
-#########
-
 library(devtools)
 # install_github("https://github.com/vdemichev/diann-rpackage")
 library(diann)
@@ -42,7 +38,7 @@ save(mq_silac_data, file = "./data/example_mq_silac.rda")
 ## fragpipe
 ###########
 
-protein.intensities = read.csv("../data-s3/frag-pipe/combined_protein.tsv", sep = "\t", stringsAsFactors = F)
+protein.intensities = read.csv("../../data-s3/data-formats/fragpipe/LFQ/PXD026401/data/combined_protein.tsv", sep = "\t", stringsAsFactors = F)
 cols <- colnames(protein.intensities)[grepl("Total.Intensity", colnames(protein.intensities))]
 runs <- gsub(".Total.Intensity", "", cols)
 groups <- gsub("_[0-9]*$","",runs)
@@ -69,24 +65,26 @@ assay_fragpipe <- protein.intensities
 
 fragpipe_data <- list(intensities = assay_fragpipe, design = design_fragpipe)
 
+write_delim(assay_fragpipe, "../universal-input-explore/data/fragpipe-lfq/intensities.tsv", delim = "\t")
 save(fragpipe_data, file = "./data/example_fragpipe.rda")
 
 
 #### Maxquant LFQ HER2
-experiment_home <- "../data-s3/data-formats/maxquant/LFQ/HER2/data/"
+experiment_home <- "../../data-s3/data-formats/maxquant/LFQ/HER2/data/"
 protein.intensities <- read.csv(file.path(experiment_home, "proteinGroups.txt"), sep = "\t", stringsAsFactors = F)
 design <- read.csv(file.path(experiment_home, "experimentDesign_original.txt"), sep = "\t", stringsAsFactors = F)
 
 # debugonce(MaxQuantTranform(protein.intensities, design))
 mq_lfq_data <- MaxQuantTranform(protein.intensities, design)
 
+write_delim(protein.intensities, "../universal-input-explore/data/maxquant-lfq/intensities.tsv", delim = "\t")
 save(mq_lfq_data, file = "./data/example_mq_lfq.rda")
 
 
 ######
 ### PD
 ######
-experiment_home = "../data-s3/data-formats/proteome-discoverer/LFQ/Spectral_Clustering_LFQ/data/data/pd_complete/final_pd_node/"
+experiment_home = "../../data-s3/data-formats/proteome-discoverer/LFQ/Spectral_Clustering_LFQ/data/data/pd_complete/final_pd_node/"
 
 protein.intensities = read.csv(file.path(experiment_home, "iPRG-no_clustering-no_mbr_Proteins.txt"), sep = "\t", stringsAsFactors = F)
 
@@ -113,6 +111,7 @@ protein.intensities = protein.intensities %>%
     Description = description.id.column
   )
 
+write_delim(protein.intensities, "../universal-input-explore/data/pd-iRPG/intensities.tsv", delim = "\t")
 pd_iPRG_data <- list(intensities=protein.intensities, design = experiment.design)
 
 save(pd_iPRG_data, file = "./data/example_pd_iRPG.rda")
