@@ -81,7 +81,7 @@ filterComparisonRows <- function(comparisonIntensityExperiment){
 #' This is a simple check to validate the intensity/cls vector match the statistics
 #' @export validateComparison
 validateComparison <- function(rse){
-  assay.data <- dplyr::as_data_frame(assay(rse))
+  assay.data <- dplyr::as_tibble(assay(rse))
   row_data_fc <- rowData(rse)$FC
   calc_fc <- rowMeans(assay.data[,rse$GROUP == 0]) - rowMeans(assay.data[,rse$GROUP == 1])
   stopifnot((row_data_fc - calc_fc) < 2**(-10))
@@ -122,7 +122,7 @@ createComparisonExperiment <- function(CompleteIntensityExperiment,
   ### Temporary Code while Enrichment Browser is in use ###
   #need to map column names correctly to what EnrichmentBrowser expects
   rowData(comparisonIntensityExperiment) = 
-    dplyr::as_data_frame(rowData(comparisonIntensityExperiment)) %>%
+    dplyr::as_tibble(rowData(comparisonIntensityExperiment)) %>%
     rename(FC = logFC,
            ADJ.PVAL = adj.P.Val)
   

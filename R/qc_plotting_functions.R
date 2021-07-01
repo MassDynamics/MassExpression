@@ -60,7 +60,7 @@ pca_plot_experiment <- function(Experiment, log=FALSE){
     ggtitle("PCA plot")
   
   
-  num_dimensions = sum(eig.val>0.01)-2
+  num_dimensions = sum(eig.val$eigenvalue>0.01)-2
   scree_plot <- ggplot(eig.val[1:num_dimensions], aes(x=reorder(dims, -`variance.percent`), y=`variance.percent`)) +
     geom_bar(stat="identity", fill = "skyblue2") +
     theme_minimal() +
@@ -330,7 +330,7 @@ plot_measurement_boxplot <- function(Experiment, log=FALSE){
     ) +
     geom_hline(yintercept = 0, linetype="dotted", colour="grey") +
     scale_x_discrete("Replicate") +
-    scale_y_continuous("Log2 Reporter Intensity")
+    scale_y_continuous("Log2 Intensity")
   
   p
 }
@@ -354,7 +354,7 @@ plot_density_distr <- function(Experiment, log=FALSE){
   p = ggplot(long_int, aes(x = Intensity, fill = Condition, colour=Condition)) + 
     geom_density(alpha=0.6) +
     theme_minimal() +
-    labs(x = "log2 Reporter Intensity", y = "Density")
+    labs(x = "log2 Intensity", y = "Density")
   p
 }
 
@@ -380,7 +380,7 @@ plot_imputed_vs_not <- function(IntensityExperiment, CompleteIntensityExperiment
     geom_density(alpha=0.4) +
     theme_minimal() +
     ggtitle("Intensity (Imputed vs Not)") +
-    labs(x = "Log2 Reporter Intensity")
+    labs(x = "Log2 Intensity")
   
   p
   

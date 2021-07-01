@@ -117,7 +117,6 @@ knitr::kable(design)
 ## PCA
 p=pca_plot_experiment(CompleteIntensityExperiment)
 
-
 if (params$format == "pdf"){
   p[[1]]
 } else {
@@ -242,6 +241,10 @@ protein_missingness_experiment(IntensityExperiment)
 
 
 # 4. Imputed versus non imputed log2 intensity values
+
+<details>
+  <summary>Density distribution of the imputed and not imputed intensity values used for the differential expression analysis. The distributions are shown by condition of interest</summary>
+</details> 
 
 ```{r compare-imputed}
 plot_imputed_vs_not(IntensityExperiment = IntensityExperiment,
