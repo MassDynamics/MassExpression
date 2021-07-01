@@ -9,28 +9,35 @@ library(MassExpression)
 # design <- mq_lfq_data$design
 # intensities <- mq_lfq_data$intensities
 
-design <- read.table("../../data/design.tsv",sep = "\t", header = TRUE)
-intensities <- read.table("../../data/intensities.tsv",sep = "\t", header = TRUE)
+design <- read.table("~/Projects/MD/universal-import/data/design.tsv",sep = "\t", header = TRUE)
+intensities <- read.table("~/Projects/MD/universal-import/data/intensities.tsv",sep = "\t", header = TRUE)
 
-listIntensityExperiments <- runGenericDiscovery(experimentDesign = design, 
-                                                proteinIntensities = intensities)
-
-CompleteIntensityExperiment <- listIntensityExperiments$CompleteIntensityExperiment
-IntensityExperiment <- listIntensityExperiments$IntensityExperiment
 output_folder <- "~/Desktop/universal-import/"
 
-rmarkdown::render('QC_report_dev.Rmd', 
+normalise_flag <- FALSE
+
+# Workflow runner
+# If save = FALSE the output is printed into memory 
+listIntensityExperiments = runGenericDiscovery(experimentDesign = design, 
+                    proteinIntensities = intensities,
+                    normalise = normalise_flag)
+                    
+# Save output to folder
+Intensity <- listIntensityExperiments$IntensityExperiment
+CompleteIntensity <-  listIntensityExperiments$CompleteIntensityExperiment
+saveOutput(Intensity, CompleteIntensity, output_folder)
+
+# Render and save QC report 
+qc_report <- system.file("rmd","QC_report.Rmd", package = "MassExpression")
+rmarkdown::render(qc_report, 
                   params = list(listInt = listIntensityExperiments,
                                 experiment = "Mass Dynamics QC report",
                                 output_figure = output_folder),
                                 output_dir = output_folder,
-                  output_file = "test-data-qc1.html",
+                  output_file = "test-data-qc.html",
                   output_format=rmarkdown::html_document(
                             self_contained=FALSE,
-                            lib_dir=file.path(output_folder,"qc_report_files"),
-                            code_folding = "hide",
-                            code_download = TRUE, toc = TRUE, 
-                            theme = "united", fig_caption=TRUE, df_print="paged"))
+                            lib_dir=file.path(output_folder,"qc_report_files"))))
 ```
 
 

@@ -165,36 +165,14 @@ protein_counts_by_replicate(IntensityExperiment)
 
 # 3. Intensity distribution across runs {.tabset .tabset-fade .tabset-pills}
 
-## Imputed data
-
-
-```{r}
-plot_measurement_boxplot(CompleteIntensityExperiment)
+```{r rle-imputed}
+plot_rle_boxplot(IntensityExperiment, CompleteIntensityExperiment)
 ```
-
-
-```{r}
-plot_rle_boxplot(CompleteIntensityExperiment)
-```
-
-
-## Initial data
-
-```{r eval=TRUE}
-plot_measurement_boxplot(IntensityExperiment)
-```
-
-
-```{r boxplot-imputed}
-plot_rle_boxplot(IntensityExperiment, log = TRUE)
-```
-
-
 
 
 # 4. Imputed versus non imputed log2 Intensity values
 
-```{r}
+```{r compare-imputed}
 plot_imputed_vs_not(RawDataExperiment = IntensityExperiment,
                     ImputedDataExperiment = CompleteIntensityExperiment)
 ```
@@ -203,7 +181,7 @@ plot_imputed_vs_not(RawDataExperiment = IntensityExperiment,
 
 ## Volcano plots
 
-```{r}
+```{r volcano}
 stats <- rowData(CompleteIntensityExperiment)
 logfcs <- colnames(stats)[str_detect(colnames(stats), "logFC.")]
 
@@ -225,7 +203,7 @@ for(lfc in logfcs){
 
 ## MA plot
 
-```{r}
+```{r ma-plots}
 for(lfc in logfcs){
   comp_name <- str_remove(lfc, "logFC.")
   comparison.statistics <- data.frame(FoldChange=stats[,lfc],
@@ -240,7 +218,7 @@ for(lfc in logfcs){
 
 ## Histogram of pvalues
 
-```{r }
+```{r histogram-pvals}
 pvals <- colnames(stats)[str_detect(colnames(stats), "P.Value.")]
 
 for(pval in pvals){
