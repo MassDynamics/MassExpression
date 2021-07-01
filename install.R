@@ -9,7 +9,7 @@ ensure_package_installed <- function (package, repos = repos) {
 
 ensure_package_installed_with_version <- function (package, version, repos = repos) {
   if(!require(package, character.only=TRUE)) {
-    install_version(package, version = version, repos = repos)
+    ?install_version(package, version = version, repos = repos)
     library(package, character.only=TRUE)
   } else if (packageVersion(package) != version) {
     install_version(package, version = version, repos = repos)
@@ -23,23 +23,24 @@ ensure_package_installed_with_version <- function (package, version, repos = rep
 }
 
 
-ensure_package_installed("devtools", repos = "http://cran.rstudio.com/")
+ensure_package_installed_with_version("devtools","2.4.2", repos = "http://cran.rstudio.com/")
 
 
-ensure_package_installed("gert", repos = "http://cran.rstudio.com/")
-ensure_package_installed("usethis", repos = "http://cran.rstudio.com/")
-ensure_package_installed("data.table", repos = "http://cran.rstudio.com/")
-ensure_package_installed("foreach", repos = "http://cran.rstudio.com/")
-ensure_package_installed("stringr", repos = "http://cran.rstudio.com/")
-ensure_package_installed("dplyr", repos = "http://cran.rstudio.com/")
-ensure_package_installed("jsonlite", repos = "http://cran.rstudio.com/")
-ensure_package_installed("tidyr", repos = "http://cran.rstudio.com/")
-ensure_package_installed("plotly", repos = "http://cran.rstudio.com/")
-ensure_package_installed("ggplot2", repos = "http://cran.rstudio.com/")
-ensure_package_installed("forcats", repos = "http://cran.rstudio.com/")
-ensure_package_installed("knitr", repos = "http://cran.rstudio.com/")
-ensure_package_installed("rmarkdown", repos = "http://cran.rstudio.com/")
-ensure_package_installed("statmod", repos = "http://cran.rstudio.com/")
+ensure_package_installed_with_version("gert", "1.3.0",repos = "http://cran.rstudio.com/")
+ensure_package_installed_with_version("usethis","2.0.1", repos = "http://cran.rstudio.com/")
+ensure_package_installed_with_version("data.table", "1.14.0",repos = "http://cran.rstudio.com/")
+ensure_package_installed_with_version("foreach", "1.5.1", repos = "http://cran.rstudio.com/")
+ensure_package_installed_with_version("stringr", "1.4.0", repos = "http://cran.rstudio.com/")
+ensure_package_installed_with_version("dplyr", "1.0.7", repos = "http://cran.rstudio.com/")
+ensure_package_installed_with_version("jsonlite", "1.7.2", repos = "http://cran.rstudio.com/")
+ensure_package_installed_with_version("tidyr", "1.1.3", repos = "http://cran.rstudio.com/")
+ensure_package_installed_with_version("plotly", "4.9.4.1", repos = "http://cran.rstudio.com/")
+ensure_package_installed_with_version("ggplot2", "3.3.5", repos = "http://cran.rstudio.com/")
+ensure_package_installed_with_version("forcats", "0.5.1", repos = "http://cran.rstudio.com/")
+ensure_package_installed_with_version("testthat", "3.0.3", repos = "http://cran.rstudio.com/")
+ensure_package_installed_with_version("knitr", "1.33", repos = "http://cran.rstudio.com/")
+ensure_package_installed_with_version("rmarkdown","2.9", repos = "http://cran.rstudio.com/")
+ensure_package_installed_with_version("statmod","1.4.36", repos = "http://cran.rstudio.com/")
 ensure_package_installed_with_version("FactoMineR", '2.4', repos = "http://cran.rstudio.com/")
 ensure_package_installed_with_version("factoextra", '1.0.7', repos = "http://cran.rstudio.com/")
 

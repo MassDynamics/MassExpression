@@ -1,7 +1,7 @@
 
 #' Transform MaxQuant proteinGroups to universal input
 #' @export MaxQuantTranform
-MaxQuantTranform <- function(proteinGroups, design){
+MaxQuantTranform <- function(proteinGroups, design, species, useNormalisationMethod, labellingMethod){
   proteinGroups <- convert_protein_groups_to_universal(proteinGroups)
   cols <- colnames(proteinGroups)[grepl("LFQ.intensity.", colnames(proteinGroups))]
   runs <- gsub("LFQ.intensity.", "", cols)
@@ -15,7 +15,11 @@ MaxQuantTranform <- function(proteinGroups, design){
     dplyr::rename(IntensityColumn = cols, Condition = experiment, Replicate = name)
   intensities <- proteinGroups[,c(cols,"ProteinId")]
   
-  list(design=design, intensities=intensities)
+  parameters <- data.frame(X1 = c("Species", "UseNormalisationMethod", "LabellingMethod"),
+                                  X2 = c(species,useNormalisationMethod,labellingMethod))
+  
+  
+  list(design=design, intensities=intensities, parameters=parameters)
 }
 
 

@@ -2,6 +2,9 @@ library(devtools)
 # install_github("https://github.com/vdemichev/diann-rpackage")
 library(diann)
 library(here)
+library(readr)
+library(dplyr)
+library(tidyr)
 
 print(here())
 
@@ -10,15 +13,14 @@ print(here())
 # MaxQuant-SILAC
 ################
 
-pg <- read_delim("../data-s3/maxquant/SILAC/paper-sample-dataset/proteinGroups.txt",  "\t",
+pg <- read_delim("../../data-s3/data-formats/maxquant/SILAC/paper-sample-dataset/data/proteinGroups.txt",  "\t",
                  escape_double = FALSE, trim_ws = TRUE, col_types = cols(Reverse = col_character()))
-summary <- read_delim("../data-s3/maxquant/SILAC/paper-sample-dataset/summary.txt",  "\t",
+summary <- read_delim("../../data-s3/data-formats/maxquant/SILAC/paper-sample-dataset/data/summary.txt",  "\t",
                  escape_double = FALSE, trim_ws = TRUE)
-design <- read_delim("../data-s3/maxquant/SILAC/paper-sample-dataset/experimentalDesign.txt",  "\t", escape_double = FALSE, trim_ws = TRUE)
+design <- read_delim("../../data-s3/data-formats/maxquant/SILAC/paper-sample-dataset/data/experimentalDesign.txt",  "\t", escape_double = FALSE, trim_ws = TRUE)
 sample_data_mq_silac <- design %>% filter(Experiment %in% c("Heart", "COL", "PAN")) %>%
   unite(runs, Fraction, Experiment, sep = "_",remove = FALSE)
 
-metadata_mq_silac <- tibble(species = "Mouse", measure_type = "normalised ratios", label_method = "SILAC", software = "MaxQuant")
 
 protein.id.col <- "Majority protein IDs"
 intensity_columns <- c("Ratio H/L normalized Heart", "Ratio H/L normalized PAN", "Ratio H/L normalized COL")
@@ -28,7 +30,10 @@ assay_mq_silac <- pg_silac %>% rename(protein_id = all_of(protein.id.col),
                                 "PAN"  = `Ratio H/L normalized PAN`,
                                 "COL" = `Ratio H/L normalized COL`)
 
-mq_silac_data <- list(intensities = assay_mq_silac, design = sample_data_mq_silac, metadata = metadata_mq_silac)
+parameters <- data.frame(X1 = c("Species", "UseNormalisationMethod", "LabellingMethod"),
+                                X2 = c("Human","None","SILAC"))
+
+mq_silac_data <- list(intensities = assay_mq_silac, design = sample_data_mq_silac, parameters = parameters)
 
 save(mq_silac_data, file = "./data/example_mq_silac.rda")
 
@@ -42,7 +47,7 @@ protein.intensities = read.csv("../../data-s3/data-formats/fragpipe/LFQ/PXD02640
 cols <- colnames(protein.intensities)[grepl("Total.Intensity", colnames(protein.intensities))]
 runs <- gsub(".Total.Intensity", "", cols)
 groups <- gsub("_[0-9]*$","",runs)
-experiment.design <-as_data_frame(cbind(cols,runs,groups))
+experiment.design <-as_tibble(cbind(cols,runs,groups))
 colnames(experiment.design) <- c("IntensityColumn", "Replicate", "Condition")
 
 protein.id.column = "Protein.ID"
@@ -63,19 +68,23 @@ protein.intensities = protein.intensities %>%
 design_fragpipe <- experiment.design
 assay_fragpipe <- protein.intensities 
 
-fragpipe_data <- list(intensities = assay_fragpipe, design = design_fragpipe)
+parameters <- data.frame(X1 = c("Species", "UseNormalisationMethod", "LabellingMethod"),
+                                X2 = c("Human","None","LFQ"))
+
+fragpipe_data <- list(intensities = assay_fragpipe, design = design_fragpipe, parameters = parameters)
 
 write_delim(assay_fragpipe, "../universal-input-explore/data/fragpipe-lfq/intensities.tsv", delim = "\t")
 save(fragpipe_data, file = "./data/example_fragpipe.rda")
 
-
+######################
 #### Maxquant LFQ HER2
 experiment_home <- "../../data-s3/data-formats/maxquant/LFQ/HER2/data/"
 protein.intensities <- read.csv(file.path(experiment_home, "proteinGroups.txt"), sep = "\t", stringsAsFactors = F)
 design <- read.csv(file.path(experiment_home, "experimentDesign_original.txt"), sep = "\t", stringsAsFactors = F)
 
 # debugonce(MaxQuantTranform(protein.intensities, design))
-mq_lfq_data <- MaxQuantTranform(protein.intensities, design)
+
+mq_lfq_data <- MaxQuantTranform(protein.intensities, design, "Human", "None", "LFQ")
 
 write_delim(protein.intensities, "../universal-input-explore/data/maxquant-lfq/intensities.tsv", delim = "\t")
 save(mq_lfq_data, file = "./data/example_mq_lfq.rda")
@@ -111,8 +120,13 @@ protein.intensities = protein.intensities %>%
     Description = description.id.column
   )
 
+parameters <- data.frame(X1 = c("Species", "UseNormalisationMethod", "LabellingMethod"),
+                                X2 = c("Human","None","LFQ"))
+
+
 write_delim(protein.intensities, "../universal-input-explore/data/pd-iRPG/intensities.tsv", delim = "\t")
-pd_iPRG_data <- list(intensities=protein.intensities, design = experiment.design)
+write_delim(parameters, "../universal-input-explore/data/pd-iRPG/parameters.tsv", delim = "\t", col_names=FALSE)
+pd_iPRG_data <- list(intensities=protein.intensities, design = experiment.design, parameters=parameters)
 
 save(pd_iPRG_data, file = "./data/example_pd_iRPG.rda")
 

@@ -4,7 +4,13 @@
 \alias{MaxQuantTranform}
 \title{Transform MaxQuant proteinGroups to universal input}
 \usage{
-MaxQuantTranform(proteinGroups, design)
+MaxQuantTranform(
+  proteinGroups,
+  design,
+  species,
+  useNormalisationMethod,
+  labellingMethod
+)
 }
 \description{
 Transform MaxQuant proteinGroups to universal input
