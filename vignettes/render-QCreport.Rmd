@@ -22,18 +22,6 @@ CompleteIntensityExperiment <- listIntensityExperiments$CompleteIntensityExperim
 IntensityExperiment <- listIntensityExperiments$IntensityExperiment
 output_folder <- "~/Desktop/universal-import/"
 
-design <- read.table("~/Projects/MD/universal-import/data/design.tsv",sep = "\t", header = TRUE)
-intensities <- read.table("~/Projects/MD/universal-import/data/intensities.tsv",sep = "\t", header = TRUE)
-
-output_folder <- "~/Desktop/universal-import/"
-
-normalise_flag <- FALSE
-
-# Workflow runner
-# If save = FALSE the output is printed into memory 
-listIntensityExperiments = runGenericDiscovery(experimentDesign = design, 
-                    proteinIntensities = intensities,
-                    normalise = normalise_flag)
                     
 # Save output to folder
 Intensity <- listIntensityExperiments$IntensityExperiment

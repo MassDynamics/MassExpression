@@ -108,7 +108,7 @@ knitr::kable(design)
       <li>Biological Replicates to cluster more than non replicates.</li>
       <li>Clustering of the condition of interest should be visible</li>
     </ul>
-    <p> If unexpected clusters occur or replicates don't cluster together it can be due to extra variability introduced by factors such as technical processing, other unexplored biological differences, sample swaps etc... The interpretation and trust in the the differential expression results should take these consideration into a account. If you think that the replicates in the experiment show largely unexpected patterns, it is advisable to request support from an analyst. </p>
+    <p> If unexpected clusters occur or replicates don't cluster together it can be due to extra variability introduced by factors such as technical processing, other unexplored biological differences, sample swaps etc... The interpretation and trust in the the differential expression results should take these consideration into a account. If you think that the samples in the experiment show largely unexpected patterns, it is advisable to request support from an analyst. </p>
     <p>A scree plot shows the amount of variance explained by each dimension extracted by PCA. A high degree of variance in the first few dimensions may suggest large differences between your samples.</p>
   </span>
 </details> 
@@ -185,7 +185,8 @@ plot_condition_cv_distribution(IntensityExperiment)
 
 ```{r rle-plots}
 
-p <- plot_rle_boxplot(IntensityExperiment, CompleteIntensityExperiment, includeImputed = FALSE)
+p <- plot_rle_boxplot(IntensityExperiment, CompleteIntensityExperiment, 
+                      includeImputed = FALSE)
 
 if (params$format == "pdf"){
   p
@@ -209,9 +210,10 @@ if (params$format == "pdf"){
   })
 
   fig
+}
 ```
   
-# 2. Feature completedness {.tabset .tabset-fade .tabset-pills}
+# 3. Feature completedness {.tabset .tabset-fade .tabset-pills}
 
 <details>
   <summary>Distribution of missing values by samples and by proteins</summary>
@@ -238,21 +240,10 @@ replicate_missingness_experiment(IntensityExperiment)
 protein_missingness_experiment(IntensityExperiment)
 ```
 
-```{r nprotein-sample}
-protein_counts_by_replicate(IntensityExperiment)
-```
 
-
-# 3. Intensity distribution across runs {.tabset .tabset-fade .tabset-pills}
-
-```{r rle-imputed}
-plot_rle_boxplot(IntensityExperiment, CompleteIntensityExperiment)
-```
-
-
-# 4. Imputed versus non imputed log2 Intensity values
+# 4. Imputed versus non imputed log2 intensity values
 
 ```{r compare-imputed}
-plot_imputed_vs_not(RawDataExperiment = IntensityExperiment,
-                    ImputedDataExperiment = CompleteIntensityExperiment)
+plot_imputed_vs_not(IntensityExperiment = IntensityExperiment,
+                    CompleteIntensityExperiment = CompleteIntensityExperiment)
 ```
