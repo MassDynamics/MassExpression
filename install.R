@@ -26,7 +26,7 @@ ensure_package_installed_with_version <- function (package, version, repos = rep
 ensure_package_installed("devtools", repos = "http://cran.rstudio.com/")
 
 
-ensure_package_installed("gert", '1.3.1', repos = "http://cran.rstudio.com/")
+ensure_package_installed("gert", repos = "http://cran.rstudio.com/")
 ensure_package_installed("usethis", repos = "http://cran.rstudio.com/")
 ensure_package_installed("data.table", repos = "http://cran.rstudio.com/")
 ensure_package_installed("foreach", repos = "http://cran.rstudio.com/")
