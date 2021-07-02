@@ -19,3 +19,14 @@ saveOutput <- function(IntensityExperiment, CompleteIntensityExperiment, output_
   
   writeProteinViz(CompleteIntensityExperiment, output_folder)
 }
+
+
+#' Write limma statistics for users to read
+#' @param CompleteIntensityExperiment produced by runLimmaPipeline
+#' @param OutputFolder A path to a folder to write the statistics to.
+#' @export
+
+writeLimmaStatisticsTable <- function(CompleteIntensityExperiment, outputFolder){
+  write.table(rowData(CompleteIntensityExperiment), sep = "\t",
+              file = file.path(outputFolder, "protein_limma_statistics.tsv"))
+}
