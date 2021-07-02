@@ -26,7 +26,7 @@ ensure_package_installed_with_version <- function (package, version, repos = rep
 ensure_package_installed_with_version("devtools","2.4.2", repos = list("http://cran.rstudio.com/", "https://cran.ms.unimelb.edu.au/"))
 
 
-ensure_package_installed_with_version("gert", "1.3.0",repos = "http://cran.rstudio.com/")
+ensure_package_installed_with_version("gert", "1.3.1",repos = "http://cran.rstudio.com/")
 ensure_package_installed_with_version("usethis","2.0.1", repos = "http://cran.rstudio.com/")
 ensure_package_installed_with_version("data.table", "1.14.0",repos = "http://cran.rstudio.com/")
 ensure_package_installed_with_version("foreach", "1.5.1", repos = "http://cran.rstudio.com/")
@@ -46,7 +46,7 @@ ensure_package_installed_with_version("factoextra", '1.0.7', repos = "http://cra
 ensure_package_installed_with_version("testthat", '3.0.4', repos = "http://cran.rstudio.com/")
 
 #### Install packages Bioconductor
-ensure_package_installed("BiocManager", repos = "http://cran.rstudio.com/")
+ensure_package_installed_with_version("BiocManager", '1.30.16', repos = "http://cran.rstudio.com/")
 BiocManager::install(c("Biobase", "limma", "S4Vectors", "GenomicRanges", "GenomeInfoDb", "SummarizedExperiment"))
 
 biocManager_valid <- BiocManager::valid()
