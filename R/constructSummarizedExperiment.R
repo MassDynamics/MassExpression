@@ -11,19 +11,22 @@
 constructSummarizedExperiment <- function(experimentDesign, proteinIntensities){
   
   stopifnot("Condition" %in% colnames(experimentDesign))
-  stopifnot("Replicate" %in% colnames(experimentDesign))
   stopifnot("SampleName" %in% colnames(experimentDesign))
   
   stopifnot(all(experimentDesign$SampleName %in% colnames(proteinIntensities)))
   stopifnot("ProteinId" %in% colnames(proteinIntensities))
   
+  # prepare coldata
+  design = design %>% group_by(Condition) %>% mutate(Replicate = row_number())
   
+  # prepare rowdata
   rowDataPossible <-  c("ProteinId","GeneId","Description")
   rowDataPresent <- intersect(rowDataPossible, colnames(proteinIntensities))
   rowDataAbsent <- rowDataPossible[!(rowDataPossible %in% rowDataPresent)]
   
   assayData <- as.matrix(proteinIntensities[,experimentDesign$SampleName])
   colnames(assayData) <- experimentDesign$SampleName
+
   rownames(assayData) <- proteinIntensities$ProteinId
   
   rowFeatures <- proteinIntensities[,rowDataPresent,drop=FALSE] 
