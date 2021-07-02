@@ -17,7 +17,9 @@ constructSummarizedExperiment <- function(experimentDesign, proteinIntensities){
   stopifnot("ProteinId" %in% colnames(proteinIntensities))
   
   # prepare coldata
-  design = design %>% group_by(Condition) %>% mutate(Replicate = row_number())
+  experimentDesign = as_tibble(experimentDesign) %>% 
+    dplyr::group_by(Condition) %>% 
+    dplyr::mutate(Replicate = dplyr::row_number())
   
   # prepare rowdata
   rowDataPossible <-  c("ProteinId","GeneId","Description")

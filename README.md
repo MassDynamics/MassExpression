@@ -28,6 +28,10 @@ normalisation_method <- "None"
 listIntensityExperiments <- runGenericDiscovery(experimentDesign = design, 
                                                 proteinIntensities = intensities, 
                                                 NormalisationMethod = normalisation_method)
+                                                
+debugonce(runGenericDiscovery(experimentDesign = design, 
+                                                proteinIntensities = intensities, 
+                                                NormalisationMethod = normalisation_method))
                     
 # Save output to folder
 Intensity <- listIntensityExperiments$IntensityExperiment
