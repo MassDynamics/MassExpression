@@ -135,7 +135,7 @@ listIntensityExperiments <- runGenericDiscovery(experimentDesign = design,
 currentCompleteIntensityExperiment <- listIntensityExperiments$CompleteIntensityExperiment
 currentIntensityExperiment <- listIntensityExperiments$IntensityExperiment
 
-load("../data/mq_lfq_output.RData")
+load("../data/mq_lfq_output.Rdata")
 
 test_raw_output(current = currentIntensityExperiment, 
                 expected = expectedIntensityExperiment)
