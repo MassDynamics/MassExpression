@@ -9,7 +9,7 @@ ensure_package_installed <- function (package, repos = repos) {
 
 ensure_package_installed_with_version <- function (package, version, repos = repos) {
   if(!require(package, character.only=TRUE)) {
-    ?install_version(package, version = version, repos = repos)
+    install_version(package, version = version, repos = repos)
     library(package, character.only=TRUE)
   } else if (packageVersion(package) != version) {
     install_version(package, version = version, repos = repos)
@@ -23,7 +23,7 @@ ensure_package_installed_with_version <- function (package, version, repos = rep
 }
 
 
-ensure_package_installed_with_version("devtools","2.4.2", repos = list("http://cran.rstudio.com/", "https://cran.ms.unimelb.edu.au/"))
+ensure_package_installed("devtools", repos = list("http://cran.rstudio.com/", "https://cran.ms.unimelb.edu.au/"))
 
 
 ensure_package_installed_with_version("gert", "1.3.1",repos = "http://cran.rstudio.com/")
