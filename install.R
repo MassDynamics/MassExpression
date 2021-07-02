@@ -37,7 +37,6 @@ ensure_package_installed_with_version("tidyr", "1.1.3", repos = "http://cran.rst
 ensure_package_installed_with_version("plotly", "4.9.4.1", repos = "http://cran.rstudio.com/")
 ensure_package_installed_with_version("ggplot2", "3.3.5", repos = "http://cran.rstudio.com/")
 ensure_package_installed_with_version("forcats", "0.5.1", repos = "http://cran.rstudio.com/")
-ensure_package_installed_with_version("testthat", "3.0.3", repos = "http://cran.rstudio.com/")
 ensure_package_installed_with_version("knitr", "1.33", repos = "http://cran.rstudio.com/")
 ensure_package_installed_with_version("rmarkdown","2.9", repos = "http://cran.rstudio.com/")
 ensure_package_installed_with_version("statmod","1.4.36", repos = "http://cran.rstudio.com/")
