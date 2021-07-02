@@ -47,7 +47,7 @@ pca_plot_experiment <- function(Experiment, log=FALSE){
   
   samples.pca <- factoextra::get_pca_ind(res.pca)
   samples.coord <- as_tibble(samples.pca$coord)
-  samples.coord$IntensityColumn = design$IntensityColumn
+  samples.coord$SampleName = design$SampleName
   
   samples.coord <- merge(samples.coord, design)
   
@@ -96,7 +96,7 @@ mds_plot_experiment <- function(Experiment, log=FALSE){
                         Components = 1:length(ve))
   
   expNames <- colnames(intensities)
-  data_plot <- data.frame(x=x, y=y, IntensityColumn=expNames) %>% left_join(design)
+  data_plot <- data.frame(x=x, y=y, SampleName=expNames) %>% left_join(design)
   
   # MDS plot
   p <- ggplot(data_plot, aes(x = x, y=y, colour=Condition, fill=Condition, label=Replicate)) +
@@ -137,7 +137,7 @@ replicate_missingness_experiment <- function(Experiment){
 
   num.proteins <- dim(intensities)[1]
   missing.vector <- round(colSums(0 == intensities)/num.proteins * 100, 1)
-  missing.table <- data.frame(IntensityColumn = as.character(names(missing.vector)),
+  missing.table <- data.frame(SampleName = as.character(names(missing.vector)),
                               MissingValues = as.numeric(missing.vector))
   missing.table <- missing.table %>% left_join(design) %>%
     mutate(Replicate = reorder(Replicate, as.numeric(as.factor(Condition))))
@@ -267,14 +267,14 @@ plot_rle_boxplot <- function(IntensityExperiment, CompleteIntensityExperiment,
                              includeImputed = FALSE){
   longRawDF <- SEToLongDT(IntensityExperiment)
   longRawDF$Imputed <- longRawDF$Intensity == 0
-  longRawDF <- longRawDF[,c("ProteinId","Imputed","IntensityColumn")]
+  longRawDF <- longRawDF[,c("ProteinId","Imputed","SampleName")]
   
   # the intensity plotted are the ones present in the assay experiment
   longIntensityDF <- SEToLongDT(CompleteIntensityExperiment)
   longIntensityDF <- as_tibble(longIntensityDF) %>% 
     left_join(as_tibble(longRawDF))
   longIntensityDF <- data.table(longIntensityDF[!longIntensityDF$Imputed,
-                                                c("ProteinId","Imputed", "Intensity","IntensityColumn")])
+                                                c("ProteinId","Imputed", "Intensity","SampleName")])
   
   if(includeImputed){
     longIntensityDF <- longIntensityDF[,RLE := Intensity - median(Intensity), 
@@ -287,9 +287,9 @@ plot_rle_boxplot <- function(IntensityExperiment, CompleteIntensityExperiment,
   
   # Merge with design
   design <- colData(CompleteIntensityExperiment)
-  longIntensityDF <- merge(longIntensityDF, design, by = "IntensityColumn", all.x=TRUE)
+  longIntensityDF <- merge(longIntensityDF, design, by = "SampleName", all.x=TRUE)
   
-  p = ggplot(longIntensityDF, aes(x = IntensityColumn, y = RLE)) + 
+  p = ggplot(longIntensityDF, aes(x = SampleName, y = RLE)) + 
     geom_boxplot(aes(fill = Condition)) + 
     theme_minimal() + 
     theme(axis.text.x = element_text(angle = 90, vjust = 0.2),
@@ -348,7 +348,7 @@ plot_density_distr <- function(Experiment, log=FALSE){
   design <- toPlot$design
   
   long_int <- as_tibble(intensities) %>% pivot_longer(cols = colnames(intensities), 
-                                           names_to = "IntensityColumn", 
+                                           names_to = "SampleName", 
                                            values_to = "Intensity")
   long_int <- long_int %>% left_join(design)
   p = ggplot(long_int, aes(x = Intensity, fill = Condition, colour=Condition)) + 
@@ -368,7 +368,7 @@ plot_density_distr <- function(Experiment, log=FALSE){
 plot_imputed_vs_not <- function(IntensityExperiment, CompleteIntensityExperiment){
   longRawDF <- SEToLongDT(IntensityExperiment)
   longRawDF$Imputed <- longRawDF$Intensity == 0
-  longRawDF <- longRawDF[,c("ProteinId","Imputed","IntensityColumn")]
+  longRawDF <- longRawDF[,c("ProteinId","Imputed","SampleName")]
   
   # the intensity plotted are the ones present in the assay experiment
   longIntensityDF <- SEToLongDT(CompleteIntensityExperiment)

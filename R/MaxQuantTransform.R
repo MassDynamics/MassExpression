@@ -11,8 +11,8 @@ MaxQuantTranform <- function(proteinGroups, design, species, useNormalisationMet
     dplyr::rename(mqExperiment = runs) %>%
     left_join(design)
   design <- experiment.design %>%
-    dplyr::select(cols, experiment, name, techRep, bioRep) %>%
-    dplyr::rename(IntensityColumn = cols, Condition = experiment, Replicate = name)
+    dplyr::select(cols, experiment, techRep, bioRep) %>%
+    dplyr::rename(SampleName = cols, Condition = experiment)
   intensities <- proteinGroups[,c(cols,"ProteinId")]
   
   parameters <- data.frame(X1 = c("Species", "UseNormalisationMethod", "LabellingMethod"),

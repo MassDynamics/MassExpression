@@ -19,3 +19,5 @@ save(expectedIntensityExperiment,
      expectedCompleteIntensityExperiment, 
      expectedcomparisonExperiments,
      file = file.path(output_folder, "mq_lfq_output.RData"))
+
+

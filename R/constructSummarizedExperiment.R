@@ -12,9 +12,9 @@ constructSummarizedExperiment <- function(experimentDesign, proteinIntensities){
   
   stopifnot("Condition" %in% colnames(experimentDesign))
   stopifnot("Replicate" %in% colnames(experimentDesign))
-  stopifnot("IntensityColumn" %in% colnames(experimentDesign))
+  stopifnot("SampleName" %in% colnames(experimentDesign))
   
-  stopifnot(all(experimentDesign$IntensityColumn %in% colnames(proteinIntensities)))
+  stopifnot(all(experimentDesign$SampleName %in% colnames(proteinIntensities)))
   stopifnot("ProteinId" %in% colnames(proteinIntensities))
   
   
@@ -22,8 +22,8 @@ constructSummarizedExperiment <- function(experimentDesign, proteinIntensities){
   rowDataPresent <- intersect(rowDataPossible, colnames(proteinIntensities))
   rowDataAbsent <- rowDataPossible[!(rowDataPossible %in% rowDataPresent)]
   
-  assayData <- as.matrix(proteinIntensities[,experimentDesign$IntensityColumn])
-  colnames(assayData) <- experimentDesign$IntensityColumn
+  assayData <- as.matrix(proteinIntensities[,experimentDesign$SampleName])
+  colnames(assayData) <- experimentDesign$SampleName
   rownames(assayData) <- proteinIntensities$ProteinId
   
   rowFeatures <- proteinIntensities[,rowDataPresent,drop=FALSE] 
@@ -34,10 +34,10 @@ constructSummarizedExperiment <- function(experimentDesign, proteinIntensities){
                                               assays= SimpleList(raw=assayData),
                                               colData = experimentDesign)
   
-  colnames(IntensityExperiment) <- experimentDesign$IntensityColumn
+  colnames(IntensityExperiment) <- experimentDesign$SampleName
   rownames(IntensityExperiment) <- rowData(IntensityExperiment)$ProteinId
   stopifnot(colnames(IntensityExperiment) == 
-              SummarizedExperiment::colData(IntensityExperiment)$IntensityColumn)
+              SummarizedExperiment::colData(IntensityExperiment)$SampleName)
   
   return(IntensityExperiment)
 }

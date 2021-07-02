@@ -17,7 +17,7 @@ SEToLongDT <- function(IntensityExperiment){
   wide <- data.frame(assay(IntensityExperiment))
   wide$ProteinId <- rowData(IntensityExperiment)$ProteinId
   long <- wide %>% pivot_longer(cols = all_of(colnames(assay(IntensityExperiment))), 
-                                names_to = "IntensityColumn", 
+                                names_to = "SampleName", 
                                 values_to = "Intensity")
   
   long <- long %>% left_join(as_tibble(colData(IntensityExperiment)))
@@ -94,7 +94,7 @@ createCompleteIntensityExperiment <- function(IntensityExperiment, longIntensity
   
   # replace Intensity with missing values to normalized log scale with imputed values
   wideIntensityDT <- longIntensityDT %>% pivot_wider(id_cols = "ProteinId", 
-                                               names_from = "IntensityColumn", 
+                                               names_from = "SampleName", 
                                                values_from = "log2NIntNorm")
   
   intensityMatrixWide <- wideIntensityDT %>% dplyr::select(-ProteinId)
