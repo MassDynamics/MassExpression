@@ -158,7 +158,7 @@ plot_condition_cv_distribution(IntensityExperiment)
 <details>
   <summary>Relative Log Expression distributions</summary>
   <span>
-    <p>It is useful to inspect the distribution of the Relative Log Expression (RLE) values to identify samples with largely unusual distributions. The RLE values for a protein are obtained by centering intensities to the protein medians, where the median is computed using only available intensities, i.e. non zero values. The RLE is computed on the log-transformed data and after applying normalisation, when required. </p>
+    <p>It is useful to inspect the distribution of the Relative Log Expression (RLE) values to identify samples with largely unusual distributions. The RLE values for a protein are obtained by centering intensities to the protein medians, where the median is computed using only available intensities, i.e. non zero values. The RLE is computed on the log-transformed data before and after applying normalisation, when requested </p>
    <p>For a healthy experiment we expect:</p>
     <ul>
       <li>The RLE boxplots to have a similar median - centered around zero - across all samples </li>
