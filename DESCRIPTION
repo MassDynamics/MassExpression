@@ -1,7 +1,7 @@
 Package: MassExpression
 Type: Package
 Title: MassExpression
-Version: 0.0.21
+Version: 0.0.22
 Author: Anna Quaglieri <anna@massdynamics.com> and Joseph Bloom <joseph@massdynamics.com>
 Maintainer: The package maintainer <yourself@somewhere.net>
 Description: Universal Imports + High Quality QC + Differential Expression Analysis = Awesomeness. 
