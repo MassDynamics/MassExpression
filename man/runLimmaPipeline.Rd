@@ -4,10 +4,10 @@
 \alias{runLimmaPipeline}
 \title{This function orchestrates imputation, normalization and the binary limma statistics accross all experimental comparisons}
 \usage{
-runLimmaPipeline(IntensityExperiment, NormalisationMethod)
+runLimmaPipeline(IntensityExperiment, normalisationMethod)
 }
 \arguments{
-\item{NormalisationMethod}{logical. Whether to perform median normalisation by condition.}
+\item{normalisationMethod}{logical. Whether to perform median normalisation by condition.}
 
 \item{experimentDesign}{Output from constructSummarizedExperiment}
 }

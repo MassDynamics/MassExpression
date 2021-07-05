@@ -22,7 +22,7 @@ labellingMethod <- parameters[parameters[,1] == "LabellingMethod",2]
 
 listIntensityExperiments <- runGenericDiscovery(experimentDesign = design, 
                                                 proteinIntensities = intensities, 
-                                                NormalisationMethod = "Median",
+                                                normalisationMethod = normalisation_method,
                                                 species = species, 
                                                 labellingMethod = labellingMethod)
 

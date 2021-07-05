@@ -2,20 +2,20 @@
 % Please edit documentation in R/runLimmaPipeline.R
 \name{normaliseIntensity}
 \alias{normaliseIntensity}
-\title{This function normalises (based on `NormalisationMethod`) the log2 intensities stored in the `log2NInt` column initialised by `initialiseLongIntensityDT`.}
+\title{This function normalises (based on `normalisationMethod`) the log2 intensities stored in the `log2NInt` column initialised by `initialiseLongIntensityDT`.}
 \usage{
-normaliseIntensity(longIntensityDT, NormalisationMethod)
+normaliseIntensity(longIntensityDT, normalisationMethod)
 }
 \arguments{
 \item{longIntensityDT}{Output from `initialiseLongIntensityDT`}
 
-\item{NormalisationMethod}{logical. Whether to perform median normalisation by condition.}
+\item{normalisationMethod}{logical. Whether to perform median normalisation by condition.}
 }
 \value{
-log2NIntNorm If `NormalisationMethod` is not `None` a new column is added containing the `log2NInt` normalised intensities
+log2NIntNorm If `normalisationMethod` is not `None` a new column is added containing the `log2NInt` normalised intensities
 }
 \description{
-This function normalises (based on `NormalisationMethod`) the log2 intensities stored in the `log2NInt` column initialised by `initialiseLongIntensityDT`.
+This function normalises (based on `normalisationMethod`) the log2 intensities stored in the `log2NInt` column initialised by `initialiseLongIntensityDT`.
 }
 \details{
 Normalisation is only applied to non imputed intensities. `log2NIntNorm` is NA for imputed intensities.

@@ -2,14 +2,17 @@
 #' 
 #' @param experimentDesign XX.
 #' @param proteinIntensities XX
-#' @param NormalisationMethod Normalisation method. One of "none" or "median". 
+#' @param normalisationMethod Normalisation method. One of "none" or "median". 
+#' @param species Species. One of 'Human', 'Mouse', 'Yeast', 'Other'
+#' @param labellingMethod One of 'LFQ' or 'TMT'
+#' 
 #' @return List of two SummarisedExperiment objects: `IntensityExperiment` 
 #' containing the raw intensities and  `CompleteIntensityExperiment` including 
 #' imputed intensities. 
 #' @export
 
 runGenericDiscovery <- function(experimentDesign, proteinIntensities, 
-                                NormalisationMethod="None", species, labellingMethod){
+                                normalisationMethod="None", species, labellingMethod){
   
   listMetadata <- list(Species = species, 
                        LabellingMethod = labellingMethod, 
@@ -22,7 +25,7 @@ runGenericDiscovery <- function(experimentDesign, proteinIntensities,
 
   # Get Binary Statistic Comparisons and complete experiment containinig imputed Protein Intensity
   results <- runLimmaPipeline(IntensityExperiment,
-                              NormalisationMethod=NormalisationMethod)
+                              normalisationMethod=normalisationMethod)
   
   CompleteIntensityExperiment <- results$CompleteIntensityExperiment
   IntensityExperiment <- results$IntensityExperiment

@@ -7,7 +7,7 @@
 runGenericDiscovery(
   experimentDesign,
   proteinIntensities,
-  NormalisationMethod = "None",
+  normalisationMethod = "None",
   species,
   labellingMethod
 )
@@ -17,7 +17,11 @@ runGenericDiscovery(
 
 \item{proteinIntensities}{XX}
 
-\item{NormalisationMethod}{Normalisation method. One of "none" or "median".}
+\item{normalisationMethod}{Normalisation method. One of "none" or "median".}
+
+\item{species}{Species. One of 'Human', 'Mouse', 'Yeast', 'Other'}
+
+\item{labellingMethod}{One of 'LFQ' or 'TMT'}
 }
 \value{
 List of two SummarisedExperiment objects: `IntensityExperiment` 

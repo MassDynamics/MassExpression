@@ -133,8 +133,9 @@ labMethod <- mq_lfq_data$parameters[mq_lfq_data$parameters$X1 == "LabellingMetho
 
 listIntensityExperiments <- runGenericDiscovery(experimentDesign = design, 
                                                 proteinIntensities = intensities, 
-                                                NormalisationMethod = normMethod,
-                                                species = species, labellingMethod = labMethod)
+                                                normalisationMethod = normMethod,
+                                                species = species, 
+                                                labellingMethod = labMethod)
 
 currentCompleteIntensityExperiment <- listIntensityExperiments$CompleteIntensityExperiment
 currentIntensityExperiment <- listIntensityExperiments$IntensityExperiment

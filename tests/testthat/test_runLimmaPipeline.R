@@ -61,8 +61,8 @@ longIntensityDT$log2IntNorm_median_expected <- c(NA,1.0-median_conditionA_R1, 4.
 longIntensityDT$log2Int_expected <- longIntensityDT$log2NInt
 
 # tests - be aware thar data.table objects don't behave like other data frames - it's similar to python objects
-longIntensityDT_median <- data.frame(normaliseIntensity(longIntensityDT,NormalisationMethod='Median'))
-longIntensityDT_none <- data.frame(normaliseIntensity(longIntensityDT,NormalisationMethod='None'))
+longIntensityDT_median <- data.frame(normaliseIntensity(longIntensityDT,normalisationMethod='Median'))
+longIntensityDT_none <- data.frame(normaliseIntensity(longIntensityDT,normalisationMethod='None'))
 
 test_normalisation_median(current = longIntensityDT_median$log2NIntNorm, 
                           expected = longIntensityDT_median$log2IntNorm_median_expected)
