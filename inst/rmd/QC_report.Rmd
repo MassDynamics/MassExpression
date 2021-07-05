@@ -91,7 +91,7 @@ design <- colData(IntensityExperiment)
 # 1. Experiment Design
 
 ```{r experimental-design, eval=TRUE, warning=FALSE, echo=FALSE, error=FALSE, message=FALSE, results='asis'}
-knitr::kable(design)
+knitr::kable(design, row.names = FALSE)
 ```
 
 # 2. Experiment Health
@@ -115,25 +115,12 @@ knitr::kable(design)
 
 ```{r pca-imputed}
 ## PCA
-p=pca_plot_experiment(CompleteIntensityExperiment)
-
-if (params$format == "pdf"){
-  p[[1]]
-} else {
-  ggplotly(p[[1]]) %>% config(displayModeBar = T, 
-                        modeBarButtons = list(list('toImage')),
-                        displaylogo = F)
-}
+p=pca_plot_experiment(CompleteIntensityExperiment, format = params$format)
+p[[1]]
 ```
 
 ```{r  scree-plot-pca}
-if (params$format == "pdf"){
-  p[[2]]
-} else {
-  ggplotly(p[[2]]) %>% config(displayModeBar = T, 
-                        modeBarButtons = list(list('toImage')),
-                        displaylogo = F)
-}
+p[[2]]
 ```
 
 ```{r mds-impute, eval=FALSE}
@@ -183,34 +170,41 @@ plot_condition_cv_distribution(IntensityExperiment)
 
 
 ```{r rle-plots}
+normalised <- FALSE
+if(metadata(CompleteIntensityExperiment)$NormalisationAppliedToAssay != "None"){
+  normalised <- TRUE
+}
 
-p <- plot_rle_boxplot(IntensityExperiment, CompleteIntensityExperiment, 
-                      includeImputed = FALSE)
+# Plot RLE of log2 raw intensity as well as RLE of normalised 
+p_raw <- plot_rle_boxplot(IntensityExperiment, CompleteIntensityExperiment, 
+                    includeImputed = FALSE, plotRawRLE = TRUE)
+p_raw <- p_raw + ggtitle("RLE of log2 Raw Intensities") 
 
 if (params$format == "pdf"){
-  p
+  p_raw
 } else {
-  fig <- plotly::ggplotly(p, tooltip = c("y")) %>% 
-    plotly::config(displayModeBar = T, 
-                   modeBarButtons = list(list('toImage')),
-                   displaylogo = F)
-  # this code will be needed if you want to make an interactive version
-  fig$x$data <- lapply(fig$x$data, FUN = function(x){
-    # When creating plot p with ggplot if you specify 
-    #fill = cut use x$fill$color instead of $line$color
-    x$marker$outliercolor = x$line$color 
-    # When creating plot p with ggplot if you specify 
-    # fill = cut use x$fill$color instead $line$color
-    x$marker$color = x$line$color
-    # When creating plot p with ggplot if you specify fill = 
-    #cut use x$fill$color instead $line$color
-    x$marker$line = x$line$color 
-    return(x)
-  })
-
+  fig <- makeRLEBoxplotInteractive(p_raw)
   fig
 }
 ```
+  
+  
+```{r}
+if(normalised){
+  # Plot RLE of log2 raw intensity as well as RLE of normalised 
+  p_norm <- plot_rle_boxplot(IntensityExperiment, CompleteIntensityExperiment, 
+                      includeImputed = FALSE, plotRawRLE = FALSE)
+  p_norm <- p_norm + ggtitle("RLE of Normalised Intensities") 
+  
+  if (params$format == "pdf"){
+   p_norm
+  } else {
+    fig <- makeRLEBoxplotInteractive(p_norm)
+    fig
+  }
+}
+```
+  
   
 # 3. Feature completedness {.tabset .tabset-fade .tabset-pills}
 
@@ -229,14 +223,28 @@ if (params$format == "pdf"){
 ## By sample
 
 ```{r sample-missingness}
-replicate_missingness_experiment(IntensityExperiment)
+p <- replicate_missingness_experiment(IntensityExperiment)
+if (params$format == "pdf"){
+  p
+} else {
+  ggplotly(p, tooltip = c("y")) %>% config(displayModeBar = T, 
+                                                  modeBarButtons = list(list('toImage')),
+                                                  displaylogo = F)
+}
 ```
 
 
 ## By protein
 
 ```{r protein-missingness}
-protein_missingness_experiment(IntensityExperiment)
+p <- protein_missingness_experiment(IntensityExperiment)
+if (params$format == "pdf"){
+  p
+} else {
+  ggplotly(p, tooltip = c("y")) %>% config(displayModeBar = T, 
+                                                  modeBarButtons = list(list('toImage')),
+                                                  displaylogo = F)
+}
 ```
 
 
@@ -247,6 +255,5 @@ protein_missingness_experiment(IntensityExperiment)
 </details> 
 
 ```{r compare-imputed}
-plot_imputed_vs_not(IntensityExperiment = IntensityExperiment,
-                    CompleteIntensityExperiment = CompleteIntensityExperiment)
+plot_imputed_vs_not(CompleteIntensityExperiment = CompleteIntensityExperiment)
 ```

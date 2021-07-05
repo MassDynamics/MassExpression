@@ -9,11 +9,16 @@
 #' @export
 
 runGenericDiscovery <- function(experimentDesign, proteinIntensities, 
-                                NormalisationMethod="None"){
+                                NormalisationMethod="None", species, labellingMethod){
+  
+  listMetadata <- list(Species = species, 
+                       LabellingMethod = labellingMethod, 
+                       NormalisationAppliedToAssay = "None")
   
   # Create Data Rep
   IntensityExperiment <- constructSummarizedExperiment(experimentDesign = experimentDesign, 
-                                                       proteinIntensities = proteinIntensities)
+                                                       proteinIntensities = proteinIntensities,
+                                                       listMetadata = listMetadata)
 
   # Get Binary Statistic Comparisons and complete experiment containinig imputed Protein Intensity
   results <- runLimmaPipeline(IntensityExperiment,

@@ -7,7 +7,9 @@
 runGenericDiscovery(
   experimentDesign,
   proteinIntensities,
-  NormalisationMethod = "None"
+  NormalisationMethod = "None",
+  species,
+  labellingMethod
 )
 }
 \arguments{

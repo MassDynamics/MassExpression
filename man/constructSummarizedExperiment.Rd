@@ -4,7 +4,11 @@
 \alias{constructSummarizedExperiment}
 \title{This function creates a summarized experiment object from a protein intensity table and experiment design.}
 \usage{
-constructSummarizedExperiment(experimentDesign, proteinIntensities)
+constructSummarizedExperiment(
+  experimentDesign,
+  proteinIntensities,
+  listMetadata
+)
 }
 \arguments{
 \item{experimentDesign}{XX.}

@@ -9,7 +9,8 @@ the intensity values used for the DE analysis (log-transformed, normalised when 
 plot_rle_boxplot(
   IntensityExperiment,
   CompleteIntensityExperiment,
-  includeImputed = FALSE
+  includeImputed = FALSE,
+  plotRawRLE = FALSE
 )
 }
 \arguments{

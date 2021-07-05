@@ -3,8 +3,11 @@
 \name{pca_plot_experiment}
 \alias{pca_plot_experiment}
 \title{Plot first 2 dimensions of PCA}
+\format{
+"pdf" or "html". If html an interactive plot is returned using plotly.
+}
 \usage{
-pca_plot_experiment(Experiment, log = FALSE)
+pca_plot_experiment(Experiment, format = "pdf", log = FALSE)
 }
 \arguments{
 \item{Experiment}{SummarizedExperiment object}

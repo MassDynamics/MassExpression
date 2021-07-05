@@ -21,13 +21,12 @@ SEToLongDT <- function(IntensityExperiment){
                                 values_to = "Intensity")
   
   long <- long %>% left_join(as_tibble(colData(IntensityExperiment)))
-  long <- long %>% left_join(as_tibble(rowData(IntensityExperiment)))
   as.data.table(long)
 }
 
 
 
-#' This function performs the log2 conversion and initialise the imputed column
+#' This function performs the log2 conversion for intensities larger than 0 and initialise the imputed column.
 #' @param IntensityExperiment Output from constructSummarizedExperiment
 #' @export initialiseLongIntensityDT
 
@@ -76,43 +75,4 @@ computeReplicateCounts <- function(intensityDF){
                                                  values_from = "NReplicates")
   colnames(replicateCounts)[-1] <- str_c("NReplicates: ", colnames(replicateCounts)[-1])
   return(replicateCounts)
-}
-
-
-#' Adds `intensityDF` information to `IntensityExperiment` with statistics about 
-#' the number of replicates and number of imputed values in each condition of interest
-#' @param IntensityExperiment output from `constructSummarizedExperiment`
-#' @param intensityDF Long format table with raw and imputed intensities. Each row is a feature (protein/peptide).
-#' @param conditionComparisonMapping a dataframe matching different limma statistics comparison strings to up and down conditions
-#' @export createCompleteIntensityExperiment
-#' 
-#' @importFrom SummarizedExperiment rowData
-
-createCompleteIntensityExperiment <- function(IntensityExperiment, longIntensityDT, conditionComparisonMapping){
-  
-  CompleteIntensityExperiment <- IntensityExperiment
-  
-  # replace Intensity with missing values to normalized log scale with imputed values
-  wideIntensityDT <- longIntensityDT %>% pivot_wider(id_cols = "ProteinId", 
-                                               names_from = "SampleName", 
-                                               values_from = "log2NIntNorm")
-  
-  intensityMatrixWide <- wideIntensityDT %>% dplyr::select(-ProteinId)
-  intensityMatrixWide <- as.matrix(intensityMatrixWide)
-  rownames(intensityMatrixWide) <- wideIntensityDT$ProteinId
-  
-  assay(CompleteIntensityExperiment) <- intensityMatrixWide
-  
-  # add imputed and replicate counts to the final object
-  imputedCounts <- computeImputedCounts(longIntensityDT)
-  rowData(CompleteIntensityExperiment) <- S4Vectors::merge(rowData(CompleteIntensityExperiment),
-                                                as.data.frame(imputedCounts), by = "ProteinId", all.x = T)
-  
-  replicateCounts <- computeReplicateCounts(longIntensityDT)
-  rowData(CompleteIntensityExperiment) <- S4Vectors::merge(rowData(CompleteIntensityExperiment),
-                                                as.data.frame(replicateCounts), by = "ProteinId", all.x = T)
-  
-  metadata(CompleteIntensityExperiment)$conditionComparisonMapping <- conditionComparisonMapping
-  
-  return(CompleteIntensityExperiment)
 }

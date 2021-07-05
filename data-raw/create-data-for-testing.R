@@ -8,6 +8,10 @@ listIntensityExperiments <- runGenericDiscovery(experimentDesign = design,
                                                 proteinIntensities = intensities, 
                                                 NormalisationMethod = "None")
 
+debugonce(runGenericDiscovery(experimentDesign = design, 
+                              proteinIntensities = intensities, 
+                              NormalisationMethod = "None"))
+
 expectedCompleteIntensityExperiment <- listIntensityExperiments$CompleteIntensityExperiment
 expectedIntensityExperiment <- listIntensityExperiments$IntensityExperiment
 output_folder <- "tests/data"

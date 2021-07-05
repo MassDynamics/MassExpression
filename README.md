@@ -29,10 +29,6 @@ listIntensityExperiments <- runGenericDiscovery(experimentDesign = design,
                                                 proteinIntensities = intensities, 
                                                 NormalisationMethod = normalisation_method)
                                                 
-debugonce(runGenericDiscovery(experimentDesign = design, 
-                                                proteinIntensities = intensities, 
-                                                NormalisationMethod = normalisation_method))
-                    
 # Save output to folder
 Intensity <- listIntensityExperiments$IntensityExperiment
 CompleteIntensity <-  listIntensityExperiments$CompleteIntensityExperiment
@@ -45,7 +41,7 @@ qc_report <- system.file("rmd","QC_report.Rmd", package = "MassExpression")
 rmarkdown::render(qc_report, 
                   params = list(listInt = listIntensityExperiments,
                                 experiment = "Mass Dynamics QC report",
-                                output_figure = file.path(output_folder, "figures/")),
+                                output_figure = file.path(output_folder, "figure_html/")),
                   output_file = file.path(output_folder, "QC_report.html"),
                   output_format=rmarkdown::html_document(
                             self_contained=FALSE,
@@ -59,7 +55,7 @@ rmarkdown::render(qc_report,
 rmarkdown::render(qc_report, 
                   params = list(listInt = listIntensityExperiments,
                                 experiment = "Mass Dynamics QC report",
-                                output_figure = file.path(output_folder, "figures/")),
+                                output_figure = file.path(output_folder, "figure_html/")),
                   output_file = file.path(output_folder, "QC_report.pdf"),
                   output_format=rmarkdown::pdf_document(
                     toc = TRUE,

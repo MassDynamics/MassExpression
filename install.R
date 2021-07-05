@@ -43,6 +43,7 @@ ensure_package_installed_with_version("statmod","1.4.36", repos = "http://cran.r
 ensure_package_installed_with_version("FactoMineR", '2.4', repos = "http://cran.rstudio.com/")
 ensure_package_installed_with_version("factoextra", '1.0.7', repos = "http://cran.rstudio.com/")
 ensure_package_installed_with_version("testthat", '3.0.4', repos = "http://cran.rstudio.com/")
+ensure_package_installed_with_version("ggrepel", '0.9.1', repos = "http://cran.rstudio.com/")
 
 #### Install packages Bioconductor
 ensure_package_installed_with_version("BiocManager", '1.30.16', repos = "http://cran.rstudio.com/")

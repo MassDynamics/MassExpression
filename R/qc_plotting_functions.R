@@ -29,12 +29,13 @@ preparePlottingData <- function(Experiment, log=FALSE){
 #' 
 #' @param Experiment SummarizedExperiment object
 #' @param log logical. Whether data should be logged before plotting
+#' @format "pdf" or "html". If html an interactive plot is returned using plotly. 
 #' 
 #' @export pca_plot_experiment
 #' 
 #' @import ggplot2 
 
-pca_plot_experiment <- function(Experiment, log=FALSE){
+pca_plot_experiment <- function(Experiment, format="pdf", log=FALSE){
   # prepare data for plotting
   toPlot <- preparePlottingData(Experiment, log)
   intensities <- toPlot$intensities
@@ -50,6 +51,8 @@ pca_plot_experiment <- function(Experiment, log=FALSE){
   samples.coord$SampleName = design$SampleName
   
   samples.coord <- merge(samples.coord, design)
+  samples.coord <- samples.coord %>% tidyr::unite(plotSampleName, Condition, Replicate, 
+                                                  sep="_", remove=FALSE)
   
   p <- ggplot(as_tibble(samples.coord), aes(x = Dim.1, y=Dim.2, colour=Condition, fill=Condition, label=Replicate)) +
     stat_ellipse(geom = "polygon", alpha=0.1) +
@@ -60,6 +63,21 @@ pca_plot_experiment <- function(Experiment, log=FALSE){
     ggtitle("PCA plot")
   
   
+  if(format == "pdf"){
+    p <- p + ggrepel::geom_label_repel(aes(label = plotSampleName, fill = NULL),
+                              box.padding   = 0.35, 
+                              point.padding = 0.5,
+                              segment.color = 'grey50',
+                              show.legend = FALSE)
+  }else if(format == "html"){
+    p <- plotly::ggplotly(p) %>% plotly::config(displayModeBar = T, 
+                           modeBarButtons = list(list('toImage')),
+                           displaylogo = F)
+  }else{
+    stop(paste0("Format ", format," not available."))
+  }
+  
+  # Scree plot
   num_dimensions = sum(eig.val$eigenvalue>0.01)-2
   scree_plot <- ggplot(eig.val[1:num_dimensions], aes(x=reorder(dims, -`variance.percent`), y=`variance.percent`)) +
     geom_bar(stat="identity", fill = "skyblue2") +
@@ -68,6 +86,12 @@ pca_plot_experiment <- function(Experiment, log=FALSE){
     scale_x_discrete("PCA components") +
     scale_y_continuous("% Variance") +
     ggtitle("Scree plot")
+  
+  if (format == "html"){
+    scree_plot <- plotly::ggplotly(scree_plot) %>%  plotly::config(displayModeBar = T, 
+                                modeBarButtons = list(list('toImage')),
+                                displaylogo = F)
+  }
   
   list(p, scree_plot)
   
@@ -140,16 +164,19 @@ replicate_missingness_experiment <- function(Experiment){
   missing.table <- data.frame(SampleName = as.character(names(missing.vector)),
                               MissingValues = as.numeric(missing.vector))
   missing.table <- missing.table %>% left_join(design) %>%
-    mutate(Replicate = reorder(Replicate, as.numeric(as.factor(Condition))))
+    tidyr::unite(plotSampleName, Condition, Replicate, 
+                 sep="_", remove=FALSE) %>%
+    mutate(plotSampleName = reorder(plotSampleName, as.numeric(as.factor(Condition))))
   
-  p <- ggplot(missing.table, aes(x = Replicate, y = as.numeric(MissingValues), 
-                                 color = Condition, label=as.factor(Replicate))) +
-    geom_segment( aes(x= Replicate, xend= Replicate, y=0, yend=as.numeric(MissingValues)), 
+  
+  p <- ggplot(missing.table, aes(x = plotSampleName, y = as.numeric(MissingValues), 
+                                 color = Condition, label=as.factor(plotSampleName))) +
+    geom_segment( aes(x= plotSampleName, xend= plotSampleName, y=0, yend=as.numeric(MissingValues)), 
                   color="grey") +
     geom_point(size=2, alpha=0.9) +
     coord_flip() +
     theme_minimal() +
-    scale_x_discrete("Replicate") +
+    scale_x_discrete("Sample names") +
     scale_y_continuous("% Missing Values") +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.2),
           panel.grid.major.y = element_blank(),
@@ -264,33 +291,49 @@ protein_missingness_experiment <- function(Experiment){
 #' @importFrom data.table data.table
 
 plot_rle_boxplot <- function(IntensityExperiment, CompleteIntensityExperiment, 
-                             includeImputed = FALSE){
+                             includeImputed = FALSE, plotRawRLE = FALSE){
+  
+  
   longRawDF <- SEToLongDT(IntensityExperiment)
   longRawDF$Imputed <- longRawDF$Intensity == 0
-  longRawDF <- longRawDF[,c("ProteinId","Imputed","SampleName")]
+  longRawDF <- longRawDF[,c("ProteinId","Imputed","SampleName","Intensity")]
+  setnames(longRawDF, "Intensity","rawIntensity")
+  longRawDF <- longRawDF[Imputed == FALSE, rawlog2Int:= log2(rawIntensity)]
   
-  # the intensity plotted are the ones present in the assay experiment
-  longIntensityDF <- SEToLongDT(CompleteIntensityExperiment)
-  longIntensityDF <- as_tibble(longIntensityDF) %>% 
-    left_join(as_tibble(longRawDF))
-  longIntensityDF <- data.table(longIntensityDF[!longIntensityDF$Imputed,
-                                                c("ProteinId","Imputed", "Intensity","SampleName")])
-  
-  if(includeImputed){
-    longIntensityDF <- longIntensityDF[,RLE := Intensity - median(Intensity), 
-                                       by = ProteinId]
-  }else{
-    longIntensityDF <- longIntensityDF[!longIntensityDF$Imputed, 
-                                       RLE := Intensity - median(Intensity), 
+  if(plotRawRLE){
+    longIntensityDF <- longRawDF[Imputed == FALSE, 
+                                       RLE := rawlog2Int - median(rawlog2Int), 
                                        by = ProteinId] 
+    longIntensityDF <- longIntensityDF[!longIntensityDF$Imputed]
+    
+  }else{
+    # the intensity plotted are the ones present in the assay experiment
+    longIntensityDF <- SEToLongDT(CompleteIntensityExperiment)
+    longIntensityDF <- as_tibble(longIntensityDF) %>% 
+      left_join(as_tibble(longRawDF))
+    longIntensityDF <- data.table(longIntensityDF[!longIntensityDF$Imputed,
+                                                  c("ProteinId","Imputed", "Intensity","SampleName")])
+    
+    if(includeImputed){
+      longIntensityDF <- longIntensityDF[,RLE := Intensity - median(Intensity), 
+                                         by = ProteinId]
+    }else{
+      longIntensityDF <- longIntensityDF[!longIntensityDF$Imputed, 
+                                         RLE := Intensity - median(Intensity), 
+                                         by = ProteinId] 
+      longIntensityDF <- longIntensityDF[!longIntensityDF$Imputed]
+    }
   }
   
-  # Merge with design
-  design <- colData(CompleteIntensityExperiment)
-  longIntensityDF <- merge(longIntensityDF, design, by = "SampleName", all.x=TRUE)
   
-  p = ggplot(longIntensityDF, aes(x = SampleName, y = RLE)) + 
-    geom_boxplot(aes(fill = Condition)) + 
+  # Merge with design
+  design <- colData(IntensityExperiment)
+  longIntensityDF <- merge(longIntensityDF, design, by = "SampleName", all.x=TRUE)
+  longIntensityDF <- as_tibble(longIntensityDF) %>% tidyr::unite(plotSampleName, Condition, Replicate, 
+                                                      sep="_", remove=FALSE)
+  
+  p = ggplot(longIntensityDF, aes(x = plotSampleName, y = RLE)) + 
+    geom_boxplot(aes(fill = Condition), outlier.alpha=0.3) +
     theme_minimal() + 
     theme(axis.text.x = element_text(angle = 90, vjust = 0.2),
           panel.grid.major.y = element_blank(),
@@ -298,11 +341,36 @@ plot_rle_boxplot <- function(IntensityExperiment, CompleteIntensityExperiment,
           axis.ticks.y = element_blank()) +
     scale_x_discrete("Replicate") +
     scale_y_continuous("RLE") +
-    ggtitle("Intensities are centered on protein's medians") + 
     geom_hline(yintercept = 0, linetype="dotted")
 
   p
 
+}
+
+#' Convert output of `plot_rle_boxplot` to interactive using plotly
+#' @param fig non interactive ggplot object
+#' @export makeRLEBoxplotInteractive
+
+makeRLEBoxplotInteractive <- function(fig){
+  fig <- plotly::ggplotly(fig, tooltip = c("y")) %>% 
+    plotly::config(displayModeBar = T, 
+                   modeBarButtons = list(list('toImage')),
+                   displaylogo = F)
+  # this code will be needed if you want to make an interactive version
+  fig$x$data <- lapply(fig$x$data, FUN = function(x){
+    # When creating plot p with ggplot if you specify 
+    #fill = cut use x$fill$color instead of $line$color
+    x$marker$outliercolor = x$line$color 
+    # When creating plot p with ggplot if you specify 
+    # fill = cut use x$fill$color instead $line$color
+    x$marker$color = x$line$color
+    # When creating plot p with ggplot if you specify fill = 
+    #cut use x$fill$color instead $line$color
+    x$marker$line = x$line$color 
+    return(x)
+  })
+  
+  return(fig)
 }
 
 #' Boxplot of the distribution of the log expression values across samples. 
@@ -361,20 +429,29 @@ plot_density_distr <- function(Experiment, log=FALSE){
 
 #' Distribution of imputed versus non imputed values. 
 #'
-#' @param IntensityExperiment SummarizedExperiment object of raw data
 #' @param CompleteIntensityExperiment SummarizedExperiment object of the data used for the DE analysis with limma
 #' @export plot_imputed_vs_not
 
-plot_imputed_vs_not <- function(IntensityExperiment, CompleteIntensityExperiment){
-  longRawDF <- SEToLongDT(IntensityExperiment)
-  longRawDF$Imputed <- longRawDF$Intensity == 0
-  longRawDF <- longRawDF[,c("ProteinId","Imputed","SampleName")]
+plot_imputed_vs_not <- function(CompleteIntensityExperiment){
   
-  # the intensity plotted are the ones present in the assay experiment
-  longIntensityDF <- SEToLongDT(CompleteIntensityExperiment)
-  longIntensityDF <- as_tibble(longIntensityDF) %>% left_join(as_tibble(longRawDF))
+  assay1 <- as_tibble(assay(CompleteIntensityExperiment))
+  assay1$ProteinId <- rownames(assay(CompleteIntensityExperiment))
+  long1 <- assay1 %>% 
+    pivot_longer(all_of(colnames(assay(CompleteIntensityExperiment))),
+                 names_to = "SampleName",values_to = "Intensity")
   
-  p <- ggplot(longIntensityDF, aes(x=Intensity, fill=Imputed, 
+  assay2 <- as_tibble(assays(CompleteIntensityExperiment)[[2]])
+  assay2$ProteinId <- rownames(assays(CompleteIntensityExperiment)[[2]])
+  long2 <- assay2 %>% 
+    pivot_longer(all_of(colnames(assays(CompleteIntensityExperiment)[[2]])),
+                 names_to = "SampleName",values_to = "Imputed")
+  
+  long3 <- long1 %>% left_join(long2)
+  design <- colData(CompleteIntensityExperiment)
+  long3 <- long3 %>% left_join(as_tibble(design))
+  long3$Imputed <- as.factor(long3$Imputed)
+  
+  p <- ggplot(long3, aes(x=Intensity, fill=Imputed, 
                                    colour = Imputed)) +
    facet_wrap(~Condition) +
     geom_density(alpha=0.4) +
@@ -385,6 +462,8 @@ plot_imputed_vs_not <- function(IntensityExperiment, CompleteIntensityExperiment
   p
   
 }
+
+
 
 #' CV distributuions of a protein summarized by condition of interest
 #' @param Experiment SummarizedExperiment object

@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{initialiseLongIntensityDT}
 \alias{initialiseLongIntensityDT}
-\title{This function performs the log2 conversion and initialise the imputed column}
+\title{This function performs the log2 conversion for intensities larger than 0 and initialise the imputed column.}
 \usage{
 initialiseLongIntensityDT(IntensityExperiment)
 }
@@ -10,5 +10,5 @@ initialiseLongIntensityDT(IntensityExperiment)
 \item{IntensityExperiment}{Output from constructSummarizedExperiment}
 }
 \description{
-This function performs the log2 conversion and initialise the imputed column
+This function performs the log2 conversion for intensities larger than 0 and initialise the imputed column.
 }

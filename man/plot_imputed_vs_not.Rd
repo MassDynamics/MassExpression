@@ -4,11 +4,9 @@
 \alias{plot_imputed_vs_not}
 \title{Distribution of imputed versus non imputed values.}
 \usage{
-plot_imputed_vs_not(IntensityExperiment, CompleteIntensityExperiment)
+plot_imputed_vs_not(CompleteIntensityExperiment)
 }
 \arguments{
-\item{IntensityExperiment}{SummarizedExperiment object of raw data}
-
 \item{CompleteIntensityExperiment}{SummarizedExperiment object of the data used for the DE analysis with limma}
 }
 \description{

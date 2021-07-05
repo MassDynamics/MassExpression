@@ -127,10 +127,14 @@ test_limma_output <- function(current, expected, tolerance=10**-5){
 # Run tests
 design <- mq_lfq_data$design
 intensities <- mq_lfq_data$intensities
+species <- mq_lfq_data$parameters[mq_lfq_data$parameters$X1 == "Species",2]
+normMethod <- mq_lfq_data$parameters[mq_lfq_data$parameters$X1 == "UseNormalisationMethod",2]
+labMethod <- mq_lfq_data$parameters[mq_lfq_data$parameters$X1 == "LabellingMethod",2]
 
 listIntensityExperiments <- runGenericDiscovery(experimentDesign = design, 
                                                 proteinIntensities = intensities, 
-                                                NormalisationMethod = "None")
+                                                NormalisationMethod = normMethod,
+                                                species = species, labellingMethod = labMethod)
 
 currentCompleteIntensityExperiment <- listIntensityExperiments$CompleteIntensityExperiment
 currentIntensityExperiment <- listIntensityExperiments$IntensityExperiment
@@ -141,12 +145,12 @@ test_raw_output(current = currentIntensityExperiment,
                 expected = expectedIntensityExperiment)
 
 
-test_complete_output(current = currentIntensityExperiment, 
-                expected = expectedIntensityExperiment)
+test_complete_output(current = currentCompleteIntensityExperiment, 
+                expected = expectedCompleteIntensityExperiment)
 
 
-test_limma_output(current = currentIntensityExperiment, 
-                expected = expectedIntensityExperiment)
+test_limma_output(current = currentCompleteIntensityExperiment, 
+                expected = expectedCompleteIntensityExperiment)
 
 
 

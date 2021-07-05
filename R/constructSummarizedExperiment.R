@@ -6,9 +6,10 @@
 #' @export
 #' @importFrom SummarizedExperiment SummarizedExperiment rowData colData
 #' @importFrom S4Vectors SimpleList
+#' @importFrom dplyr group_by mutate row_number
 
 
-constructSummarizedExperiment <- function(experimentDesign, proteinIntensities){
+constructSummarizedExperiment <- function(experimentDesign, proteinIntensities, listMetadata){
   
   stopifnot("Condition" %in% colnames(experimentDesign))
   stopifnot("SampleName" %in% colnames(experimentDesign))
@@ -16,10 +17,10 @@ constructSummarizedExperiment <- function(experimentDesign, proteinIntensities){
   stopifnot(all(experimentDesign$SampleName %in% colnames(proteinIntensities)))
   stopifnot("ProteinId" %in% colnames(proteinIntensities))
   
-  # prepare coldata
-  experimentDesign = as_tibble(experimentDesign) %>% 
-    dplyr::group_by(Condition) %>% 
-    dplyr::mutate(Replicate = dplyr::row_number())
+  # prepare colData with Replicate column 
+  experimentDesign = tibble::as_tibble(experimentDesign) %>% 
+    group_by(Condition) %>% 
+    mutate(Replicate = row_number())
   
   # prepare rowdata
   rowDataPossible <-  c("ProteinId","GeneId","Description")
@@ -37,7 +38,8 @@ constructSummarizedExperiment <- function(experimentDesign, proteinIntensities){
   # construct summarized experiment object
   IntensityExperiment <- SummarizedExperiment(rowData = rowFeatures,
                                               assays= SimpleList(raw=assayData),
-                                              colData = experimentDesign)
+                                              colData = experimentDesign, 
+                                              metadata = listMetadata)
   
   colnames(IntensityExperiment) <- experimentDesign$SampleName
   rownames(IntensityExperiment) <- rowData(IntensityExperiment)$ProteinId
