@@ -7,13 +7,24 @@
 "pdf" or "html". If html an interactive plot is returned using plotly.
 }
 \usage{
-pca_plot_experiment(Experiment, format = "pdf", log = FALSE)
+pca_plot_experiment(
+  Experiment,
+  format = "pdf",
+  log = FALSE,
+  onlyDEProteins = FALSE
+)
 }
 \arguments{
 \item{Experiment}{SummarizedExperiment object}
 
 \item{log}{logical. Whether data should be logged before plotting}
+
+\item{onlyDEProteins}{logical. TRUE if only DE proteins should be considered.}
 }
 \description{
 Plot first 2 dimensions of PCA
+}
+\details{
+#' A protein is defined DE is the adjusted PValue is less than 0.05. 
+When multiple comparisons are available, the adjusted PValues of the F-test is used.
 }

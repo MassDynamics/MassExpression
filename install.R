@@ -24,6 +24,7 @@ ensure_package_installed_with_version <- function (package, version, repos = rep
 
 
 ensure_package_installed("devtools", repos = list("http://cran.rstudio.com/", "https://cran.ms.unimelb.edu.au/"))
+ensure_package_installed("grDevices", repos = list("http://cran.rstudio.com/", "https://cran.ms.unimelb.edu.au/"))
 
 
 ensure_package_installed_with_version("gert", "1.3.1",repos = "http://cran.rstudio.com/")
@@ -44,6 +45,9 @@ ensure_package_installed_with_version("FactoMineR", '2.4', repos = "http://cran.
 ensure_package_installed_with_version("factoextra", '1.0.7', repos = "http://cran.rstudio.com/")
 ensure_package_installed_with_version("testthat", '3.0.4', repos = "http://cran.rstudio.com/")
 ensure_package_installed_with_version("ggrepel", '0.9.1', repos = "http://cran.rstudio.com/")
+ensure_package_installed_with_version("pheatmap", '1.0.12', repos = "http://cran.rstudio.com/")
+ensure_package_installed_with_version("Hmisc", '4.5-0', repos = "http://cran.rstudio.com/")
+ensure_package_installed_with_version("corrplot", '0.89', repos = "http://cran.rstudio.com/")
 
 #### Install packages Bioconductor
 ensure_package_installed_with_version("BiocManager", '1.30.16', repos = "http://cran.rstudio.com/")

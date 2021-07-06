@@ -2,18 +2,20 @@ Package: MassExpression
 Type: Package
 Title: MassExpression
 Version: 0.0.22
-Author: Anna Quaglieri <anna@massdynamics.com> and Joseph Bloom <joseph@massdynamics.com>
+Author: Anna Quaglieri
+     <anna@massdynamics.com> and Joseph
+     Bloom <joseph@massdynamics.com>
 Maintainer: The package maintainer <yourself@somewhere.net>
 Description: Universal Imports + High Quality QC + Differential Expression Analysis = Awesomeness. 
 License: use_mit_license()
 Encoding: UTF-8
 LazyData: true
-Depends:
+Depends: 
   R (>= 3.5),
   foreach (>= 1.5.1),
   Biobase (>= 2.46.0),
   SummarizedExperiment (>= 1.16.1)
-Imports:
+Imports: 
   limma (>= 3.42.2),
   data.table (>= 1.14.0),
   stringr (>= 1.4.0),
@@ -24,7 +26,11 @@ Imports:
   plotly (>= 4.9.4.1),
   ggplot2 (>= 3.3.5),
   forcats (>= 0.5.1),
-  ggrepel (>= 0.9.1)
+  ggrepel (>= 0.9.1),
+  pheatmap (>= 1.0.12),
+  grDevices,
+  Hmisc (>= 4.5-0),
+  corrplot (>= 0.89)
 RoxygenNote: 7.1.1
 Suggests: 
     testthat (>= 3.0.0)

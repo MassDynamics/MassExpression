@@ -2,7 +2,7 @@
 % Please edit documentation in R/qc_plotting_functions.R
 \name{preparePlottingData}
 \alias{preparePlottingData}
-\title{Extract the essay and colData (design data frame) from a SummarizedExperiment object}
+\title{Extract intensity and design from a SummarizedExperiment object}
 \usage{
 preparePlottingData(Experiment, log = FALSE)
 }
@@ -12,5 +12,5 @@ preparePlottingData(Experiment, log = FALSE)
 \item{log}{logical. Whether data should be logged before plotting}
 }
 \description{
-Extract the essay and colData (design data frame) from a SummarizedExperiment object
+Extract intensity and design from a SummarizedExperiment object
 }

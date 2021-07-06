@@ -80,9 +80,9 @@ design <- colData(IntensityExperiment)
     </p>
     <ul>
       <li>Experiment Design</li>
-      <li>Experiment Health<li>
-      <li>Feature Completeness</li>
-      <li>Imputation</li>
+      <li>Experiment Health</li>
+      <li>Feature Completedness</li>
+      <li>Normalisation and Imputation</li>
     </ul>
   </span>
 </details> 
@@ -123,14 +123,9 @@ p[[1]]
 p[[2]]
 ```
 
-```{r mds-impute, eval=FALSE}
-# ## MDS
-p=mds_plot_experiment(CompleteIntensityExperiment)
+```{r pca-imputed-de}
+p=pca_plot_experiment(CompleteIntensityExperiment, format = params$format, onlyDEProteins = TRUE)
 p[[1]]
-```
-
-```{r eval=FALSE}
-p[[2]]
 ```
 
 ## B. Quantitative values CV distributions {.tabset .tabset-fade .tabset-pills}
@@ -149,11 +144,105 @@ p[[2]]
 </details> 
 
 ```{r cv-dist}
-plot_condition_cv_distribution(IntensityExperiment)
+p=plot_condition_cv_distribution(IntensityExperiment)
+
+if (params$format == "pdf"){
+  p
+} else {
+  ggplotly(p) %>% plotly::config(displayModeBar = T, 
+                        modeBarButtons = list(list('toImage')),
+                        displaylogo = F)
+}
+```
+
+  
+## C. Sample correlations using DE proteins
+
+
+```{r corr-samples}
+plot_samples_correlation_matrix(CompleteIntensity)
 ```
 
 
-## C. Intensity distribution across runs {.tabset .tabset-fade .tabset-pills}
+```{r corr-samples-de}
+plot_samples_correlation_matrix(CompleteIntensity, onlyDEProteins = TRUE)
+```
+  
+# 3. Feature completedness {.tabset .tabset-fade .tabset-pills}
+
+<details>
+  <summary>Distribution of missing values by samples and by proteins and clustering using missing values</summary>
+  <span>
+    <p> The amount of missing values can be affected by the biological condition or by technical factors and it can vary largely between experiments.</p>
+   <p>For a healthy experiment we expect:</p>
+    <ul>
+      <li>The distribution of missing values replicate to be similar across replicates, especially within the same biological conditions</li>
+    </ul>
+    <p>There isns't a strict threshold to look for in terms of % of missing values. However, an unusually large amount of missingness in one or a few replicates can be sympthomatic of technial problems and should be taken into account when intepreting the final differential expression results.<p>
+  </span>
+</details> 
+
+## By sample
+
+```{r sample-missingness}
+p <- plot_replicate_missingness(IntensityExperiment)
+if (params$format == "pdf"){
+  p
+} else {
+  ggplotly(p, tooltip = c("y")) %>% plotly::config(displayModeBar = T, 
+                                                  modeBarButtons = list(list('toImage')),
+                                                  displaylogo = F)
+}
+```
+
+
+## By protein
+
+```{r protein-missingness}
+p <- plot_protein_missingness(IntensityExperiment)
+if (params$format == "pdf"){
+  p
+} else {
+  ggplotly(p, tooltip = c("y")) %>% plotly::config(displayModeBar = T, 
+                                                  modeBarButtons = list(list('toImage')),
+                                                  displaylogo = F)
+}
+```
+
+
+
+# 4. Normalisation and Imputation {.tabset .tabset-fade .tabset-pills}
+
+<details>
+  <summary>Distributions of raw and normalised intensities (when requested)</summary>
+  <span>
+    <p>It is useful to inspect and compare the distributions of the intensities to identify samples with largely unusual distributions.</p>
+   <p>The three sections reported here show:</p>
+    <ul>
+      <li>The boxplots of the log2 intensities before any normalisation </li>
+      <li>The boxplots of raw relative log expression (RLE) values and after normalisation, when requested. The RLE values for a protein are obtained by centering intensities to the protein medians, where the median is computed using only available intensities, i.e. non zero values. </li>
+      <li>The distribution of the imputed and not imputed intensities<li>
+    </ul>
+     <p>For more details on each plot, inspect each section.<p>
+  </span>
+</details> 
+
+## Raw Intensities boxplots
+
+Boxplots of log2 raw intensities. 
+
+```{r raw-boxplots}
+normalised <- FALSE
+if(metadata(CompleteIntensityExperiment)$NormalisationAppliedToAssay != "None"){
+  normalised <- TRUE
+}
+
+# Plot RLE of log2 raw intensity as well as RLE of normalised 
+p_raw <- plot_measurement_boxplot(IntensityExperiment, log = TRUE)
+p_raw + ggtitle("log2 Raw Intensities") 
+```
+
+## RLE boxplots
 
 <details>
   <summary>Relative Log Expression distributions</summary>
@@ -168,7 +257,6 @@ plot_condition_cv_distribution(IntensityExperiment)
   </span>
 </details> 
 
-
 ```{r rle-plots}
 normalised <- FALSE
 if(metadata(CompleteIntensityExperiment)$NormalisationAppliedToAssay != "None"){
@@ -178,14 +266,7 @@ if(metadata(CompleteIntensityExperiment)$NormalisationAppliedToAssay != "None"){
 # Plot RLE of log2 raw intensity as well as RLE of normalised 
 p_raw <- plot_rle_boxplot(IntensityExperiment, CompleteIntensityExperiment, 
                     includeImputed = FALSE, plotRawRLE = TRUE)
-p_raw <- p_raw + ggtitle("RLE of log2 Raw Intensities") 
-
-if (params$format == "pdf"){
-  p_raw
-} else {
-  fig <- makeRLEBoxplotInteractive(p_raw)
-  fig
-}
+p_raw + ggtitle("RLE of log2 Raw Intensities") 
 ```
   
   
@@ -194,66 +275,21 @@ if(normalised){
   # Plot RLE of log2 raw intensity as well as RLE of normalised 
   p_norm <- plot_rle_boxplot(IntensityExperiment, CompleteIntensityExperiment, 
                       includeImputed = FALSE, plotRawRLE = FALSE)
-  p_norm <- p_norm + ggtitle("RLE of Normalised Intensities") 
+  p_norm <- p_norm + ggtitle("RLE of Normalised log2 Intensities") 
   
-  if (params$format == "pdf"){
-   p_norm
-  } else {
-    fig <- makeRLEBoxplotInteractive(p_norm)
-    fig
-  }
+  p_norm
 }
 ```
   
-  
-# 3. Feature completedness {.tabset .tabset-fade .tabset-pills}
 
-<details>
-  <summary>Distribution of missing values by samples and by proteins</summary>
-  <span>
-    <p> The amount of missing values can be affected by the biological condition or by technical factors and it can vary largely between experiments.</p>
-   <p>For a healthy experiment we expect:</p>
-    <ul>
-      <li>The distribution of missing values replicate to be similar across replicates, especially within the same biological conditions</li>
-    </ul>
-    <p>There isns't a strict threshold to look for in terms of % of missing values. However, an unusually large amount of missingness in one or a few replicates can be sympthomatic of technial problems and should be taken into account when intepreting the final differential expression results.<p>
-  </span>
-</details> 
-
-## By sample
-
-```{r sample-missingness}
-p <- replicate_missingness_experiment(IntensityExperiment)
-if (params$format == "pdf"){
-  p
-} else {
-  ggplotly(p, tooltip = c("y")) %>% config(displayModeBar = T, 
-                                                  modeBarButtons = list(list('toImage')),
-                                                  displaylogo = F)
-}
-```
-
-
-## By protein
-
-```{r protein-missingness}
-p <- protein_missingness_experiment(IntensityExperiment)
-if (params$format == "pdf"){
-  p
-} else {
-  ggplotly(p, tooltip = c("y")) %>% config(displayModeBar = T, 
-                                                  modeBarButtons = list(list('toImage')),
-                                                  displaylogo = F)
-}
-```
-
-
-# 4. Imputed versus non imputed log2 intensity values
-
-<details>
-  <summary>Density distribution of the imputed and not imputed intensity values used for the differential expression analysis. The distributions are shown by condition of interest</summary>
-</details> 
+## Imputed vs not (All) 
 
 ```{r compare-imputed}
 plot_imputed_vs_not(CompleteIntensityExperiment = CompleteIntensityExperiment)
+```
+
+## Imputed vs not (By condition) 
+
+```{r compare-imputed-condition}
+plot_imputed_vs_not(CompleteIntensityExperiment = CompleteIntensityExperiment, byCondition = TRUE)
 ```

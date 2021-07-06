@@ -2,7 +2,7 @@
 % Please edit documentation in R/qc_plotting_functions.R
 \name{makeRLEBoxplotInteractive}
 \alias{makeRLEBoxplotInteractive}
-\title{Convert output of `plot_rle_boxplot` to interactive using plotly}
+\title{Convert output of `plot_rle_boxplot` to interactive}
 \usage{
 makeRLEBoxplotInteractive(fig)
 }
@@ -10,5 +10,5 @@ makeRLEBoxplotInteractive(fig)
 \item{fig}{non interactive ggplot object}
 }
 \description{
-Convert output of `plot_rle_boxplot` to interactive using plotly
+Convert output of `plot_rle_boxplot` to interactive
 }

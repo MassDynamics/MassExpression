@@ -1,4 +1,4 @@
-#' Extract the essay and colData (design data frame) from a SummarizedExperiment object
+#' Extract intensity and design from a SummarizedExperiment object
 #' 
 #' @param Experiment SummarizedExperiment object
 #' @param log logical. Whether data should be logged before plotting
@@ -29,17 +29,28 @@ preparePlottingData <- function(Experiment, log=FALSE){
 #' 
 #' @param Experiment SummarizedExperiment object
 #' @param log logical. Whether data should be logged before plotting
+#' @param onlyDEProteins logical. TRUE if only DE proteins should be considered. 
 #' @format "pdf" or "html". If html an interactive plot is returned using plotly. 
 #' 
 #' @export pca_plot_experiment
-#' 
+#' @details #' A protein is defined DE is the adjusted PValue is less than 0.05. 
+#' When multiple comparisons are available, the adjusted PValues of the F-test is used. 
 #' @import ggplot2 
 
-pca_plot_experiment <- function(Experiment, format="pdf", log=FALSE){
+pca_plot_experiment <- function(Experiment, 
+                                format="pdf", 
+                                log=FALSE, 
+                                onlyDEProteins=FALSE){
   # prepare data for plotting
   toPlot <- preparePlottingData(Experiment, log)
   intensities <- toPlot$intensities
   design <- toPlot$design
+  
+  if(onlyDEProteins){
+    limmaStats <- rowData(Experiment)
+    protDE <- limmaStats$ProteinId[limmaStats$adj.P.Val < 0.05]
+    intensities <- intensities[rownames(intensities) %in% protDE, ]
+  }
   
   res.pca <- FactoMineR::PCA(t(intensities), graph = FALSE, ncp = 2)
   
@@ -147,13 +158,14 @@ mds_plot_experiment <- function(Experiment, log=FALSE){
 
 
 
-#' this function creates a lollipop plot of missingness by intensity column where missingness is defined as a value equal to 0 .
+#' Lollipop plot of missingness by intensity column
+#' @description Lollipop plot of missingness by intensity column where missingness is defined as a value equal to 0 .
 #' 
 #' @param Experiment SummarizedExperiment object
 #' 
-#' @export replicate_missingness_experiment
+#' @export plot_replicate_missingness
 
-replicate_missingness_experiment <- function(Experiment){
+plot_replicate_missingness <- function(Experiment){
   # prepare data for plotting
   prep_data <- preparePlottingData(Experiment)
   intensities <- prep_data[['intensities']]
@@ -190,12 +202,11 @@ replicate_missingness_experiment <- function(Experiment){
 
 #' Lollipop plot of the number of proteins identified by replicate
 #' 
-#'
 #' @param Experiment SummarizedExperiment object
-#' @export protein_counts_by_replicate
+#' @export plot_protein_counts_by_replicate
 
 
-protein_counts_by_replicate <- function(Experiment){
+plot_protein_counts_by_replicate <- function(Experiment){
   
   longIntensityDF <- as_tibble(SEToLongDT(Experiment))
   if(sum(str_detect(colnames(longIntensityDF), "NImputed")) != 0){
@@ -231,13 +242,14 @@ protein_counts_by_replicate <- function(Experiment){
 
 
 
-#' Histogram of the distribution of missingness by protein where missingness is defined as 0 values.
+#' Histogram of the distribution of missingness by protein 
+#' @description Histogram of the distribution of missingness by protein  where missingness is defined as 0 values.
 #'
 #' @param Experiment SummarizedExperiment object
 #' 
-#' @export protein_missingness_experiment
+#' @export plot_protein_missingness
 
-protein_missingness_experiment <- function(Experiment){
+plot_protein_missingness <- function(Experiment){
   # prepare data for plotting
   intensities <- preparePlottingData(Experiment)[['intensities']]
   
@@ -277,9 +289,9 @@ protein_missingness_experiment <- function(Experiment){
 
 
 
-#' Boxplot of the distribution of the relative log expression (RLE) values across samples. 
-#' RLE values are computed using the data from the CompleteIntensityExperiment which contains 
-#' the intensity values used for the DE analysis (log-transformed, normalised when required).   
+#' Boxplot of the relative log expression (RLE) values across samples
+#' @description RLE values are computed using the data from the CompleteIntensityExperiment which contains 
+#' the intensity values used for the DE analysis (log-transformed, normalised when required). 
 #'
 #' @param IntensityExperiment SummarizedExperiment object of the raw data, i.e. including missing values
 #' @param CompleteIntensityExperiment  SummarizedExperiment object of the data used for the DE analysis 
@@ -347,7 +359,7 @@ plot_rle_boxplot <- function(IntensityExperiment, CompleteIntensityExperiment,
 
 }
 
-#' Convert output of `plot_rle_boxplot` to interactive using plotly
+#' Convert output of `plot_rle_boxplot` to interactive
 #' @param fig non interactive ggplot object
 #' @export makeRLEBoxplotInteractive
 
@@ -373,7 +385,7 @@ makeRLEBoxplotInteractive <- function(fig){
   return(fig)
 }
 
-#' Boxplot of the distribution of the log expression values across samples. 
+#' Boxplot of log expression values across samples. 
 #'
 #' @param Experiment SummarizedExperiment object
 #' @param use_imputed logical
@@ -387,9 +399,13 @@ plot_measurement_boxplot <- function(Experiment, log=FALSE){
     longIntensityDF$Intensity <- log2(longIntensityDF$Intensity+0.5)
   }
   
-  p <- ggplot(longIntensityDF , aes(x=Replicate, y=Intensity, 
+  dataToPlot <- as_tibble(longIntensityDF) %>% tidyr::unite(plotSampleName, 
+                                                            Condition, Replicate, 
+                                                            sep="_", remove=FALSE)
+  
+  p <- ggplot(dataToPlot , aes(x=plotSampleName, y=Intensity, 
                                     fill=Condition)) +
-    geom_boxplot() +
+    geom_boxplot(outlier.alpha=0.3) +
     theme_minimal() +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.2),
           panel.grid.major.y = element_blank(),
@@ -397,7 +413,7 @@ plot_measurement_boxplot <- function(Experiment, log=FALSE){
           axis.ticks.y = element_blank()
     ) +
     geom_hline(yintercept = 0, linetype="dotted", colour="grey") +
-    scale_x_discrete("Replicate") +
+    scale_x_discrete("Sample names") +
     scale_y_continuous("Log2 Intensity")
   
   p
@@ -430,9 +446,10 @@ plot_density_distr <- function(Experiment, log=FALSE){
 #' Distribution of imputed versus non imputed values. 
 #'
 #' @param CompleteIntensityExperiment SummarizedExperiment object of the data used for the DE analysis with limma
+#' @param byCondition logical. TRUE to produce separate density distributions by Condition.
 #' @export plot_imputed_vs_not
 
-plot_imputed_vs_not <- function(CompleteIntensityExperiment){
+plot_imputed_vs_not <- function(CompleteIntensityExperiment, byCondition=FALSE){
   
   assay1 <- as_tibble(assay(CompleteIntensityExperiment))
   assay1$ProteinId <- rownames(assay(CompleteIntensityExperiment))
@@ -450,14 +467,18 @@ plot_imputed_vs_not <- function(CompleteIntensityExperiment){
   design <- colData(CompleteIntensityExperiment)
   long3 <- long3 %>% left_join(as_tibble(design))
   long3$Imputed <- as.factor(long3$Imputed)
+  long3$Imputed <- long3$Imputed == 1
   
   p <- ggplot(long3, aes(x=Intensity, fill=Imputed, 
                                    colour = Imputed)) +
-   facet_wrap(~Condition) +
     geom_density(alpha=0.4) +
     theme_minimal() +
     ggtitle("Intensity (Imputed vs Not)") +
     labs(x = "Log2 Intensity")
+  
+  if(byCondition){
+    p <- p + facet_wrap(~Condition)
+  }
   
   p
   
@@ -518,4 +539,83 @@ plot_ma <- function(comparison.statistics){
     ggtitle(comparison.statistics$comparison[1]) +
     geom_hline(yintercept=0)
   p
+}
+
+
+#' Heatmap of the binary intensity matrix of missing values 
+#' @param Experiment SummarizedExperiment object of raw data. 
+#' Intensities values equal to 0 are considered as missing values.
+#' @param complete logical. TRUE to use all the matrix of intensities. 
+#' FALSE to include only features with at least one missing value across samples.   
+#' @export plot_heatmap_missingness
+#' @import pheatmap
+
+plot_heatmap_missingness <- function(Experiment, complete=FALSE){
+  data <- assay(Experiment)
+  if(!complete){
+    data <- data[rowSums(data==0) > 0,]
+  }
+  mt_binary <- ifelse(data != 0,1,0)
+  design <- colData(Experiment)[c("SampleName", "Condition")]
+  column_annotation <- data.frame(SampleName = colnames(mt_binary)) %>% 
+    left_join(as_tibble(design)) 
+  rownames(column_annotation) <- column_annotation$SampleName
+  column_annotation$SampleName <- NULL
+  colour_cells <- grDevices::colorRampPalette(c("#e0f3db", "#43a2ca"))(2)
+  rownames(mt_binary) <- NULL
+  return(pheatmap(mt_binary, color = colour_cells, 
+                  annotation_col = column_annotation, fontsize = 8, 
+                  show_colnames=TRUE, legend_labels = c("0","1"), legend_breaks = 0:1))
+  
+}
+
+
+
+
+#' Correlation plot of samples using DE proteins
+#' @param Experiment SummarizedExperiment object of imputed data. 
+#' @param onlyDEProteins logical. TRUE if only DE proteins should be considered. 
+#' @export plot_samples_correlation_matrix
+#' 
+#' @details #' A protein is defined DE is the adjusted PValue is less than 0.05. 
+#' When multiple comparisons are available, the adjusted PValues of the F-test is used. 
+#' 
+#' @import pheatmap
+plot_samples_correlation_matrix <- function(Experiment, onlyDEProteins=FALSE){
+  
+  # add a validate statement for 0s
+  
+  # prepare data for plotting
+  toPlot <- preparePlottingData(Experiment, log=FALSE)
+  intensities <- toPlot$intensities
+  design <- as_tibble(toPlot$design) %>% tidyr::unite(plotSampleName, 
+                                                      Condition, Replicate, 
+                                                      sep="_", remove=FALSE)
+  
+  
+  column_name_order <- sapply(design$SampleName, function(z) which(colnames(intensities) %in% z))
+  colnames(intensities)[column_name_order] <- design$plotSampleName
+  
+  title <- "Sample correlation"
+  if(onlyDEProteins){
+    limmaStats <- rowData(Experiment)
+    protDE <- limmaStats$ProteinId[limmaStats$adj.P.Val < 0.05]
+    intensities <- intensities[rownames(intensities) %in% protDE, ]
+    nDE <- nrow(intensities)
+    title <- paste0("Sample correlation - Only DE proteins\n",
+                    "There are ", nDE, " proteins considering all comparisons jointly.")
+  }
+  
+  DT_corMatrix <- Hmisc::rcorr(intensities)
+  DT_corMatrix <- DT_corMatrix$r
+  
+  DT_corMatrix[DT_corMatrix <= -1] = -1
+  DT_corMatrix[DT_corMatrix >= 1] = 1
+
+  
+  corrplot::corrplot(DT_corMatrix, type = "upper", method = "square",
+           title = title,
+           tl.cex = 0.5, mar = c(1,0,1.5,0), addCoef.col = "white", number.cex = .5,
+           tl.col = "black")
+  
 }

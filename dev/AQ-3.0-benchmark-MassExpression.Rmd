@@ -1,0 +1,225 @@
+---
+title: "Benchmark MassExpression"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(MassExpression)
+library(tidyverse)
+library(plotly)
+```
+
+# Benchmark using Max Quant HER2 data and comparing the result with MaxQuant Discovery workflow
+
+```{r}
+mq_data_input <- "../../../data-s3/data-formats/maxquant/LFQ/HER2/data/"
+protein.intensities <- read.csv(file.path(mq_data_input, "proteinGroups.txt"), sep = "\t", stringsAsFactors = F)
+design <- read.csv(file.path(mq_data_input, "experimentDesign_original.txt"), sep = "\t", stringsAsFactors = F)
+
+input_gen <- MaxQuantTranform(proteinGroups=protein.intensities, design = design, species = "human", useNormalisationMethod = "None", labellingMethod = "LFQ")
+data_int <- input_gen$intensities
+data_int[data_int$ProteinId == "Q9Y2F5",]
+```
+
+```{r}
+protein.intensities[grep("Q9Y2F5", protein.intensities$Protein.IDs),] %>% select(starts_with("LFQ.intensity"))
+```
+
+
+## Load MaxQuant discovery 
+
+```{r}
+output_folder <- "../../../data-s3/data-formats/maxquant/LFQ/HER2/data/output/"
+library(drake)
+
+# library(LFQprocessing)
+# her2 <- protein_quant_runner(upload_folder, output_folder)
+
+out_data <- read.delim(file.path(output_folder, "proteinGroups_quant.txt")) %>%
+  dplyr::rename(Majority.protein.IDs=majority.protein.ids,
+                Fasta.headers=fasta.headers)
+out_data_1prot <- assign_uniprot_ids_mq(out_data)
+out_data_bench <- out_data_1prot %>% dplyr::select("ProteinId",
+                                             starts_with("logFC."), 
+                                             starts_with("adj.P.Val."), 
+                                             starts_with("P.Value.")) 
+colnames(out_data_bench)[2:ncol(out_data_bench)] <- paste0("Disco_", colnames(out_data_bench)[2:ncol(out_data_bench)])
+
+
+out_data_1prot[out_data_1prot$ProteinId == "Q9Y2F5",] %>% select(starts_with("LFQ.intensity"))
+```
+
+
+## Compare results
+
+
+```{r}
+load("../tests/data/mq_lfq_output.Rdata")
+
+expected_complete <- rowData(expectedCompleteIntensityExperiment)
+data <- assay(expectedIntensityExperiment)
+
+data_int[data_int$ProteinId == "Q9Y2F5",]
+
+sum(!(out_data_bench$ProteinId %in% expected_complete$ProteinId))
+sum(!(expected_complete$ProteinId %in% out_data_bench$ProteinId))
+
+compare <- out_data_bench %>% left_join(as_tibble(expected_complete))
+```
+
+
+```{r}
+p=ggplot(compare, aes(x=-log10(`P.Value.AZD8931_resistant_SKBR3_AZDRc.Parental_SKBR3`), 
+                    y = -log10(`Disco_P.Value.AZD8931_resistant_SKBR3_AZDRc...Parental_SKBR3`), label=ProteinId)) + 
+  geom_point() +
+  theme_bw() 
+
+ggplotly(p)
+```
+
+
+```{r}
+ggplot(compare, aes(x=`logFC.AZD8931_resistant_SKBR3_AZDRc.Parental_SKBR3`, 
+                    y = `Disco_logFC.AZD8931_resistant_SKBR3_AZDRc...Parental_SKBR3`)) + 
+  geom_point() +
+  theme_bw() +
+  geom_smooth()
+```
+
+
+## Compare results 2
+
+## Run MassExpression discovery
+
+```{r me-discovery}
+intensities <- mq_lfq_data$intensities
+design <- mq_lfq_data$design
+parameters <- mq_lfq_data$parameters
+normalisation_method <- parameters[parameters[,1] == "UseNormalisationMethod",2]
+species <- parameters[parameters[,1] == "Species",2]
+labellingMethod <- parameters[parameters[,1] == "LabellingMethod",2]
+
+
+results <- runGenericDiscovery(experimentDesign = design, 
+                               proteinIntensities = intensities, 
+                               normalisationMethod = normalisation_method, 
+                               species = species, 
+                               labellingMethod = labellingMethod)
+
+completeExperiment <- results$CompleteIntensityExperiment
+```
+
+
+```{r}
+expected_complete_new <- rowData(completeExperiment)
+
+sum(!(out_data_bench$ProteinId %in% expected_complete_new$ProteinId))
+sum(!(expected_complete_new$ProteinId %in% out_data_bench$ProteinId))
+
+compare <- out_data_bench %>% left_join(as_tibble(expected_complete_new))
+```
+
+
+```{r}
+ggplot(compare, aes(x=`logFC.AZD8931_resistant_SKBR3_AZDRc.Parental_SKBR3`, 
+                    y = `Disco_logFC.AZD8931_resistant_SKBR3_AZDRc...Parental_SKBR3`)) + 
+  geom_point() +
+  theme_bw() +
+  geom_smooth()
+```
+
+
+# Two runs of mass expression
+
+
+```{r}
+colnames(expected_complete)[2:ncol(expected_complete)] <- paste0("saved_",colnames(expected_complete)[2:ncol(expected_complete)])
+
+colnames(expected_complete_new)[2:ncol(expected_complete_new)] <- paste0("new_",colnames(expected_complete_new)[2:ncol(expected_complete_new)])
+
+compare_me <- as_tibble(expected_complete) %>% left_join(as_tibble(expected_complete_new))
+```
+
+
+```{r}
+ggplot(compare_me, aes(x=`saved_logFC.AZD8931_resistant_SKBR3_AZDRc.Parental_SKBR3`, 
+                    y = `new_logFC.AZD8931_resistant_SKBR3_AZDRc.Parental_SKBR3`)) + 
+  geom_point() +
+  theme_bw() +
+  geom_smooth()
+```
+
+
+# Drake
+
+```{r}
+library(visNetwork)
+plan <- drake_plan(runGenericDiscovery(experimentDesign = design, 
+                               proteinIntensities = intensities, 
+                               normalisationMethod = normalisation_method, 
+                               species = species, 
+                               labellingMethod = labellingMethod))
+
+vis_drake_graph(plan)
+```
+
+```{r}
+design <- mq_lfq_data$design
+intensities <- mq_lfq_data$intensities
+parameters <- mq_lfq_data$parameters
+normalisation_method <- parameters[parameters[,1] == "UseNormalisationMethod",2]
+species <- parameters[parameters[,1] == "Species",2]
+labellingMethod <- parameters[parameters[,1] == "LabellingMethod",2]
+
+listMetadata <- list(Species = species, 
+                     LabellingMethod = labellingMethod, 
+                     NormalisationAppliedToAssay = "None")
+
+# Create Data Rep
+IntensityExperiment <- constructSummarizedExperiment(experimentDesign = design, 
+                                                     proteinIntensities = intensities, 
+                                                     listMetadata = listMetadata)
+
+normalisationMethod <- "None"
+plan_limma <- drake_plan(
+    longIntensityDT <- initialiseLongIntensityDT(IntensityExperiment),
+  
+  # Create Median Normalized Measurements in each Condition/Replicate
+  longIntensityDT <- normaliseIntensity(longIntensityDT=longIntensityDT,
+                                        normalisationMethod=normalisationMethod),
+  
+  # Imputation
+  longIntensityDT <- imputeLFQ(longIntensityDT, 
+                         id_type = "ProteinId", 
+                         int_type = "log2NIntNorm",
+                         f_imputeStDev = 0.3,
+                         f_imputePosition= 1.8),
+  
+  
+  # RunId will be unique to a row wherease replicate may not
+  longIntensityDT[, RunId := str_c(Condition, Replicate, sep = ".")],
+  
+  # Run LIMMA
+  resultsQuant <- limmaStatsFun(ID_type = "ProteinId",
+                                   int_type = "log2NIntNorm",
+                                   condition_col_name = "Condition",
+                                   run_id_col_name = "RunId",
+                                   rep_col_name = "Replicate",
+                                   funDT = longIntensityDT),
+  stats = resultsQuant[["stats"]],
+  conditionComparisonMapping = resultsQuant[["conditionComparisonMapping"]],
+  
+  # SummarizedExperiment which contains the complete essay with imputed data and statistics
+  # about the number of proteins imputed in each condition 
+  CompleteIntensityExperiment <- createCompleteIntensityExperiment(IntensityExperiment,
+                                                                   limmaStats=stats,
+                                                                   normalisationAppliedToAssay = normalisationMethod,
+                                                                   longIntensityDT = longIntensityDT,
+                                                                   conditionComparisonMapping = conditionComparisonMapping)
+  
+)
+vis_drake_graph(plan_limma)
+```
+

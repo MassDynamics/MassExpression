@@ -11,5 +11,5 @@ build:
 	Rscript -e "devtools::build()"
 
 install:
-	Rscript -e "devtools::install(build_vignettes = TRUE, upgrade = FALSE)"
+	Rscript -e "devtools::install(build_vignettes = TRUE, upgrade = TRUE)"
 

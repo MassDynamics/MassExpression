@@ -2,7 +2,7 @@
 % Please edit documentation in R/qc_plotting_functions.R
 \name{plot_measurement_boxplot}
 \alias{plot_measurement_boxplot}
-\title{Boxplot of the distribution of the log expression values across samples.}
+\title{Boxplot of log expression values across samples.}
 \usage{
 plot_measurement_boxplot(Experiment, log = FALSE)
 }
@@ -12,5 +12,5 @@ plot_measurement_boxplot(Experiment, log = FALSE)
 \item{use_imputed}{logical}
 }
 \description{
-Boxplot of the distribution of the log expression values across samples.
+Boxplot of log expression values across samples.
 }

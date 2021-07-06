@@ -1,0 +1,232 @@
+---
+title: "Introduction to MassExpression"
+author: "Mass Dynamics"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    fig_caption: yes
+    toc_float: true
+  rmarkdown::html_vignette:
+    fig_caption: yes
+    toc_float: true
+vignette: >
+  %\VignetteIndexEntry{Introduction to MassExpression}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+```{r setup, include=FALSE, warning=FALSE, message=FALSE}
+library(plotly)
+library(stringr)
+knitr::opts_chunk$set(echo = TRUE,
+                      message = FALSE,
+                      warning = FALSE,
+                      collapse = TRUE,
+                      comment = "#>")
+```
+
+
+# Setup 
+
+```{r eval=FALSE}
+library(devtools)
+devtools::install_github("XXX")
+```
+
+
+```{r eval=TRUE}
+library(MassExpression)
+utils::packageVersion("MassExpression")
+```
+
+```{r}
+ls("package:MassExpression")
+```
+
+# Internal data available 
+
+```{r}
+data(package="MassExpression")
+```
+
+
+# Run workflow with sample data
+
+
+```{r}
+intensities <- mq_lfq_data$intensities
+design <- mq_lfq_data$design
+parameters <- mq_lfq_data$parameters
+normalisation_method <- parameters[parameters[,1] == "UseNormalisationMethod",2]
+species <- parameters[parameters[,1] == "Species",2]
+labellingMethod <- parameters[parameters[,1] == "LabellingMethod",2]
+
+
+results <- runGenericDiscovery(experimentDesign = design, 
+                               proteinIntensities = intensities, 
+                               normalisationMethod = normalisation_method, 
+                               species = species, 
+                               labellingMethod = labellingMethod)
+
+IntensityExperiment <- results$IntensityExperiment
+CompleteIntensityExperiment <-  results$CompleteIntensityExperiment
+```
+
+
+
+# Plot results
+
+## PCA
+
+```{r pca-imputed, fig.width = 8, fig.height = 6}
+## PCA
+p=pca_plot_experiment(CompleteIntensityExperiment, format = "html")
+p[[1]]
+```
+
+```{r  scree-plot-pca, fig.width = 6, fig.height = 4}
+p[[2]]
+```
+
+## MDS
+
+```{r mds-impute, fig.width = 6, fig.height = 4}
+# 
+p=mds_plot_experiment(CompleteIntensityExperiment)
+p[[1]]
+```
+
+```{r fig.width = 6, fig.height = 4}
+p[[2]]
+```
+
+## B. Quantitative values CV distributions {.tabset .tabset-fade .tabset-pills}
+
+```{r cv-dist, fig.width = 8, fig.height = 5}
+plot_condition_cv_distribution(IntensityExperiment)
+```
+
+
+## C. Intensity distribution across runs {.tabset .tabset-fade .tabset-pills}
+
+
+```{r rle-plots, fig.width = 8, fig.height = 6}
+normalised <- FALSE
+if(metadata(CompleteIntensityExperiment)$NormalisationAppliedToAssay != "None"){
+  normalised <- TRUE
+}
+
+# Plot RLE of log2 raw intensity as well as RLE of normalised 
+p_raw <- plot_rle_boxplot(IntensityExperiment, CompleteIntensityExperiment, 
+                    includeImputed = FALSE, plotRawRLE = TRUE)
+p_raw <- p_raw + ggtitle("RLE of log2 Processed Intensities") 
+fig <- makeRLEBoxplotInteractive(p_raw)
+fig
+```
+  
+  
+```{r fig.width = 8, fig.height = 6}
+if(normalised){
+  # Plot RLE of log2 raw intensity as well as RLE of normalised 
+  p_norm <- plot_rle_boxplot(IntensityExperiment, CompleteIntensityExperiment, 
+                      includeImputed = FALSE, plotRawRLE = FALSE)
+  p_norm <- p_norm + ggtitle("RLE of Normalised Intensities") 
+  fig <- makeRLEBoxplotInteractive(p_norm)
+}
+fig
+```
+  
+  
+# 3. Feature completedness {.tabset .tabset-fade .tabset-pills}
+
+## By sample
+
+```{r sample-missingness, fig.width = 8, fig.height = 6}
+p <- replicate_missingness_experiment(IntensityExperiment)
+ggplotly(p, tooltip = c("y")) %>% config(displayModeBar = T, 
+                                                  modeBarButtons = list(list('toImage')),
+                                                  displaylogo = F)
+```
+
+
+## By protein
+
+```{r protein-missingness, fig.width = 6, fig.height = 6}
+p <- protein_missingness_experiment(IntensityExperiment)
+ggplotly(p, tooltip = c("y")) %>% config(displayModeBar = T, 
+                                                  modeBarButtons = list(list('toImage')),
+                                                  displaylogo = F)
+```
+
+
+## Clustering of samples and proteins using missing values
+
+```{r fig.width = 8, fig.height = 6}
+plot_heatmap_missingness(IntensityExperiment)
+```
+
+
+# 4. Imputed versus non imputed log2 intensity values
+
+
+```{r compare-imputed , fig.width = 6, fig.height = 6}
+plot_imputed_vs_not(CompleteIntensityExperiment = CompleteIntensityExperiment)
+```
+
+
+# 5. Model QC
+
+## Volcano plots
+
+```{r fig.width = 6, fig.height = 6}
+stats <- rowData(CompleteIntensityExperiment)
+logfcs <- colnames(stats)[stringr::str_detect(colnames(stats), "logFC.")]
+for(lfc in logfcs){
+  comp_name <- stringr::str_remove(lfc, "logFC.")
+  adj <- paste0("adj.P.Val.",comp_name)
+  adjp <- colnames(stats)[stringr::str_detect(colnames(stats), adj)]
+  pval <- paste0("P.Value.",comp_name)
+  pval_col <- colnames(stats)[str_detect(colnames(stats), pval)]
+  comparison.statistics <- data.frame(FoldChange=stats[,lfc],
+                                      AdjustedPValue=stats[,adjp], 
+                                      PValue = stats[,pval_col],
+                                      ProteinId=stats$ProteinId, comparison=comp_name)
+  print(plot_volcano(comparison.statistics))
+  
+}
+```
+
+
+## MA plot
+
+```{r fig.width = 6, fig.height = 6}
+for(lfc in logfcs){
+  comp_name <- str_remove(lfc, "logFC.")
+  comparison.statistics <- data.frame(FoldChange=stats[,lfc],
+                                      AveExpr=stats$AveExpr, 
+                                      ProteinId=stats$ProteinId, comparison=comp_name)
+  print(plot_ma(comparison.statistics))
+  
+}
+```
+
+
+
+## Histogram of pvalues
+
+```{r fig.width = 6, fig.height = 6}
+pvals <- colnames(stats)[str_detect(colnames(stats), "P.Value.")]
+for(pval in pvals){
+  comp_name <- str_remove(pval, "P.Value.")
+  print(hist(stats[,pval], main=comp_name))
+  
+}
+```
+
+
+# 6. Session Information
+
+```{r}
+sessionInfo()
+```
+

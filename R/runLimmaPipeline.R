@@ -14,12 +14,16 @@ runLimmaPipeline <- function(IntensityExperiment, normalisationMethod){
   longIntensityDT <- normaliseIntensity(longIntensityDT=longIntensityDT,
                                         normalisationMethod=normalisationMethod)
   
+  #saveRDS(longIntensityDT, "data-raw/longIntensityDT_preImp.rds")
+  
   # Imputation
   longIntensityDT <- imputeLFQ(longIntensityDT, 
                          id_type = "ProteinId", 
                          int_type = "log2NIntNorm",
                          f_imputeStDev = 0.3,
                          f_imputePosition= 1.8)
+  
+  #saveRDS(longIntensityDT, "data-raw/longIntensityDT_afterImp.rds")
   
   
   # RunId will be unique to a row wherease replicate may not
