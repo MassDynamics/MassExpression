@@ -72,26 +72,58 @@ design <- colData(IntensityExperiment)
 ```
 
 
-<details>
-  <summary>More about the QC Report</summary>
-  <span>
-    <p>
-      This QC Report is designed to help Scientists quickly assess the several aspect of experiment quality, There are 4 categories in the QC report:
-    </p>
-    <ul>
-      <li>Experiment Design</li>
-      <li>Experiment Health. This includes dimensionality reduction plots using all and differentially expressed (DE) proteins; distribution of the coeffiecient of variations by conditions and smaple correlations using all and DE proteins.  </li>
-      <li>Feature Completedness. This includes the number of missing values by samples and by protein. </li>
-      <li>Normalisation and Imputation. This includes intensity distribution of raw, normalised (when requested) and imputed intensities. </li>
-    </ul>
-  </span>
-</details> 
 
+This QC Report is designed to help Scientists quickly assess the several aspect of experiment quality, There are 4 categories in the QC report:
 
-# 1. Experiment Design
+1. *Experiment Design and Summary of Results*: overview of the experiment design used in the analysis.
+2. *Experiment Health*: this includes dimensionality reduction plots using all and differentially expressed (DE) proteins; distribution of the coeffiecient of variations by conditions and smaple correlations using all and DE proteins.
+3. *Feature Completedness*: this includes the number of missing values by samples and by protein.
+4. *Normalisation and Imputation*: this includes intensity distribution of raw, normalised (when requested) and imputed intensities.
+
+\clearpage
+
+# 1. Experiment Design and Summary of Results
 
 ```{r experimental-design, eval=TRUE, warning=FALSE, echo=FALSE, error=FALSE, message=FALSE, results='asis'}
-knitr::kable(design, row.names = FALSE)
+design <- as_tibble(design)
+design <- design %>% tidyr::unite(SampleNameInPlots, Condition, Replicate, 
+                                                      sep="_", remove=FALSE) %>%
+  dplyr::select(-Replicate, SampleName, Condition, SampleNameInPlots, everything())
+  
+if(params$format == "pdf"){
+  knitr::kable(as_tibble(design), row.names = FALSE) 
+  #%>%
+  #kableExtra::kable_classic(full_width = FALSE)
+}else{
+  DT::datatable(as_tibble(design), rownames=FALSE, options=list(pageLength=15))
+}
+```
+
+\clearpage
+
+The table below reports the number of proteins considered for each pairwise comparison analysis (proteins with more than 50% missing values across samples are removed) and the number of DE proteins detected in each comparison. The overall total number of proteins included in the exeriment is `r nrow(rowData(CompleteIntensityExperiment))`.
+
+
+```{r  summary-de, eval=TRUE, warning=FALSE, echo=FALSE, error=FALSE, message=FALSE, results='asis'}
+stats <- as_tibble(rowData(CompleteIntensityExperiment))
+pval_proteins <- stats %>%
+  dplyr::select(ProteinId, starts_with("adj.P.Val"))
+
+total_proteins_in_experiment <- nrow(pval_proteins)
+total_proteins_de <- length(pval_proteins$adj.P.Val < 0.05)
+
+n_proteins_by_cond <- pval_proteins
+n_proteins_by_cond$adj.P.Val <- NULL
+
+n_proteins_by_cond_long <- n_proteins_by_cond %>% tidyr::pivot_longer(cols = starts_with("adj.P.Val"), names_to = "Comparison",values_to = "AdjPval")
+n_proteins_by_cond_long$Comparison <- gsub("adj.P.Val.", "", n_proteins_by_cond_long$Comparison)
+
+summary_de <- n_proteins_by_cond_long %>% 
+  group_by(Comparison) %>%
+  summarise(`Total Number of Proteins` = sum(!is.na(AdjPval)),
+            `Number DE Proteins` = sum(AdjPval < 0.05, na.rm = TRUE))
+
+knitr::kable(summary_de, row.names = FALSE, caption="Summary of differential expression results across comparisons.") 
 ```
 
 # 2. Experiment Health
@@ -152,14 +184,24 @@ p[[1]]
 p=plot_condition_cv_distribution(IntensityExperiment)
 
 if (params$format == "pdf"){
-  p
+  p[[1]]
 } else {
-  ggplotly(p) %>% plotly::config(displayModeBar = T, 
+  ggplotly(p[[1]]) %>% plotly::config(displayModeBar = T, 
                         modeBarButtons = list(list('toImage')),
                         displaylogo = F)
 }
 ```
 
+  
+```{r cv-table, eval=TRUE, warning=FALSE, echo=FALSE, error=FALSE, message=FALSE, results='asis'}
+cv_data <- p[[2]]
+cv_data <- as_tibble(cv_data) %>% group_by(Condition) %>%
+  summarise(`Median CV %` = round(median(cv, na.rm = TRUE)*100))
+
+knitr::kable(cv_data, row.names = FALSE)
+#%>%
+ # kableExtra::kable_classic(full_width = FALSE)
+```
   
 ## C. Sample correlations
 

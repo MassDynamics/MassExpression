@@ -19,12 +19,9 @@ protein.intensities <- read.csv(file.path(mq_data_input, "proteinGroups.txt"), s
 design <- read.csv(file.path(mq_data_input, "experimentDesign_original.txt"), sep = "\t", stringsAsFactors = F)
 
 input_gen <- MaxQuantTranform(proteinGroups=protein.intensities, design = design, species = "human", useNormalisationMethod = "None", labellingMethod = "LFQ")
-data_int <- input_gen$intensities
-data_int[data_int$ProteinId == "Q9Y2F5",]
-```
-
-```{r}
-protein.intensities[grep("Q9Y2F5", protein.intensities$Protein.IDs),] %>% select(starts_with("LFQ.intensity"))
+data_int_me <- input_gen$intensities
+data_int_me[data_int_me$ProteinId == "Q9Y2F5",]
+colnames(data_int_me) <- gsub("LFQ.", "lfq.", colnames(data_int_me))
 ```
 
 
@@ -32,7 +29,6 @@ protein.intensities[grep("Q9Y2F5", protein.intensities$Protein.IDs),] %>% select
 
 ```{r}
 output_folder <- "../../../data-s3/data-formats/maxquant/LFQ/HER2/data/output/"
-library(drake)
 
 # library(LFQprocessing)
 # her2 <- protein_quant_runner(upload_folder, output_folder)
@@ -47,9 +43,124 @@ out_data_bench <- out_data_1prot %>% dplyr::select("ProteinId",
                                              starts_with("P.Value.")) 
 colnames(out_data_bench)[2:ncol(out_data_bench)] <- paste0("Disco_", colnames(out_data_bench)[2:ncol(out_data_bench)])
 
+# Intensities
+lfq_intensities <- out_data_1prot %>% dplyr::select(ProteinId, starts_with("lfq."))
 
-out_data_1prot[out_data_1prot$ProteinId == "Q9Y2F5",] %>% select(starts_with("LFQ.intensity"))
+#out_data_1prot[out_data_1prot$ProteinId == "Q9Y2F5",] %>% select(starts_with("LFQ.intensity"))
 ```
+
+
+## Compare steps
+
+- Initial intensities
+- Log2
+- Imputed
+
+
+## Compare intensities
+
+```{r}
+colnames(data_int_me)[1:(ncol(data_int_me)-1)] <- paste0("MEstart_", colnames(data_int_me)[1:(ncol(data_int_me)-1)])
+
+colnames(lfq_intensities)[2:(ncol(lfq_intensities))] <- paste0("MQstart_", colnames(lfq_intensities)[2:ncol(lfq_intensities)])
+
+compare_initial <- lfq_intensities %>% left_join(data_int_me)
+```
+
+
+```{r}
+sum(!(compare_initial$MQstart_lfq.intensity.1_hu_c1==compare_initial$MEstart_lfq.intensity.1_hu_C1))
+ggplot(compare_initial, aes(x = MQstart_lfq.intensity.1_hu_c1, y = MEstart_lfq.intensity.1_hu_C1)) + geom_point()
+```
+
+```{r}
+sum(!(compare_initial$MQstart_lfq.intensity.3_hu_c2==compare_initial$MEstart_lfq.intensity.3_hu_C2))
+ggplot(compare_initial, aes(x = MQstart_lfq.intensity.3_hu_c2, y = MEstart_lfq.intensity.3_hu_C2)) + geom_point()
+```
+
+
+```{r}
+sum(!(compare_initial$MQstart_lfq.intensity.5_hu_c3==compare_initial$MEstart_lfq.intensity.5_hu_C3))
+
+ggplot(compare_initial, aes(x = MQstart_lfq.intensity.5_hu_c3, y = MEstart_lfq.intensity.5_hu_C3)) + geom_point()
+```
+
+```{r}
+ggplot(compare_initial, aes(x = MQstart_lfq.intensity.4_hu_p2, y = MEstart_lfq.intensity.4_hu_P2)) + geom_point()
+```
+
+
+
+```{r}
+ggplot(compare_initial, aes(x = MQstart_lfq.intensity.6_hu_p3, y = MEstart_lfq.intensity.6_hu_P3)) + geom_point()
+```
+
+Initial data is the same. 
+
+
+## Compare results 2
+
+## Run MassExpression discovery
+
+```{r me-discovery}
+intensities <- input_gen$intensities
+design <- input_gen$design
+parameters <- input_gen$parameters
+normalisation_method <- parameters[parameters[,1] == "UseNormalisationMethod",2]
+species <- parameters[parameters[,1] == "Species",2]
+labellingMethod <- parameters[parameters[,1] == "LabellingMethod",2]
+
+
+results <- runGenericDiscovery(experimentDesign = design, 
+                               proteinIntensities = intensities, 
+                               normalisationMethod = normalisation_method, 
+                               species = species, 
+                               labellingMethod = labellingMethod)
+
+completeExperiment <- results$CompleteIntensityExperiment
+```
+
+
+## After imputation
+
+```{r}
+me <- readRDS("longIntensityDT_afterImp.rds")
+me$SampleName <- gsub("LFQ.intensity.","", me$SampleName)
+me$SampleName <- tolower(me$SampleName)
+mq <- readRDS("merge_dt.rds") %>%
+  dplyr::rename(Majority.protein.IDs=`majority protein ids`,
+                Fasta.headers=`fasta headers`) %>%
+  dplyr::rename(SampleName = mqExperiment)
+mq_1prot <- assign_uniprot_ids_mq(mq)
+compare_impute <- me[,c("ProteinId","SampleName","log2NIntNorm")] %>% 
+  left_join(mq_1prot[c("ProteinId", "SampleName","log2NInt")]) 
+```
+
+```{r}
+ggplot(compare_impute, aes(x = log2NIntNorm, y = log2NInt)) + geom_point()
+```
+
+
+
+```{r}
+expected_complete_new <- rowData(completeExperiment)
+
+sum(!(out_data_bench$ProteinId %in% expected_complete_new$ProteinId))
+sum(!(expected_complete_new$ProteinId %in% out_data_bench$ProteinId))
+
+compare <- out_data_bench %>% left_join(as_tibble(expected_complete_new))
+```
+
+
+```{r}
+ggplot(compare, aes(x=`logFC.AZD8931_resistant_SKBR3_AZDRc.Parental_SKBR3`, 
+                    y = `Disco_logFC.AZD8931_resistant_SKBR3_AZDRc...Parental_SKBR3`)) + 
+  geom_point() +
+  theme_bw() +
+  geom_smooth()
+```
+
+
 
 
 ## Compare results
@@ -88,47 +199,6 @@ ggplot(compare, aes(x=`logFC.AZD8931_resistant_SKBR3_AZDRc.Parental_SKBR3`,
   geom_smooth()
 ```
 
-
-## Compare results 2
-
-## Run MassExpression discovery
-
-```{r me-discovery}
-intensities <- mq_lfq_data$intensities
-design <- mq_lfq_data$design
-parameters <- mq_lfq_data$parameters
-normalisation_method <- parameters[parameters[,1] == "UseNormalisationMethod",2]
-species <- parameters[parameters[,1] == "Species",2]
-labellingMethod <- parameters[parameters[,1] == "LabellingMethod",2]
-
-
-results <- runGenericDiscovery(experimentDesign = design, 
-                               proteinIntensities = intensities, 
-                               normalisationMethod = normalisation_method, 
-                               species = species, 
-                               labellingMethod = labellingMethod)
-
-completeExperiment <- results$CompleteIntensityExperiment
-```
-
-
-```{r}
-expected_complete_new <- rowData(completeExperiment)
-
-sum(!(out_data_bench$ProteinId %in% expected_complete_new$ProteinId))
-sum(!(expected_complete_new$ProteinId %in% out_data_bench$ProteinId))
-
-compare <- out_data_bench %>% left_join(as_tibble(expected_complete_new))
-```
-
-
-```{r}
-ggplot(compare, aes(x=`logFC.AZD8931_resistant_SKBR3_AZDRc.Parental_SKBR3`, 
-                    y = `Disco_logFC.AZD8931_resistant_SKBR3_AZDRc...Parental_SKBR3`)) + 
-  geom_point() +
-  theme_bw() +
-  geom_smooth()
-```
 
 
 # Two runs of mass expression

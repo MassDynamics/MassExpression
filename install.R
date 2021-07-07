@@ -48,6 +48,7 @@ ensure_package_installed_with_version("ggrepel", '0.9.1', repos = "http://cran.r
 ensure_package_installed_with_version("pheatmap", '1.0.12', repos = "http://cran.rstudio.com/")
 ensure_package_installed_with_version("Hmisc", '4.5-0', repos = "http://cran.rstudio.com/")
 ensure_package_installed_with_version("corrplot", '0.89', repos = "http://cran.rstudio.com/")
+ensure_package_installed_with_version("DT", '0.18', repos = "http://cran.rstudio.com/")
 
 #### Install packages Bioconductor
 ensure_package_installed_with_version("BiocManager", '1.30.16', repos = "http://cran.rstudio.com/")

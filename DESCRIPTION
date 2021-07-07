@@ -1,7 +1,7 @@
 Package: MassExpression
 Type: Package
 Title: MassExpression
-Version: 0.0.22
+Version: 0.0.23
 Author: Anna Quaglieri
      <anna@massdynamics.com> and Joseph
      Bloom <joseph@massdynamics.com>
@@ -30,7 +30,8 @@ Imports:
   pheatmap (>= 1.0.12),
   grDevices,
   Hmisc (>= 4.5-0),
-  corrplot (>= 0.89)
+  corrplot (>= 0.89),
+  DT (>= 0.18)
 RoxygenNote: 7.1.1
 Suggests: 
     testthat (>= 3.0.0)

@@ -26,15 +26,16 @@ listIntensityExperiments <- runGenericDiscovery(experimentDesign = design,
                                                 species = species, 
                                                 labellingMethod = labellingMethod)
 
-output_folder <- "~/Desktop/universal-import/"
-output_folder_pdf <- "~/Desktop/universal-import/pdf"
-dir.create(output_folder)
-dir.create(output_folder_pdf)
 
 # Save output to folder
 Intensity <- listIntensityExperiments$IntensityExperiment
 CompleteIntensity <-  listIntensityExperiments$CompleteIntensityExperiment
 saveOutput(Intensity, CompleteIntensity, output_folder)
+
+
+output_folder <- "~/Desktop/universal-import/"
+output_folder_pdf <- file.path(output_folder, "pdf")
+dir.create(output_folder_pdf)
 
 # Render and save QC report 
 qc_report <- system.file("rmd","QC_report.Rmd", package = "MassExpression")
@@ -64,12 +65,6 @@ rmarkdown::render(qc_report,
                             toc = TRUE,
                             fig_caption= TRUE))
 ```
-
-
-
-
-
-
 
 
 ## DIA-NN data

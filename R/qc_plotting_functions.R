@@ -524,7 +524,7 @@ plot_condition_cv_distribution <- function(Experiment){
     scale_x_continuous("% CV", labels = scales::percent) +
     ggtitle("Protein Intensity CV")
   
-  p
+  list(p, as_tibble(cvdt))
   
 }
 
@@ -620,7 +620,7 @@ plot_samples_correlation_matrix <- function(Experiment, onlyDEProteins=FALSE){
     protDE <- limmaStats$ProteinId[limmaStats$adj.P.Val < 0.05]
     intensities <- intensities[rownames(intensities) %in% protDE, ]
     nDE <- nrow(intensities)
-    title <- paste0("Using only N=,", nDE, " proteins")
+    title <- paste0("Using only N=", nDE, " proteins")
   }
   
   if(nrow(intensities) > 4){
