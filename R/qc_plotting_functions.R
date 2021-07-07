@@ -32,12 +32,12 @@ preparePlottingData <- function(Experiment, log=FALSE){
 #' @param onlyDEProteins logical. TRUE if only DE proteins should be considered. 
 #' @format "pdf" or "html". If html an interactive plot is returned using plotly. 
 #' 
-#' @export pca_plot_experiment
+#' @export plot_pca_experiment
 #' @details #' A protein is defined DE is the adjusted PValue is less than 0.05. 
 #' When multiple comparisons are available, the adjusted PValues of the F-test is used. 
 #' @import ggplot2 
 
-pca_plot_experiment <- function(Experiment, 
+plot_pca_experiment <- function(Experiment, 
                                 format="pdf", 
                                 log=FALSE, 
                                 onlyDEProteins=FALSE){
@@ -46,65 +46,78 @@ pca_plot_experiment <- function(Experiment,
   intensities <- toPlot$intensities
   design <- toPlot$design
   
+  
+  title <- "PCA plot"
   if(onlyDEProteins){
     limmaStats <- rowData(Experiment)
+    if(!("adj.P.Val" %in% colnames(limmaStats))){
+      stop("No adjusted PVlaues in rowData of the Experiment provided.")
+    }
     protDE <- limmaStats$ProteinId[limmaStats$adj.P.Val < 0.05]
     intensities <- intensities[rownames(intensities) %in% protDE, ]
+    nDE <- nrow(intensities)
+    title <- paste0("PCA plot using only N=",nDE," DE proteins.")
   }
   
-  res.pca <- FactoMineR::PCA(t(intensities), graph = FALSE, ncp = 2)
-  
-  eig.val <- factoextra::get_eigenvalue(res.pca)
-  eig.val <- data.table(dims = rownames(eig.val), eig.val)
-  
-  samples.pca <- factoextra::get_pca_ind(res.pca)
-  samples.coord <- as_tibble(samples.pca$coord)
-  samples.coord$SampleName = design$SampleName
-  
-  samples.coord <- merge(samples.coord, design)
-  samples.coord <- samples.coord %>% tidyr::unite(plotSampleName, Condition, Replicate, 
-                                                  sep="_", remove=FALSE)
-  
-  p <- ggplot(as_tibble(samples.coord), aes(x = Dim.1, y=Dim.2, colour=Condition, fill=Condition, label=Replicate)) +
-    stat_ellipse(geom = "polygon", alpha=0.1) +
-    geom_point(size = 3, alpha = 0.7) +
-    theme_minimal() +
-    scale_x_continuous(str_c("PCA 1 - ", eig.val[dims == "Dim.1", round(variance.percent,1)], "%")) +
-    scale_y_continuous(str_c("PCA 2 - ", eig.val[dims == "Dim.2", round(variance.percent,1)], "%"))+
-    ggtitle("PCA plot")
-  
-  
-  if(format == "pdf"){
-    p <- p + ggrepel::geom_label_repel(aes(label = plotSampleName, fill = NULL),
-                              box.padding   = 0.35, 
-                              point.padding = 0.5,
-                              segment.color = 'grey50',
-                              show.legend = FALSE)
-  }else if(format == "html"){
-    p <- plotly::ggplotly(p) %>% plotly::config(displayModeBar = T, 
-                           modeBarButtons = list(list('toImage')),
-                           displaylogo = F)
+  if(nrow(intensities)<=4){
+    warning("Not enough DE proteins to produce a correlation plot.")
+    return(NULL)
   }else{
-    stop(paste0("Format ", format," not available."))
+    
+    res.pca <- FactoMineR::PCA(t(intensities), graph = FALSE, ncp = 2)
+    
+    eig.val <- factoextra::get_eigenvalue(res.pca)
+    eig.val <- data.table(dims = rownames(eig.val), eig.val)
+    
+    samples.pca <- factoextra::get_pca_ind(res.pca)
+    samples.coord <- as_tibble(samples.pca$coord)
+    samples.coord$SampleName = design$SampleName
+    
+    samples.coord <- merge(samples.coord, design)
+    samples.coord <- samples.coord %>% tidyr::unite(plotSampleName, Condition, Replicate, 
+                                                    sep="_", remove=FALSE)
+    
+    p <- ggplot(as_tibble(samples.coord), aes(x = Dim.1, y=Dim.2, colour=Condition, fill=Condition, label=Replicate)) +
+      stat_ellipse(geom = "polygon", alpha=0.1) +
+      geom_point(size = 3, alpha = 0.7) +
+      theme_minimal() +
+      scale_x_continuous(str_c("PCA 1 - ", eig.val[dims == "Dim.1", round(variance.percent,1)], "%")) +
+      scale_y_continuous(str_c("PCA 2 - ", eig.val[dims == "Dim.2", round(variance.percent,1)], "%"))+
+      ggtitle(title)
+    
+    
+    if(format == "pdf"){
+      p <- p + ggrepel::geom_label_repel(aes(label = plotSampleName, fill = NULL),
+                                box.padding   = 0.35, 
+                                point.padding = 0.5,
+                                segment.color = 'grey50',
+                                show.legend = FALSE)
+    }else if(format == "html"){
+      p <- plotly::ggplotly(p) %>% plotly::config(displayModeBar = T, 
+                             modeBarButtons = list(list('toImage')),
+                             displaylogo = F)
+    }else{
+      stop(paste0("Format ", format," not available."))
+    }
+    
+    # Scree plot
+    num_dimensions = sum(eig.val$eigenvalue>0.01)-2
+    scree_plot <- ggplot(eig.val[1:num_dimensions], aes(x=reorder(dims, -`variance.percent`), y=`variance.percent`)) +
+      geom_bar(stat="identity", fill = "skyblue2") +
+      theme_minimal() +
+      # geom_text_repel(aes(label=(round(`variance.percent`,1))), direction = 'y') +
+      scale_x_discrete("PCA components") +
+      scale_y_continuous("% Variance") +
+      ggtitle("Scree plot")
+    
+    if (format == "html"){
+      scree_plot <- plotly::ggplotly(scree_plot) %>%  plotly::config(displayModeBar = T, 
+                                  modeBarButtons = list(list('toImage')),
+                                  displaylogo = F)
+    }
+    
+    list(p, scree_plot)
   }
-  
-  # Scree plot
-  num_dimensions = sum(eig.val$eigenvalue>0.01)-2
-  scree_plot <- ggplot(eig.val[1:num_dimensions], aes(x=reorder(dims, -`variance.percent`), y=`variance.percent`)) +
-    geom_bar(stat="identity", fill = "skyblue2") +
-    theme_minimal() +
-    # geom_text_repel(aes(label=(round(`variance.percent`,1))), direction = 'y') +
-    scale_x_discrete("PCA components") +
-    scale_y_continuous("% Variance") +
-    ggtitle("Scree plot")
-  
-  if (format == "html"){
-    scree_plot <- plotly::ggplotly(scree_plot) %>%  plotly::config(displayModeBar = T, 
-                                modeBarButtons = list(list('toImage')),
-                                displaylogo = F)
-  }
-  
-  list(p, scree_plot)
   
 }
 
@@ -114,9 +127,9 @@ pca_plot_experiment <- function(Experiment,
 #' @param Experiment SummarizedExperiment object
 #' @param log logical. Whether data should be logged before plotting
 #' 
-#' @export mds_plot_experiment
+#' @export plot_mds_experiment
 
-mds_plot_experiment <- function(Experiment, log=FALSE){
+plot_mds_experiment <- function(Experiment, log=FALSE){
   
   # prepare data for plotting
   toPlot <- preparePlottingData(Experiment, log)
@@ -345,13 +358,16 @@ plot_rle_boxplot <- function(IntensityExperiment, CompleteIntensityExperiment,
                                                       sep="_", remove=FALSE)
   
   p = ggplot(longIntensityDF, aes(x = plotSampleName, y = RLE)) + 
-    geom_boxplot(aes(fill = Condition), outlier.alpha=0.3) +
+    geom_boxplot(aes(fill = Condition), 
+                 outlier.alpha=0.3,
+                 notch = TRUE, 
+                 notchwidth = 0.8) +
     theme_minimal() + 
     theme(axis.text.x = element_text(angle = 90, vjust = 0.2),
           panel.grid.major.y = element_blank(),
           panel.border = element_blank(),
           axis.ticks.y = element_blank()) +
-    scale_x_discrete("Replicate") +
+    scale_x_discrete("Sample names") +
     scale_y_continuous("RLE") +
     geom_hline(yintercept = 0, linetype="dotted")
 
@@ -387,17 +403,17 @@ makeRLEBoxplotInteractive <- function(fig){
 
 #' Boxplot of log expression values across samples. 
 #'
-#' @param Experiment SummarizedExperiment object
-#' @param use_imputed logical
-#' @export plot_measurement_boxplot
+#' @param Experiment SummarizedExperiment object of raw intensities (pre log-transformation)
+#' @export plot_log_measurement_boxplot
 #' @importFrom stringr str_detect
+#' 
+#' @details Zero values are treated as missing values and excluded. 
 
-plot_measurement_boxplot <- function(Experiment, log=FALSE){ 
+plot_log_measurement_boxplot <- function(Experiment){ 
   
   longIntensityDF <- as_tibble(SEToLongDT(Experiment))
-  if(log){
-    longIntensityDF$Intensity <- log2(longIntensityDF$Intensity+0.5)
-  }
+  longIntensityDF <- longIntensityDF[longIntensityDF$Intensity > 0, ]
+  longIntensityDF$Intensity <- log2(longIntensityDF$Intensity)
   
   dataToPlot <- as_tibble(longIntensityDF) %>% tidyr::unite(plotSampleName, 
                                                             Condition, Replicate, 
@@ -405,7 +421,7 @@ plot_measurement_boxplot <- function(Experiment, log=FALSE){
   
   p <- ggplot(dataToPlot , aes(x=plotSampleName, y=Intensity, 
                                     fill=Condition)) +
-    geom_boxplot(outlier.alpha=0.3) +
+    geom_boxplot(outlier.alpha=0.3, notch = TRUE, notchwidth = 0.8) +
     theme_minimal() +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.2),
           panel.grid.major.y = element_blank(),
@@ -579,11 +595,10 @@ plot_heatmap_missingness <- function(Experiment, complete=FALSE){
 #' 
 #' @details #' A protein is defined DE is the adjusted PValue is less than 0.05. 
 #' When multiple comparisons are available, the adjusted PValues of the F-test is used. 
+#' At least 5 DE proteins are required to produce the correlation plot.  
 #' 
-#' @import pheatmap
+
 plot_samples_correlation_matrix <- function(Experiment, onlyDEProteins=FALSE){
-  
-  # add a validate statement for 0s
   
   # prepare data for plotting
   toPlot <- preparePlottingData(Experiment, log=FALSE)
@@ -596,26 +611,32 @@ plot_samples_correlation_matrix <- function(Experiment, onlyDEProteins=FALSE){
   column_name_order <- sapply(design$SampleName, function(z) which(colnames(intensities) %in% z))
   colnames(intensities)[column_name_order] <- design$plotSampleName
   
-  title <- "Sample correlation"
+  title <- "All proteins"
   if(onlyDEProteins){
     limmaStats <- rowData(Experiment)
+    if(!("adj.P.Val" %in% colnames(limmaStats))){
+      stop("No adjusted PVlaues in rowData of the Experiment provided.")
+    }
     protDE <- limmaStats$ProteinId[limmaStats$adj.P.Val < 0.05]
     intensities <- intensities[rownames(intensities) %in% protDE, ]
     nDE <- nrow(intensities)
-    title <- paste0("Sample correlation - Only DE proteins\n",
-                    "There are ", nDE, " proteins considering all comparisons jointly.")
+    title <- paste0("Using only N=,", nDE, " proteins")
   }
   
-  DT_corMatrix <- Hmisc::rcorr(intensities)
-  DT_corMatrix <- DT_corMatrix$r
+  if(nrow(intensities) > 4){
+    DT_corMatrix <- Hmisc::rcorr(intensities)
+    DT_corMatrix <- DT_corMatrix$r
+    
+    DT_corMatrix[DT_corMatrix <= -1] = -1
+    DT_corMatrix[DT_corMatrix >= 1] = 1
   
-  DT_corMatrix[DT_corMatrix <= -1] = -1
-  DT_corMatrix[DT_corMatrix >= 1] = 1
-
-  
-  corrplot::corrplot(DT_corMatrix, type = "upper", method = "square",
-           title = title,
-           tl.cex = 0.5, mar = c(1,0,1.5,0), addCoef.col = "white", number.cex = .5,
-           tl.col = "black")
+    
+    corrplot::corrplot(DT_corMatrix, type = "upper", method = "square",
+             title = title,
+             tl.cex = 0.5, mar = c(0,0,1.5,0), addCoef.col = "white", number.cex = .5,
+             tl.col = "black")
+  }else{
+    warning("Not enough DE proteins to produce a correlation plot.")
+  }
   
 }

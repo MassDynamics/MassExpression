@@ -80,9 +80,9 @@ design <- colData(IntensityExperiment)
     </p>
     <ul>
       <li>Experiment Design</li>
-      <li>Experiment Health</li>
-      <li>Feature Completedness</li>
-      <li>Normalisation and Imputation</li>
+      <li>Experiment Health. This includes dimensionality reduction plots using all and differentially expressed (DE) proteins; distribution of the coeffiecient of variations by conditions and smaple correlations using all and DE proteins.  </li>
+      <li>Feature Completedness. This includes the number of missing values by samples and by protein. </li>
+      <li>Normalisation and Imputation. This includes intensity distribution of raw, normalised (when requested) and imputed intensities. </li>
     </ul>
   </span>
 </details> 
@@ -99,9 +99,14 @@ knitr::kable(design, row.names = FALSE)
 ## A. Dimensionality reduction {.tabset .tabset-fade .tabset-pills}
 
 <details>
-  <summary>Experiment Health Details</summary>
+  <summary>Principal Component Analysis details</summary>
   <span>
-    <p>The Principal Component Aanalysis (PCA) plot is used to visualise differences between samples that are induced by their intensity profiles. PCA transforms high-dimensional data, like thousands of measured proteins or peptides intensities, into a reduced set of dimensions. The first two dimensions explain the greatest variability between the samples and they are a useful visual tool to confirm known clustering of the samples or to identify potential problems in the data. </p>
+    <p>The Principal Component Analysis (PCA) plot is used to visualise differences between samples that are induced by their intensity profiles. PCA transforms high-dimensional data, like thousands of measured proteins or peptides intensities, into a reduced set of dimensions. The first two dimensions explain the greatest variability between the samples and they are a useful visual tool to confirm known clustering of the samples or to identify potential problems in the data. </p>
+    <p>This section displays two PCA plots:</p>
+    <ul>
+      <li>Using all intensities (imputed and normalised, when requested) used for the differential expression (DE) analysis.</li>
+      <li>Including only differentially expressed (DE) proteins. The DE proteins are defined as those proteins with an adjusted p-value < 0.05, where the p-value is the one of the limma ANOVA test which tests for differences using all categories of the condition of interest jointly. At least 5 DE proteins are required to produce the second PCA plot.</li>
+    </ul>
     <p>For a healthy experiment we expect:</p>
     <ul>
       <li>Technical Replicates to cluster tightly together.</li>
@@ -115,7 +120,7 @@ knitr::kable(design, row.names = FALSE)
 
 ```{r pca-imputed}
 ## PCA
-p=pca_plot_experiment(CompleteIntensityExperiment, format = params$format)
+p=plot_pca_experiment(CompleteIntensityExperiment, format = params$format)
 p[[1]]
 ```
 
@@ -124,7 +129,7 @@ p[[2]]
 ```
 
 ```{r pca-imputed-de}
-p=pca_plot_experiment(CompleteIntensityExperiment, format = params$format, onlyDEProteins = TRUE)
+p=plot_pca_experiment(CompleteIntensityExperiment, format = params$format, onlyDEProteins = TRUE)
 p[[1]]
 ```
 
@@ -156,16 +161,16 @@ if (params$format == "pdf"){
 ```
 
   
-## C. Sample correlations using DE proteins
+## C. Sample correlations
 
 
 ```{r corr-samples}
-plot_samples_correlation_matrix(CompleteIntensity)
+plot_samples_correlation_matrix(CompleteIntensityExperiment)
 ```
 
 
 ```{r corr-samples-de}
-plot_samples_correlation_matrix(CompleteIntensity, onlyDEProteins = TRUE)
+plot_samples_correlation_matrix(CompleteIntensityExperiment, onlyDEProteins = TRUE)
 ```
   
 # 3. Feature completedness {.tabset .tabset-fade .tabset-pills}
@@ -211,25 +216,33 @@ if (params$format == "pdf"){
 
 
 
-# 4. Normalisation and Imputation {.tabset .tabset-fade .tabset-pills}
+# 4. Normalisation and Imputation
 
 <details>
-  <summary>Distributions of raw and normalised intensities (when requested)</summary>
+  <summary>Distributions of raw, normalised (when requested), and imputed intensities </summary>
   <span>
     <p>It is useful to inspect and compare the distributions of the intensities to identify samples with largely unusual distributions.</p>
-   <p>The three sections reported here show:</p>
+   <p>The sections reported here show:</p>
     <ul>
-      <li>The boxplots of the log2 intensities before any normalisation </li>
-      <li>The boxplots of raw relative log expression (RLE) values and after normalisation, when requested. The RLE values for a protein are obtained by centering intensities to the protein medians, where the median is computed using only available intensities, i.e. non zero values. </li>
-      <li>The distribution of the imputed and not imputed intensities<li>
+      <li>The boxplots of the log2 intensities before any normalisation or imputation is applied. Zero (missing) values are not included. </li>
+      <li>The boxplots of relative log expression (RLE) values before and after normalisation, when the latter is requested. The RLE values for a protein are obtained by centering intensities to the protein medians, where the median is computed using only available intensities, i.e. non zero values. </li>
+      <li>3. The distribution of the imputed and not imputed intensities<li>
     </ul>
      <p>For more details on each plot, inspect each section.<p>
   </span>
 </details> 
 
-## Raw Intensities boxplots
+## A. Intensities distribution (before and after normalisation) {.tabset .tabset-fade .tabset-pills}
 
-Boxplots of log2 raw intensities. 
+### Raw intensities
+
+<details>
+  <summary>Log2 raw intensities distributions</summary>
+  <span>
+    <p>Missing values are not considered when creating the boxplot. Zero intensities are considered as missing values.</p>
+  </span>
+</details> 
+
 
 ```{r raw-boxplots}
 normalised <- FALSE
@@ -238,11 +251,11 @@ if(metadata(CompleteIntensityExperiment)$NormalisationAppliedToAssay != "None"){
 }
 
 # Plot RLE of log2 raw intensity as well as RLE of normalised 
-p_raw <- plot_measurement_boxplot(IntensityExperiment, log = TRUE)
+p_raw <- plot_log_measurement_boxplot(IntensityExperiment)
 p_raw + ggtitle("log2 Raw Intensities") 
 ```
 
-## RLE boxplots
+### RLE (median centered protein intensities)
 
 <details>
   <summary>Relative Log Expression distributions</summary>
@@ -250,8 +263,8 @@ p_raw + ggtitle("log2 Raw Intensities")
     <p>It is useful to inspect the distribution of the Relative Log Expression (RLE) values to identify samples with largely unusual distributions. The RLE values for a protein are obtained by centering intensities to the protein medians, where the median is computed using only available intensities, i.e. non zero values. The RLE is computed on the log-transformed data before and after applying normalisation, when required. </p>
    <p>For a healthy experiment we expect:</p>
     <ul>
-      <li>The RLE boxplots to have a similar median - centered around zero - across all samples </li>
-      <li>The RLE boxplots to have a similar width of the boxes across samples </li>
+      <li>1. The RLE boxplots to have a similar median - centered around zero - across all samples </li>
+      <li>2. The RLE boxplots to have a similar width of the boxes across samples </li>
     </ul>
      <p>If some samples show large deviations from the expected behaviour, it can be symptomatic of problems in the pre-processing of those samples.<p>
   </span>
@@ -282,13 +295,15 @@ if(normalised){
 ```
   
 
-## Imputed vs not (All) 
+## B. Imputed vs not imputed {.tabset .tabset-fade .tabset-pills}
+
+### All data 
 
 ```{r compare-imputed}
 plot_imputed_vs_not(CompleteIntensityExperiment = CompleteIntensityExperiment)
 ```
 
-## Imputed vs not (By condition) 
+### By condition 
 
 ```{r compare-imputed-condition}
 plot_imputed_vs_not(CompleteIntensityExperiment = CompleteIntensityExperiment, byCondition = TRUE)

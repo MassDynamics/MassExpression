@@ -16,5 +16,6 @@ Correlation plot of samples using DE proteins
 }
 \details{
 #' A protein is defined DE is the adjusted PValue is less than 0.05. 
-When multiple comparisons are available, the adjusted PValues of the F-test is used.
+When multiple comparisons are available, the adjusted PValues of the F-test is used. 
+At least 5 DE proteins are required to produce the correlation plot.
 }
