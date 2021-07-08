@@ -75,7 +75,7 @@ design <- colData(IntensityExperiment)
 
 This QC Report is designed to help Scientists quickly assess the several aspect of experiment quality, There are 4 categories in the QC report:
 
-1. *Experiment Design and Summary of Results*: overview of the experiment design used in the analysis.
+1. *Experiment Design and Summary of Results*: overview of the experiment design used in the analysis and summary of differential expression results.
 2. *Experiment Health*: this includes dimensionality reduction plots using all and differentially expressed (DE) proteins; distribution of the coeffiecient of variations by conditions and smaple correlations using all and DE proteins.
 3. *Feature Completedness*: this includes the number of missing values by samples and by protein.
 4. *Normalisation and Imputation*: this includes intensity distribution of raw, normalised (when requested) and imputed intensities.
@@ -101,7 +101,7 @@ knitr::kable(as_tibble(design), row.names = FALSE)
 
 \clearpage
 
-The table below reports the number of proteins considered for each pairwise comparison analysis (proteins with more than 50% missing values across samples are removed) and the number of DE proteins detected in each comparison. The overall total number of proteins included in the exeriment is `r nrow(rowData(CompleteIntensityExperiment))`.
+The table below reports the number of proteins (*Number of Proteins* column) considered for each pairwise comparison analysis (proteins with more than 50% missing values across samples are removed) and the number of DE proteins detected in each comparison (*Number DE Proteins* column). The overall total number of proteins included in the exeriment is `r nrow(rowData(CompleteIntensityExperiment))`.
 
 
 ```{r  summary-de, eval=TRUE, warning=FALSE, echo=FALSE, error=FALSE, message=FALSE, results='asis'}
@@ -120,7 +120,7 @@ n_proteins_by_cond_long$Comparison <- gsub("adj.P.Val.", "", n_proteins_by_cond_
 
 summary_de <- n_proteins_by_cond_long %>% 
   group_by(Comparison) %>%
-  summarise(`Total Number of Proteins` = sum(!is.na(AdjPval)),
+  summarise(`Number of Proteins` = sum(!is.na(AdjPval)),
             `Number DE Proteins` = sum(AdjPval < 0.05, na.rm = TRUE))
 
 knitr::kable(summary_de, row.names = FALSE, caption="Summary of differential expression results across comparisons.") 
@@ -137,7 +137,7 @@ knitr::kable(summary_de, row.names = FALSE, caption="Summary of differential exp
     <p>This section displays two PCA plots:</p>
     <ul>
       <li>Using all intensities (imputed and normalised, when requested) used for the differential expression (DE) analysis.</li>
-      <li>Including only differentially expressed (DE) proteins. The DE proteins are defined as those proteins with an adjusted p-value < 0.05, where the p-value is the one of the limma ANOVA test which tests for differences using all categories of the condition of interest jointly. At least 5 DE proteins are required to produce the second PCA plot.</li>
+      <li>Including only differentially expressed (DE) proteins. The DE proteins are defined as those proteins with an adjusted p-value < 0.05, where the p-value is the one of the limma ANOVA test which tests for differences using all categories of the condition of interest jointly. At least 5 DE proteins are required to produce this plot.</li>
     </ul>
     <p>For a healthy experiment we expect:</p>
     <ul>
@@ -168,7 +168,7 @@ p[[1]]
 ## B. Quantitative values CV distributions {.tabset .tabset-fade .tabset-pills}
 
 <details>
-  <summary>Coefficient of Variation Details</summary>
+  <summary>Coefficient of Variation details</summary>
   <span>
     <p>The Coefficient of Variation (CV) or Relative Standard Deviation, is calculated by the ratio of the standard deviation to the mean. It is used to measure the precision of a measure, in this case protein/peptide intensity. The plot below shows the distribution of the CVs by experimental conditions where each CV is calculated by protein and by experimental condition. The CV is displayed as %CV, which is the percentage of the mean represented by the standard deviation.  </p>
    <p>For a healthy experiment we expect:</p>
@@ -205,6 +205,22 @@ knitr::kable(cv_data, row.names = FALSE)
   
 ## C. Sample correlations
 
+<details>
+  <summary>Correlation plots details</summary>
+  <span>
+    <p>The correlation plot shows the Pearson's correlation between the samples in the experiment. Hierarchical clustering is adopted to order the samples in the matrix. Clustering of samples with high correlation aids with the visual inspection of similarity between samples.</p>
+    <p>This section displays two correlation plots:</p>
+    <ul>
+      <li>Using all intensities (imputed and normalised, when requested) used for the DE analysis.</li>
+      <li>Including only DE proteins. The DE proteins are defined as those proteins with an adjusted p-value < 0.05, where the p-value is the one of the limma ANOVA test which tests for differences using all categories of the condition of interest jointly. At least 5 DE proteins are required to produce this plot.</li>
+    </ul>
+    <p>For a healthy experiment we expect:</p>
+    <ul>
+      <li>Technical Replicates to have high correlations.</li>
+      <li>Biological Replicates to have higher correlations than non replicates.</li>
+    </ul>
+  </span>
+</details> 
 
 ```{r corr-samples}
 plot_samples_correlation_matrix(CompleteIntensityExperiment)
@@ -268,7 +284,7 @@ if (params$format == "pdf"){
     <ul>
       <li>The boxplots of the log2 intensities before any normalisation or imputation is applied. Zero (missing) values are not included. </li>
       <li>The boxplots of relative log expression (RLE) values before and after normalisation, when the latter is requested. The RLE values for a protein are obtained by centering intensities to the protein medians, where the median is computed using only available intensities, i.e. non zero values. </li>
-      <li>3. The distribution of the imputed and not imputed intensities<li>
+      <li>The distribution of the imputed and not imputed intensities</li>
     </ul>
      <p>For more details on each plot, inspect each section.<p>
   </span>
@@ -305,8 +321,8 @@ p_raw + ggtitle("log2 Raw Intensities")
     <p>It is useful to inspect the distribution of the Relative Log Expression (RLE) values to identify samples with largely unusual distributions. The RLE values for a protein are obtained by centering intensities to the protein medians, where the median is computed using only available intensities, i.e. non zero values. The RLE is computed on the log-transformed data before and after applying normalisation, when required. </p>
    <p>For a healthy experiment we expect:</p>
     <ul>
-      <li>1. The RLE boxplots to have a similar median - centered around zero - across all samples </li>
-      <li>2. The RLE boxplots to have a similar width of the boxes across samples </li>
+      <li>The RLE boxplots to have a similar median - centered around zero - across all samples </li>
+      <li>The RLE boxplots to have a similar width of the boxes across samples </li>
     </ul>
      <p>If some samples show large deviations from the expected behaviour, it can be symptomatic of problems in the pre-processing of those samples.<p>
   </span>
