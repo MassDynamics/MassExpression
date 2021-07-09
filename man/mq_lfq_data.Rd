@@ -3,14 +3,22 @@
 \docType{data}
 \name{mq_lfq_data}
 \alias{mq_lfq_data}
-\title{MaxQuant LFQ sample input}
+\title{MaxQuant LFQ}
 \format{
-Data from XXX cite HER2 paper
+List containing the `intensities` table, the experiment `design` and the `parameters` following the Generic Format.
 }
 \usage{
 mq_lfq_data
 }
 \description{
-MaxQuant LFQ sample input
+MaxQuant LFQ
+}
+\details{
+The data can be used to run the entire workflow `runGenericDiscovery`.
+}
+\references{
+PRIDE Project PXD002057
+
+Creedon, H. et al. Identification of novel pathways linking epithelial-to-mesenchymal transition with resistance to HER2-targeted therapy. Oncotarget 7, 11539–11552 (2016).
 }
 \keyword{datasets}

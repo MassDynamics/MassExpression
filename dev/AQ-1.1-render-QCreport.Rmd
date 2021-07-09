@@ -9,8 +9,8 @@ library(MassExpression)
 # design <- mq_lfq_data$design
 # intensities <- mq_lfq_data$intensities
 
-design <- read.table("../../data/sample-data-app/generic-importer-input/design.tsv",sep = "\t", header = TRUE)
-intensities <- read.table("../../data/sample-data-app/generic-importer-input/intensities.tsv",sep = "\t", header = TRUE)
+design <- read.table("../../data/sample-data-app/generic-importer-input/experiment_design.tsv",sep = "\t", header = TRUE)
+intensities <- read.table("../../data/sample-data-app/generic-importer-input/protein_intensities.tsv",sep = "\t", header = TRUE)
 # This will have to be passed with parameters files
 parameters <- read.table('../../data/sample-data-app/generic-importer-input/parameters.tsv', header=FALSE, sep='\t')
 normalisation_method <- parameters[parameters[,1] == "UseNormalisationMethod",2]
@@ -37,14 +37,14 @@ output_folder <- "~/Desktop/universal-import/"
 output_folder_pdf <- file.path(output_folder, "pdf")
 dir.create(output_folder_pdf)
 
-# Render and save QC report 
+# Render and save QC report
 qc_report <- system.file("rmd","QC_report.Rmd", package = "MassExpression")
-rmarkdown::render(qc_report, 
+rmarkdown::render(qc_report,
                   params = list(listInt = listIntensityExperiments,
                                 experiment = "Mass Dynamics QC report",
                                 output_figure = file.path(output_folder, "figure_html/"),
                                 format = "html"),
-                  output_file = file.path(output_folder, "QC_report.html"),
+                  output_file = file.path(output_folder, "QC_Report.html"),
                   output_format=rmarkdown::html_document(
                             self_contained=FALSE,
                             lib_dir=file.path(output_folder,"qc_report_files"),
@@ -54,16 +54,17 @@ rmarkdown::render(qc_report,
                             toc_float = TRUE,
                             fig_caption= TRUE,
                             df_print="paged"))
-
-rmarkdown::render(qc_report, 
+# Render PDF
+rmarkdown::render(qc_report,
                   params = list(listInt = listIntensityExperiments,
                                 experiment = "Mass Dynamics QC report",
-                                output_figure = file.path(output_folder, "pdf_output/"),
+                                output_figure = file.path(output_folder_pdf, "figure_pdf/"),
                                 format = "pdf"),
-                  output_file = file.path(output_folder, "QC_report.pdf"),
+                  output_file = file.path(output_folder_pdf, "QC_Report.pdf"),
                   output_format=rmarkdown::pdf_document(
-                            toc = TRUE,
-                            fig_caption= TRUE))
+                    toc = TRUE,
+                    fig_caption= TRUE))
+
 ```
 
 

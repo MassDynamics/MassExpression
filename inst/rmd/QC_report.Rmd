@@ -355,14 +355,14 @@ if(normalised){
 
 ## B. Imputed vs not imputed {.tabset .tabset-fade .tabset-pills}
 
-### All data 
+<details>
+  <summary>Density distribution of imputed vs not imputed intensities</summary>
+  <span>
+    <p>Initial intensities equal to zero are considered as missing values and imputed prior to the DE analysis. Imputation is performed using the MNAR ("Missing Not At Random") method as adopted in Perseus. Imputed values are randomly drawn from a normal distribution with mean equal to the observed mean (mean of the available intensities) shifted by -1.8 times the observed standard deviation, and a standard deviation equal to the observed standard deviation scaled by a factor of 0.3 (as in Perseus). The plots below show the distribution of imputed values (Imputed = TRUE) and not imputed values (Imputed = FALSE), all of which are then used for the downstream DE analyses. </p>
+  </span>
+</details> 
+
 
 ```{r compare-imputed}
 plot_imputed_vs_not(CompleteIntensityExperiment = CompleteIntensityExperiment)
-```
-
-### By condition 
-
-```{r compare-imputed-condition}
-plot_imputed_vs_not(CompleteIntensityExperiment = CompleteIntensityExperiment, byCondition = TRUE)
 ```

@@ -3,14 +3,20 @@
 \docType{data}
 \name{fragpipe_data}
 \alias{fragpipe_data}
-\title{Fragpipe LFQ sample input}
+\title{Fragpipe LFQ}
 \format{
-An object of class \code{list} of length 3.
+List containing the `intensities` table, the experiment `design` and the `parameters` following the Generic Format.
 }
 \usage{
 fragpipe_data
 }
 \description{
-Fragpipe LFQ sample input
+Fragpipe LFQ
+}
+\details{
+The data can be used to run the entire workflow `runGenericDiscovery`.
+}
+\references{
+PRIDE Project PXD026401 https://www.ebi.ac.uk/pride/archive/projects/PXD026401
 }
 \keyword{datasets}

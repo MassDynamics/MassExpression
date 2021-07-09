@@ -8,7 +8,22 @@
 #' 
 #' @return List of two SummarisedExperiment objects: `IntensityExperiment` 
 #' containing the raw intensities and  `CompleteIntensityExperiment` including 
-#' imputed intensities. 
+#' imputed intensities and the results of the limma DE analysis. 
+
+#' @examples 
+#' design <- fragpipe_data$design
+#' intensities <- fragpipe_data$intensities
+#' parameters <- fragpipe_data$parameters
+#' normalisation_method <- parameters[parameters[,1] == "UseNormalisationMethod",2]
+#' species <- parameters[parameters[,1] == "Species",2]
+#' labellingMethod <- parameters[parameters[,1] == "LabellingMethod",2]
+#' listIntensityExperiments <- runGenericDiscovery(experimentDesign = design, 
+#' proteinIntensities = intensities, 
+#' normalisationMethod = normalisation_method,
+#' species = species, 
+#' labellingMethod = labellingMethod)
+
+
 #' @export
 
 runGenericDiscovery <- function(experimentDesign, proteinIntensities, 

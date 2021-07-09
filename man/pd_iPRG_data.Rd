@@ -3,14 +3,24 @@
 \docType{data}
 \name{pd_iPRG_data}
 \alias{pd_iPRG_data}
-\title{Proteome Discoverer LFQ iRPG}
+\title{Proteome Discoverer LFQ}
 \format{
-Data from XXX cite iRPG paper
+List containing the `intensities` table, the experiment `design` and the `parameters` following the Generic Format.
 }
 \usage{
 pd_iPRG_data
 }
 \description{
-Proteome Discoverer LFQ iRPG
+Proteome Discoverer LFQ
+}
+\details{
+The data can be used to run the entire workflow `runGenericDiscovery`.
+}
+\references{
+PRIDE Project PXD010981
+
+Griss, Johannes, et al. 2019. “Spectral Clustering Improves Label-Free Quantification of Low-Abundant Proteins.” Journal of Proteome Research 18 (4): 1477–85.
+
+Choi M,  et al. ABRF Proteome Informatics Research Group (iPRG) 2015 Study: Detection of Differentially Abundant Proteins in Label-Free Quantitative LC-MS/MS Experiments. J Proteome Res. 2017 16(2):945-957, PubMed: 27990823
 }
 \keyword{datasets}

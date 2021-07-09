@@ -120,6 +120,195 @@ results <- runGenericDiscovery(experimentDesign = design,
 completeExperiment <- results$CompleteIntensityExperiment
 ```
 
+## Exaclty before imputation
+
+- P0DPI2 1_hu_c1
+- P0DPI2 2_hu_p1
+
+```{r exactly-pre-imp}
+exactly_pre_imp_mq <- readRDS( "merge_dt_pre_imp.rds")
+exactly_pre_imp_me <- readRDS("longIntensityDT_preImp.rds")
+
+exactly_pre_imp_me$SampleName <- gsub("LFQ.intensity.","", me$SampleName)
+exactly_pre_imp_me$SampleName <- tolower(me$SampleName)
+
+exactly_pre_imp_mq <- exactly_pre_imp_mq %>%
+  dplyr::rename(Majority.protein.IDs=`majority protein ids`,
+                Fasta.headers=`fasta headers`) %>%
+  dplyr::rename(SampleName = mqExperiment)
+mq_1prot <- assign_uniprot_ids_mq(exactly_pre_imp_mq)
+
+compare_pre_impute <- exactly_pre_imp_me[,c("ProteinId","SampleName","log2NIntNorm")] %>% 
+  left_join(mq_1prot[c("ProteinId", "SampleName","log2NInt")]) 
+```
+
+```{r}
+ggplot(compare_pre_impute, aes(x = log2NIntNorm, y = log2NInt)) + geom_point()
+```
+
+They are the same exactly pre-imputation. 
+
+## Exaclty one line before imputation
+
+```{r exactly-pre-imp}
+exactly_pre_imp_mq <- readRDS( "one_line_pre_imp_MQ.rds")
+exactly_pre_imp_me <- readRDS("one_line_pre_imp_ME.rds")
+
+exactly_pre_imp_me$SampleName <- gsub("LFQ.intensity.","", exactly_pre_imp_me$SampleName)
+exactly_pre_imp_me$SampleName <- tolower(exactly_pre_imp_me$SampleName)
+
+mq_with_ids <- readRDS("merge_dt.rds") %>%
+  dplyr::select(`majority protein ids`, `fasta headers`, id)
+
+exactly_pre_imp_mq <- readRDS("one_line_pre_imp_MQ.rds")
+
+# int_impute = log2Int
+exactly_pre_imp_mq <- as_tibble(exactly_pre_imp_mq) %>%
+  left_join(mq_with_ids) %>%
+  dplyr::rename(Majority.protein.IDs=`majority protein ids`,
+                Fasta.headers=`fasta headers`) %>%
+  dplyr::rename(SampleName = mqExperiment)
+mq_1prot <- assign_uniprot_ids_mq(exactly_pre_imp_mq)
+
+compare_pre_impute <- exactly_pre_imp_me[,c("ProteinId","SampleName","int_impute")] %>% 
+  dplyr::rename(log2NIntNorm = int_impute) %>%
+  left_join(mq_1prot[c("ProteinId", "SampleName","int_impute")]) 
+```
+
+```{r}
+ggplot(compare_pre_impute, aes(x = log2NIntNorm, y = int_impute)) + geom_point()
+```
+
+## One lime post imputation
+
+**MQ**
+Browse[2]> print(impute.position)
+[1] 20.7954
+Browse[2]> print(impute.StdDev)
+[1] 0.594846
+
+**ME**
+Browse[2]> impute.position
+[1] 20.7954
+Browse[2]> impute.StdDev
+[1] 0.594846
+Browse[2]> 
+
+```{r exactly-pre-imp}
+exactly_post_imp_mq <- readRDS( "one_line_post_imp_MQ.rds")
+exactly_post_imp_me <- readRDS("one_line_post_imp_ME.rds")
+
+exactly_post_imp_me$SampleName <- gsub("LFQ.intensity.","", exactly_post_imp_me$SampleName)
+exactly_post_imp_me$SampleName <- tolower(exactly_post_imp_me$SampleName)
+
+mq_with_ids <- readRDS("merge_dt.rds") %>%
+  dplyr::select(`majority protein ids`, `fasta headers`, id, mqExperiment)
+
+# int_impute = log2Int
+exactly_post_imp_mq <- as_tibble(exactly_post_imp_mq) %>%
+  left_join(mq_with_ids) %>%
+  dplyr::rename(Majority.protein.IDs=`majority protein ids`,
+                Fasta.headers=`fasta headers`) %>%
+  dplyr::rename(SampleName = mqExperiment)
+
+mq_1prot <- assign_uniprot_ids_mq(exactly_post_imp_mq)
+mq_1prot <- mq_1prot %>%  filter(Imputed==1) %>% 
+  dplyr::select("ProteinId", "SampleName", "int_impute") %>%
+    dplyr::rename(ProteinIdMQ = ProteinId, SampleNameMQ = SampleName) 
+
+exactly_post_imp_me <- exactly_post_imp_me %>% filter(Imputed==1) %>%
+  select("ProteinId","SampleName","int_impute","Imputed") %>% 
+  dplyr::rename(log2NIntNorm = int_impute, ImputedME = Imputed) 
+
+cbind_compare <- cbind(exactly_post_imp_me, mq_1prot)
+
+compare_post_impute <- exactly_post_imp_me[,c("ProteinId","SampleName","int_impute","Imputed")] %>% 
+  dplyr::rename(log2NIntNorm = int_impute, ImputedME = Imputed) %>%
+  left_join(mq_1prot[c("ProteinId", "SampleName","int_impute","Imputed")]) 
+```
+
+
+```{r}
+ggplot(compare_post_impute, aes(x = log2NIntNorm, y = int_impute)) + geom_point()
+```
+
+```{r}
+ggplot(cbind_compare[ImputedME==1], aes(x = log2NIntNorm, y = int_impute)) + geom_point() +
+  labs(x="vector imputed MassExpression", y = "vector imputed maxquant")
+```
+
+
+```{r}
+compare_post_impute$diff <- compare_post_impute$log2NIntNorm != compare_post_impute$int_impute
+table(compare_post_impute$diff)
+head(compare_post_impute[compare_post_impute$diff,])
+```
+P0DPI2
+A0A0U1RRL7
+
+```{r}
+table(compare_post_impute$diff, compare_post_impute$Imputed)
+```
+
+## Two runs of MassExpression
+
+They are the same.
+
+```{r}
+prot01_1 <- readRDS("one_line_post_imp_ME_prot01_1.rds")
+prot01 <- readRDS("one_line_post_imp_ME_prot01.rds")
+```
+
+# Mistery revealed
+
+1. Using the random seed, rnorm within data.table returns the same vector of random values
+2. However, is the subsetting and ordering in which those values are assigned to the matrix. Since the protein ID are different between MassExpression (Uniprot ID) and maxquant (which using id: 1,2,3,4) when selecting the subset of samples to impute, produces a different order in the selection. If we have the same exact starting data, same sample names and same protein ids, same exact starting experiment, then we will have the same result. 
+
+
+```{r}
+library(data.table)
+f_imputePosition <- 1.8
+f_imputeStDev <- 0.3
+myQuantDT <- data.table(Imputed = c(0L, 1L, 1L, 0L, 0L),
+                        log2Norm = c(23, 0, 0, 24, 100), 
+                        SampleName = c("S1", "S1", "S2", "S2", "S3"),
+                        ProteinId = c("P1","P2","P1","P2","P1"))
+
+pid <- myQuantDT[order(ProteinId)]
+sid <- myQuantDT[order(SampleName)]
+
+pid_imp <- imputeLFQ(myQuantDT = pid, id_type = "ProteinId",int_type = "log2Norm", f_imputePosition = f_imputePosition, 
+          f_imputeStDev=f_imputeStDev)
+
+sid_imp <- imputeLFQ(myQuantDT = sid, id_type = "ProteinId",int_type = "log2Norm", f_imputePosition = f_imputePosition, 
+          f_imputeStDev=f_imputeStDev)
+
+
+# pid
+setnames(pid, int_type, "int_impute")
+pid <- pid[, colnames(pid) != int_type, with = F]
+impute.StdDev <-
+    f_imputeStDev * pid[Imputed == 0, sd(int_impute)]
+impute.position <-
+    pid[Imputed == 0, mean(int_impute)] - f_imputePosition * pid[Imputed == 0, sd(int_impute)]
+
+set.seed(255)
+pid[Imputed == 1, int_impute := rnorm(.N, (impute.position), (impute.StdDev))]
+setnames(pid, "int_impute", int_type)
+ 
+# sid
+setnames(sid, int_type, "int_impute")
+sid <- sid[, colnames(sid) != int_type, with = F]
+impute.StdDev <-
+    f_imputeStDev * sid[Imputed == 0, sd(int_impute)]
+impute.position <-
+    sid[Imputed == 0, mean(int_impute)] - f_imputePosition * sid[Imputed == 0, sd(int_impute)]
+
+set.seed(255)
+sid[Imputed == 1, int_impute := rnorm(.N, (impute.position), (impute.StdDev))]
+setnames(sid, "int_impute", int_type)
+```
+
 
 ## After imputation
 
@@ -139,6 +328,15 @@ compare_impute <- me[,c("ProteinId","SampleName","log2NIntNorm")] %>%
 ```{r}
 ggplot(compare_impute, aes(x = log2NIntNorm, y = log2NInt)) + geom_point()
 ```
+
+
+- Using `log2NInt` column for imputation - only log2 of the available data - the missing data are 0  
+
+**MQ worflow pre imputation**
+- Using the `log2NInt` as int_type
+
+**ME worflow pre imputation**
+- Using the `log2NIntNorm` as int_type
 
 
 

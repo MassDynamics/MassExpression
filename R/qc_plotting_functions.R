@@ -634,7 +634,7 @@ plot_samples_correlation_matrix <- function(Experiment, onlyDEProteins=FALSE){
     corrplot::corrplot(DT_corMatrix, type = "upper", method = "square",
              title = title,
              tl.cex = 0.5, mar = c(0,0,1.5,0), addCoef.col = "white", number.cex = .5,
-             tl.col = "black")
+             tl.col = "black", order = "hclust")
   }else{
     warning("Not enough DE proteins to produce a correlation plot.")
   }

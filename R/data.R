@@ -1,16 +1,21 @@
-#' MaxQuant SILAC sample output
-#' @format Sample SILAC dataset parsed from the SILAC dataset published in Tyanova S, 2016. 
-"mq_silac_data"
-
-
-#' Fragpipe LFQ sample input
+#' Fragpipe LFQ 
+#' @format List containing the `intensities` table, the experiment `design` and the `parameters` following the Generic Format. 
+#' @details The data can be used to run the entire workflow `runGenericDiscovery`. 
+#' @references PRIDE Project PXD026401 https://www.ebi.ac.uk/pride/archive/projects/PXD026401
 "fragpipe_data"
 
-#' MaxQuant LFQ sample input
-#' @format Data from XXX cite HER2 paper
+#' MaxQuant LFQ 
+#' @format List containing the `intensities` table, the experiment `design` and the `parameters` following the Generic Format. 
+#' @details The data can be used to run the entire workflow `runGenericDiscovery`. 
+#' @references PRIDE Project PXD002057 
+#' @references Creedon, H. et al. Identification of novel pathways linking epithelial-to-mesenchymal transition with resistance to HER2-targeted therapy. Oncotarget 7, 11539–11552 (2016). 
 "mq_lfq_data"
 
 
-#' Proteome Discoverer LFQ iRPG
-#' @format Data from XXX cite iRPG paper
+#' Proteome Discoverer LFQ
+#' @format List containing the `intensities` table, the experiment `design` and the `parameters` following the Generic Format. 
+#' @details The data can be used to run the entire workflow `runGenericDiscovery`. 
+#' @references PRIDE Project PXD010981
+#' @references Griss, Johannes, et al. 2019. “Spectral Clustering Improves Label-Free Quantification of Low-Abundant Proteins.” Journal of Proteome Research 18 (4): 1477–85.
+#' @references Choi M,  et al. ABRF Proteome Informatics Research Group (iPRG) 2015 Study: Detection of Differentially Abundant Proteins in Label-Free Quantitative LC-MS/MS Experiments. J Proteome Res. 2017 16(2):945-957, PubMed: 27990823
 "pd_iPRG_data"
