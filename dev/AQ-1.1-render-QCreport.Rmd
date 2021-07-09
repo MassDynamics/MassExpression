@@ -73,19 +73,34 @@ rmarkdown::render(qc_report,
 ```{r}
 load("../data-private/example_diann_sheep.rda")
 design <- diann_sheep_data$design
+design <- design %>% dplyr::rename(SampleName = IntensityColumn) %>%
+  dplyr::mutate(Replicate_1 = Replicate) %>%
+  dplyr::select(-Replicate)
 intensities <- diann_sheep_data$intensities
+normalisationMethod <- "None"
+species <- "Other"
+labellingMethod <- "LFQ"
 
-listIntensityExperiments <- runGenericDiscovery(experimentDesign = design, 
-                                                proteinIntensities = intensities, 
-                                                output_folder = "~/Desktop/test")
+parameters <- data.frame(V1 = c("Species", "UseNormalisationMethod", "LabellingMethod"),
+                         V2 = c("Other", "None", "LFQ"))
 
-CompleteIntensityExperiment <- listIntensityExperiments$CompleteIntensityExperiment
-IntensityExperiment <- listIntensityExperiments$IntensityExperiment
+write_delim(design, "../data-private/experiment_design.tsv", delim = "\t")
+write_delim(intensities, "../data-private/protein_intensities.tsv", delim = "\t")
+write_delim(parameters, "../data-private/parameters.tsv", delim = "\t", col_names = FALSE)
+```
 
 
-rmarkdown::render('QCreport.Rmd', params = list(listInt = listIntensityExperiments, 
-                                                        experiment= "DIA-NN Sheep Plasma"),
-                  output_file = "DIA-NN-Sheep")
+## MaxQuant 
+
+```{r}
+design <- mq_lfq_data$design
+intensities <- mq_lfq_data$intensities
+param <- mq_lfq_data$parameters
+
+write_delim(design, "../data-private/maxquant/experiment_design.tsv", delim = "\t")
+write_delim(intensities, "../data-private/maxquant/protein_intensities.tsv", delim = "\t")
+write_delim(parameters, "../data-private/maxquant/parameters.tsv", delim = "\t", col_names = FALSE)
+
 ```
 
 

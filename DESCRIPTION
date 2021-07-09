@@ -1,7 +1,7 @@
 Package: MassExpression
 Type: Package
 Title: MassExpression
-Version: 0.0.27
+Version: 0.0.28
 Author: Anna Quaglieri
      <anna@massdynamics.com> and Joseph
      Bloom <joseph@massdynamics.com>
@@ -32,7 +32,6 @@ Imports:
   Hmisc (>= 4.5-0),
   corrplot (>= 0.89),
   DT (>= 0.18),
-  bit64,
   FactoMineR (>= 2.4),
   factoextra (>= 1.0.7),
   scales (>= 1.1.1),
