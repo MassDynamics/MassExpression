@@ -1,6 +1,6 @@
 #' This function orchestrates imputation, normalization and the binary limma statistics accross all experimental comparisons
 #' 
-#' @param experimentDesign Output from constructSummarizedExperiment
+#' @param experimentDesign Output from createSummarizedExperiment
 #' @param normalisationMethod logical. Whether to perform median normalisation by condition. 
 #' @export runLimmaPipeline
 #' @import data.table

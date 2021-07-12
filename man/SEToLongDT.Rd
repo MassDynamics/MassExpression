@@ -8,7 +8,7 @@ intensities for each protein Id and intensity column}
 SEToLongDT(IntensityExperiment)
 }
 \arguments{
-\item{IntensityExperiment}{Output from constructSummarizedExperiment}
+\item{IntensityExperiment}{Output from createSummarizedExperiment}
 }
 \description{
 This function converts the assay data in a protein intensity to a long data.table object with 

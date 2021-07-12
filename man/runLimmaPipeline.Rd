@@ -9,7 +9,7 @@ runLimmaPipeline(IntensityExperiment, normalisationMethod)
 \arguments{
 \item{normalisationMethod}{logical. Whether to perform median normalisation by condition.}
 
-\item{experimentDesign}{Output from constructSummarizedExperiment}
+\item{experimentDesign}{Output from createSummarizedExperiment}
 }
 \description{
 This function orchestrates imputation, normalization and the binary limma statistics accross all experimental comparisons

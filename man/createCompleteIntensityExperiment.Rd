@@ -14,7 +14,7 @@ createCompleteIntensityExperiment(
 )
 }
 \arguments{
-\item{IntensityExperiment}{output from `constructSummarizedExperiment`}
+\item{IntensityExperiment}{output from `createSummarizedExperiment`}
 
 \item{limmaStats}{Statistic table from limma output}
 

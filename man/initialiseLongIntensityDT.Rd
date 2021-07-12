@@ -7,7 +7,7 @@
 initialiseLongIntensityDT(IntensityExperiment)
 }
 \arguments{
-\item{IntensityExperiment}{Output from constructSummarizedExperiment}
+\item{IntensityExperiment}{Output from createSummarizedExperiment}
 }
 \description{
 This function performs the log2 conversion for intensities larger than 0 and initialise the imputed column.

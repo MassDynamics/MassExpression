@@ -5,7 +5,7 @@
 #' This function converts the assay data in a protein intensity to a long data.table object with 
 #' intensities for each protein Id and intensity column
 #' 
-#' @param IntensityExperiment Output from constructSummarizedExperiment
+#' @param IntensityExperiment Output from createSummarizedExperiment
 #' @export SEToLongDT
 #' @importFrom SummarizedExperiment rowData colData assay
 #'
@@ -27,7 +27,7 @@ SEToLongDT <- function(IntensityExperiment){
 
 
 #' This function performs the log2 conversion for intensities larger than 0 and initialise the imputed column.
-#' @param IntensityExperiment Output from constructSummarizedExperiment
+#' @param IntensityExperiment Output from createSummarizedExperiment
 #' @export initialiseLongIntensityDT
 
 initialiseLongIntensityDT <- function(IntensityExperiment){

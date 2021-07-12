@@ -1,6 +1,6 @@
 #' Adds `intensityDF` information to `IntensityExperiment` with statistics about 
 #' the number of replicates and number of imputed values in each condition of interest
-#' @param IntensityExperiment output from `constructSummarizedExperiment`
+#' @param IntensityExperiment output from `createSummarizedExperiment`
 #' @param limmaStats Statistic table from limma output
 #' @param normalisationAppliedToAssay one of 'None' or 'Median'
 #' @param intensityDF Long format table with raw and imputed intensities. Each row is a feature (protein/peptide).

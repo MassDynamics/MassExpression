@@ -34,7 +34,7 @@ runGenericDiscovery <- function(experimentDesign, proteinIntensities,
                        NormalisationAppliedToAssay = "None")
   
   # Create Data Rep
-  IntensityExperiment <- constructSummarizedExperiment(experimentDesign = experimentDesign, 
+  IntensityExperiment <- createSummarizedExperiment(experimentDesign = experimentDesign, 
                                                        proteinIntensities = proteinIntensities,
                                                        listMetadata = listMetadata)
 
