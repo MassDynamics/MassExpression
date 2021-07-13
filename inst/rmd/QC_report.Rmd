@@ -193,19 +193,14 @@ if (params$format == "pdf"){
 ```
 
   
-```{r cv-table, eval=FALSE, warning=FALSE, echo=FALSE, error=FALSE, message=FALSE, results='asis'}
+```{r cv-table, eval=TRUE, warning=FALSE, echo=FALSE, error=FALSE, message=FALSE, results='asis'}
 cv_data <- p[[2]]
 cv_data <- as_tibble(cv_data) %>% group_by(Condition) %>%
   summarise(`Median CV %` = round(median(cv, na.rm = TRUE)*100))
 
 knitr::kable(cv_data, row.names = FALSE)
-#%>%
- # kableExtra::kable_classic(full_width = FALSE)
 ```
-  
-```{r cv-table, eval=TRUE, warning=FALSE, echo=FALSE, error=FALSE, message=FALSE, results='asis'}
-knitr::kable(cv_data, row.names = FALSE)
-```
+
   
 ## C. Sample correlations
 

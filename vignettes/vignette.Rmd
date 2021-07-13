@@ -73,7 +73,6 @@ CompleteIntensityExperiment <-  results$CompleteIntensityExperiment
 ```
 
 
-
 # Plot results
 
 ## PCA
@@ -87,6 +86,8 @@ p[[1]]
 ```{r  scree-plot-pca, fig.width = 6, fig.height = 4}
 p[[2]]
 ```
+
+
 
 ## MDS
 

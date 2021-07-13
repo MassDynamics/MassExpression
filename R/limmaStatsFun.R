@@ -15,8 +15,7 @@ limmaStatsFun <- function(ID_type,
                             rep_col_name,
                             funDT,
                             pairwise.comp = NULL,
-                            all.comparisons = TRUE,
-                            fix_distr = FALSE) {
+                            all.comparisons = TRUE) {
   
   
   if (all.comparisons) {
@@ -115,23 +114,13 @@ limmaStatsFun <- function(ID_type,
     levels = list(design.mat)
   )))
   
+  
+  design.mat <- model.matrix(~ condition,
+                             data = pData(eset))
   fit <- lmFit(eset, design.mat)
   
-  # exper.cond <- "UPS1"
-  # fix_distr <- TRUE
-  if (fix_distr) {
-    for (exper.cond in pairwise.comp[, c(left, right)]) {
-      Runs <- pData(eset)[pData(eset)$condition == exper.cond, run_id_col_name]
-      i <- which(rowSums(isZ[,colnames(isZ) %in% Runs]) == length(Runs))
-      eset_fix <- exprs(eset[i,])
-      eset_fix[,colnames(isZ) %in% Runs] <- NA
-      fit3 <- lmFit(eset_fix, design.mat)
-      fit$sigma[i] <- fit3$sigma
-      fit$df.residual[i] <- fit3$df.residual
-    }
-  }
-  fit2 <- contrasts.fit(fit, contrasts = contrast.matrix)
-  fit2 <- eBayes(fit2, robust = TRUE, trend = TRUE)
+  # fit2 <- contrasts.fit(fit, contrasts = contrast.matrix)
+  fit2 <- eBayes(fit, robust = TRUE, trend = TRUE)
   
   stats <-
     topTable(fit2,
