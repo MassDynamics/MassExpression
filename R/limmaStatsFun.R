@@ -119,8 +119,8 @@ limmaStatsFun <- function(ID_type,
                              data = pData(eset))
   fit <- lmFit(eset, design.mat)
   
-  # fit2 <- contrasts.fit(fit, contrasts = contrast.matrix)
-  fit2 <- eBayes(fit, robust = TRUE, trend = TRUE)
+  fit2 <- contrasts.fit(fit, contrasts = contrast.matrix)
+  fit2 <- eBayes(fit2, robust = TRUE, trend = TRUE)
   
   stats <-
     topTable(fit2,

@@ -76,13 +76,17 @@ design <- colData(IntensityExperiment)
 This QC Report is designed to help Scientists quickly assess the several aspect of experiment quality, There are 4 categories in the QC report:
 
 1. *Experiment Design and Summary of Results*: overview of the experiment design used in the analysis and summary of differential expression results.
-2. *Experiment Health*: this includes dimensionality reduction plots using all and differentially expressed (DE) proteins; distribution of the coeffiecient of variations by conditions and smaple correlations using all and DE proteins.
+2. *Experiment Health*: this includes dimensionality reduction plots using all and differentially expressed (DE) proteins; distribution of the coeffiecient of variations by conditions and sample correlations using all and DE proteins.
 3. *Feature Completedness*: this includes the number of missing values by samples and by protein.
 4. *Normalisation and Imputation*: this includes intensity distribution of raw, normalised (when requested) and imputed intensities.
 
 \clearpage
 
 # 1. Experiment Design and Summary of Results
+
+- **Species** of experiment: `r metadata(CompleteIntensityExperiment)$Species`
+- **Normalisation method applied to assay**: `r metadata(CompleteIntensityExperiment)$NormalisationAppliedToAssay`
+
 
 ```{r experimental-design, eval=TRUE, warning=FALSE, echo=FALSE, error=FALSE, message=FALSE, results='asis'}
 design <- as_tibble(design)

@@ -19,21 +19,8 @@ normalisation_method <- parameters[parameters[,1] == "UseNormalisationMethod",2]
 species <- parameters[parameters[,1] == "Species",2]
 labellingMethod <- parameters[parameters[,1] == "LabellingMethod",2]
 
-# test wrong data
-design_1 <- design[-1, ]
-design_2 <- design
-design_2 <- rbind(design_2, design[4,])
-design_2$SampleName[4] <- "Extra_1"
-
-intensities_1 <- intensities[, -10]
-intensities_2 <- intensities
-intensities_2$Extra <- intensities[, 5]
-
-design_3 <- design_2 %>% filter(Condition %in% "sample2")
-design_3 <- design_3[-1,]
-
-listIntensityExperiments <- runGenericDiscovery(experimentDesign = design_3, 
-                                                proteinIntensities = intensities_2, 
+listIntensityExperiments <- runGenericDiscovery(experimentDesign = design, 
+                                                proteinIntensities = intensities, 
                                                 normalisationMethod = normalisation_method,
                                                 species = species, 
                                                 labellingMethod = labellingMethod)
