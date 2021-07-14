@@ -124,7 +124,32 @@ test_limma_output <- function(current, expected, tolerance=10**-5){
 }
 
 
+test_comparisons_output <- function(complete_current, comparison_current){
+  test_that("intensities in comparison summarised experiments (SE) are the same as the complete SE",{
+    result = min(complete_current == comparison_current)
+    expect_true(as.logical(result))
+  })
+  
+  # test_that("intensities in comparison summarised experiments (SE) are as expected",{
+  #   result = min(comparison_expected == comparison_current)
+  #   expect_true(as.logical(result))
+  # })
+}
+
+###########
 # Run tests
+###########
+make_long_wide_df <- function(matrix_prot, new_int_col = "IntME"){
+  int_prot <- data.frame(matrix_prot)
+  int_prot$ProteinId <- rownames(int_prot)
+  long_int_me <- int_prot %>% pivot_longer(cols = c(LFQ.intensity.1_hu_C1:LFQ.intensity.6_hu_P3), 
+                                           values_to = new_int_col, names_to = "SampleName")
+  long_int_me$SampleName <- gsub("LFQ.intensity.","", long_int_me$SampleName)
+  long_int_me$SampleName <- tolower(long_int_me$SampleName)
+  return(long_int_me)
+}
+
+
 design <- mq_lfq_data$design
 intensities <- mq_lfq_data$intensities
 species <- mq_lfq_data$parameters[mq_lfq_data$parameters$X1 == "Species",2]
@@ -137,8 +162,19 @@ listIntensityExperiments <- runGenericDiscovery(experimentDesign = design,
                                                 species = species, 
                                                 labellingMethod = labMethod)
 
+# Output to be checked
 currentCompleteIntensityExperiment <- listIntensityExperiments$CompleteIntensityExperiment
 currentIntensityExperiment <- listIntensityExperiments$IntensityExperiment
+currentcomparisonExperiments <- 
+  listComparisonExperiments(currentCompleteIntensityExperiment)[[1]]
+
+currentCompleteIntensityExperiment_longdf <- make_long_wide_df(data.frame(assay(currentCompleteIntensityExperiment)),
+                                                               new_int_col = "Int")
+currentComparisonExperiments_longdf <- make_long_wide_df(data.frame(assay(currentcomparisonExperiments)),
+                                                         new_int_col = "IntComp")
+
+compare_me <- currentComparisonExperiments_longdf %>% left_join(currentCompleteIntensityExperiment_longdf)
+
 
 load("../data/mq_lfq_output.Rdata")
 
@@ -154,5 +190,6 @@ test_limma_output(current = currentCompleteIntensityExperiment,
                 expected = expectedCompleteIntensityExperiment)
 
 
-
+test_comparisons_output(complete_current = compare_me$Int,
+                        comparison_current = compare_me$IntComp)
 

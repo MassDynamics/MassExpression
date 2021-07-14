@@ -118,7 +118,11 @@ results <- runGenericDiscovery(experimentDesign = design,
                                labellingMethod = labellingMethod)
 
 completeExperiment <- results$CompleteIntensityExperiment
+inten <- results$IntensityExperiment
+
+saveOutput(IntensityExperiment = inten, CompleteIntensityExperiment = completeExperiment, output_folder =  ".")
 ```
+
 
 ## Exaclty before imputation
 
@@ -151,8 +155,8 @@ They are the same exactly pre-imputation.
 ## Exaclty one line before imputation
 
 ```{r exactly-pre-imp}
-exactly_pre_imp_mq <- readRDS( "one_line_pre_imp_MQ.rds")
-exactly_pre_imp_me <- readRDS("one_line_pre_imp_ME.rds")
+exactly_pre_imp_mq <- readRDS( "../../check_imputation_steps/one_line_pre_imp_MQ.rds")
+exactly_pre_imp_me <- readRDS("../../check_imputation_steps/one_line_pre_imp_ME.rds")
 
 exactly_pre_imp_me$SampleName <- gsub("LFQ.intensity.","", exactly_pre_imp_me$SampleName)
 exactly_pre_imp_me$SampleName <- tolower(exactly_pre_imp_me$SampleName)
@@ -179,7 +183,7 @@ compare_pre_impute <- exactly_pre_imp_me[,c("ProteinId","SampleName","int_impute
 ggplot(compare_pre_impute, aes(x = log2NIntNorm, y = int_impute)) + geom_point()
 ```
 
-## One lime post imputation
+## One line post imputation
 
 **MQ**
 Browse[2]> print(impute.position)
@@ -195,13 +199,13 @@ Browse[2]> impute.StdDev
 Browse[2]> 
 
 ```{r exactly-pre-imp}
-exactly_post_imp_mq <- readRDS( "one_line_post_imp_MQ.rds")
-exactly_post_imp_me <- readRDS("one_line_post_imp_ME.rds")
+exactly_post_imp_mq <- readRDS( "../../check_imputation_steps/one_line_post_imp_MQ.rds")
+exactly_post_imp_me <- readRDS("../../check_imputation_steps/one_line_post_imp_ME.rds")
 
 exactly_post_imp_me$SampleName <- gsub("LFQ.intensity.","", exactly_post_imp_me$SampleName)
 exactly_post_imp_me$SampleName <- tolower(exactly_post_imp_me$SampleName)
 
-mq_with_ids <- readRDS("merge_dt.rds") %>%
+mq_with_ids <- readRDS("../../check_imputation_steps/merge_dt.rds") %>%
   dplyr::select(`majority protein ids`, `fasta headers`, id, mqExperiment)
 
 # int_impute = log2Int
@@ -212,25 +216,24 @@ exactly_post_imp_mq <- as_tibble(exactly_post_imp_mq) %>%
   dplyr::rename(SampleName = mqExperiment)
 
 mq_1prot <- assign_uniprot_ids_mq(exactly_post_imp_mq)
-mq_1prot <- mq_1prot %>%  filter(Imputed==1) %>% 
-  dplyr::select("ProteinId", "SampleName", "int_impute") %>%
-    dplyr::rename(ProteinIdMQ = ProteinId, SampleNameMQ = SampleName) 
+mq_1prot <- mq_1prot %>%  
+  dplyr::select("ProteinId", "SampleName", "int_impute") 
 
-exactly_post_imp_me <- exactly_post_imp_me %>% filter(Imputed==1) %>%
+exactly_post_imp_me <- exactly_post_imp_me %>% 
   select("ProteinId","SampleName","int_impute","Imputed") %>% 
   dplyr::rename(log2NIntNorm = int_impute, ImputedME = Imputed) 
 
-cbind_compare <- cbind(exactly_post_imp_me, mq_1prot)
+# cbind_compare <- cbind(exactly_post_imp_me, mq_1prot)
 
-compare_post_impute <- exactly_post_imp_me[,c("ProteinId","SampleName","int_impute","Imputed")] %>% 
-  dplyr::rename(log2NIntNorm = int_impute, ImputedME = Imputed) %>%
-  left_join(mq_1prot[c("ProteinId", "SampleName","int_impute","Imputed")]) 
+compare_post_impute <- exactly_post_imp_me[,c("ProteinId","SampleName","log2NIntNorm","ImputedME")] %>% 
+  left_join(mq_1prot[c("ProteinId", "SampleName","int_impute")]) 
 ```
 
 
 ```{r}
 ggplot(compare_post_impute, aes(x = log2NIntNorm, y = int_impute)) + geom_point()
 ```
+
 
 ```{r}
 ggplot(cbind_compare[ImputedME==1], aes(x = log2NIntNorm, y = int_impute)) + geom_point() +
@@ -249,6 +252,97 @@ A0A0U1RRL7
 ```{r}
 table(compare_post_impute$diff, compare_post_impute$Imputed)
 ```
+
+
+## Before creating the complete SE
+
+```{r}
+before_se <- readRDS("../../check_imputation_steps/longIntensityDT_ME_before_create_final.rds")
+exactly_post_imp_mq <- readRDS( "../../check_imputation_steps/one_line_post_imp_MQ.rds")
+
+before_se$SampleName <- gsub("LFQ.intensity.","", before_se$SampleName)
+before_se$SampleName <- tolower(before_se$SampleName)
+
+mq_with_ids <- readRDS("../../check_imputation_steps/merge_dt.rds") %>%
+  dplyr::select(`majority protein ids`, `fasta headers`, id, mqExperiment)
+
+# int_impute = log2Int
+exactly_post_imp_mq <- as_tibble(exactly_post_imp_mq) %>%
+  left_join(mq_with_ids) %>%
+  dplyr::rename(Majority.protein.IDs=`majority protein ids`,
+                Fasta.headers=`fasta headers`) %>%
+  dplyr::rename(SampleName = mqExperiment)
+
+mq_1prot <- assign_uniprot_ids_mq(exactly_post_imp_mq)
+mq_1prot <- mq_1prot %>%  
+  dplyr::select("ProteinId", "SampleName", "int_impute") 
+
+before_se <- before_se %>% 
+  select("ProteinId","SampleName","log2NIntNorm","Imputed") %>% 
+  dplyr::rename(ImputedME = Imputed) 
+
+compare_pre_se <- before_se[,c("ProteinId","SampleName","log2NIntNorm","ImputedME")] %>% 
+  left_join(mq_1prot[c("ProteinId", "SampleName","int_impute")]) 
+```
+
+
+```{r}
+ggplot(compare_pre_se, aes(x = log2NIntNorm, y = int_impute)) + geom_point()
+```
+
+## After creating summarised experiment
+
+```{r}
+intens_end <- data.frame(assay(completeExperiment))
+intens_end$ProteinId <- rownames(intens_end)
+long_me <- intens_end %>% pivot_longer(cols = LFQ.intensity.1_hu_C1:LFQ.intensity.6_hu_P3,
+                                     values_to = "IntME", names_to = "SampleName")
+
+long_me$SampleName <- gsub("LFQ.intensity.","", long_me$SampleName)
+long_me$SampleName <- tolower(long_me$SampleName)
+
+compare_end_se <- long_me[,c("ProteinId","SampleName","IntME")] %>% 
+  left_join(mq_1prot[c("ProteinId", "SampleName","int_impute")]) 
+
+ggplot(compare_end_se, aes(x = IntME, y = int_impute)) + geom_point()
+```
+
+## Compare with the data created in App
+
+```{r}
+load(file.path("../dev/bench-enrichment/upload/","DiscoveryQuant.RData"))
+complete_app <- CompleteIntensityExperiment
+
+intens_end <- data.frame(assay(complete_app))
+intens_end$ProteinId <- rownames(intens_end)
+long_me <- intens_end %>% pivot_longer(cols = LFQ.intensity.1_hu_C1:LFQ.intensity.6_hu_P3,
+                                     values_to = "IntME", names_to = "SampleName")
+
+long_me$SampleName <- gsub("LFQ.intensity.","", long_me$SampleName)
+long_me$SampleName <- tolower(long_me$SampleName)
+
+# MQ
+exactly_post_imp_mq <- readRDS( "../../check_imputation_steps/one_line_post_imp_MQ.rds")
+mq_with_ids <- readRDS("../../check_imputation_steps/merge_dt.rds") %>%
+  dplyr::select(`majority protein ids`, `fasta headers`, id, mqExperiment)
+
+# int_impute = log2Int
+exactly_post_imp_mq <- as_tibble(exactly_post_imp_mq) %>%
+  left_join(mq_with_ids) %>%
+  dplyr::rename(Majority.protein.IDs=`majority protein ids`,
+                Fasta.headers=`fasta headers`) %>%
+  dplyr::rename(SampleName = mqExperiment)
+
+mq_1prot <- assign_uniprot_ids_mq(exactly_post_imp_mq)
+mq_1prot <- mq_1prot %>%  
+  dplyr::select("ProteinId", "SampleName", "int_impute") 
+
+compare_final <- long_me[,c("ProteinId","SampleName","IntME")] %>% 
+  left_join(mq_1prot[c("ProteinId", "SampleName","int_impute")]) 
+
+ggplot(compare_final, aes(x = IntME, y = int_impute)) + geom_point()
+```
+
 
 ## Two runs of MassExpression
 
@@ -370,8 +464,6 @@ load("../tests/data/mq_lfq_output.Rdata")
 expected_complete <- rowData(expectedCompleteIntensityExperiment)
 data <- assay(expectedIntensityExperiment)
 
-data_int[data_int$ProteinId == "Q9Y2F5",]
-
 sum(!(out_data_bench$ProteinId %in% expected_complete$ProteinId))
 sum(!(expected_complete$ProteinId %in% out_data_bench$ProteinId))
 
@@ -420,74 +512,5 @@ ggplot(compare_me, aes(x=`saved_logFC.AZD8931_resistant_SKBR3_AZDRc.Parental_SKB
 ```
 
 
-# Drake
-
-```{r}
-library(visNetwork)
-plan <- drake_plan(runGenericDiscovery(experimentDesign = design, 
-                               proteinIntensities = intensities, 
-                               normalisationMethod = normalisation_method, 
-                               species = species, 
-                               labellingMethod = labellingMethod))
-
-vis_drake_graph(plan)
-```
-
-```{r}
-design <- mq_lfq_data$design
-intensities <- mq_lfq_data$intensities
-parameters <- mq_lfq_data$parameters
-normalisation_method <- parameters[parameters[,1] == "UseNormalisationMethod",2]
-species <- parameters[parameters[,1] == "Species",2]
-labellingMethod <- parameters[parameters[,1] == "LabellingMethod",2]
-
-listMetadata <- list(Species = species, 
-                     LabellingMethod = labellingMethod, 
-                     NormalisationAppliedToAssay = "None")
-
-# Create Data Rep
-IntensityExperiment <- constructSummarizedExperiment(experimentDesign = design, 
-                                                     proteinIntensities = intensities, 
-                                                     listMetadata = listMetadata)
-
-normalisationMethod <- "None"
-plan_limma <- drake_plan(
-    longIntensityDT <- initialiseLongIntensityDT(IntensityExperiment),
-  
-  # Create Median Normalized Measurements in each Condition/Replicate
-  longIntensityDT <- normaliseIntensity(longIntensityDT=longIntensityDT,
-                                        normalisationMethod=normalisationMethod),
-  
-  # Imputation
-  longIntensityDT <- imputeLFQ(longIntensityDT, 
-                         id_type = "ProteinId", 
-                         int_type = "log2NIntNorm",
-                         f_imputeStDev = 0.3,
-                         f_imputePosition= 1.8),
-  
-  
-  # RunId will be unique to a row wherease replicate may not
-  longIntensityDT[, RunId := str_c(Condition, Replicate, sep = ".")],
-  
-  # Run LIMMA
-  resultsQuant <- limmaStatsFun(ID_type = "ProteinId",
-                                   int_type = "log2NIntNorm",
-                                   condition_col_name = "Condition",
-                                   run_id_col_name = "RunId",
-                                   rep_col_name = "Replicate",
-                                   funDT = longIntensityDT),
-  stats = resultsQuant[["stats"]],
-  conditionComparisonMapping = resultsQuant[["conditionComparisonMapping"]],
-  
-  # SummarizedExperiment which contains the complete essay with imputed data and statistics
-  # about the number of proteins imputed in each condition 
-  CompleteIntensityExperiment <- createCompleteIntensityExperiment(IntensityExperiment,
-                                                                   limmaStats=stats,
-                                                                   normalisationAppliedToAssay = normalisationMethod,
-                                                                   longIntensityDT = longIntensityDT,
-                                                                   conditionComparisonMapping = conditionComparisonMapping)
-  
-)
-vis_drake_graph(plan_limma)
-```
+# Enrichment
 

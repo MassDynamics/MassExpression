@@ -5,13 +5,13 @@
 
 listComparisonExperiments <- function(CompleteIntensityExperiment){
   
-  conditionComparisonMapping = metadata(CompleteIntensityExperiment)$conditionComparisonMapping
+  conditionComparisonMapping <- metadata(CompleteIntensityExperiment)$conditionComparisonMapping
   comparisons <- conditionComparisonMapping$comparison.string
   
   comparisonExperiments <- list()
   
   for (comparison in comparisons){
-    comparisonExperiments[[comparison]] = createComparisonExperiment(
+    comparisonExperiments[[comparison]] <- createComparisonExperiment(
       CompleteIntensityExperiment, comparison
     )
   }
@@ -25,7 +25,7 @@ listComparisonExperiments <- function(CompleteIntensityExperiment){
 filterComparisonColumns <- function(CompleteIntensityExperiment,
                                     comparison){
   
-  conditionComparisonMapping = metadata(CompleteIntensityExperiment)$conditionComparisonMapping
+  conditionComparisonMapping <- metadata(CompleteIntensityExperiment)$conditionComparisonMapping
   condition1 <- getUpCondition(conditionComparisonMapping, comparison)
   condition2 <- getDownCondition(conditionComparisonMapping, comparison)
   
@@ -36,7 +36,7 @@ filterComparisonColumns <- function(CompleteIntensityExperiment,
   # we want the limma stats which have the comparison string
   # we want the replicates and imputed counts which have the conditions strings
   # we want the basic protein info cols (prot, gene, desc)
-  cols.index = grepl("ProteinId", intensityColumns, fixed=T)+
+  cols.index <- grepl("ProteinId", intensityColumns, fixed=T)+
     grepl("GeneId", intensityColumns, fixed=T)+
     grepl("Description", intensityColumns, fixed=T)+
     grepl(str_c("Imputed: ",condition1), intensityColumns, fixed = T)+
@@ -70,7 +70,7 @@ filterComparisonColumns <- function(CompleteIntensityExperiment,
 filterComparisonRows <- function(comparisonIntensityExperiment){
   rowDataPossible <- rowData(comparisonIntensityExperiment)
   rowIndexValid <- !is.na(rowDataPossible$P.Value)
-  rowIndexValid
+  # rowIndexValid
   comparisonIntensityExperiment <-
     comparisonIntensityExperiment[rowIndexValid,]
   
@@ -80,11 +80,13 @@ filterComparisonRows <- function(comparisonIntensityExperiment){
 
 #' This is a simple check to validate the intensity/cls vector match the statistics
 #' @export validateComparison
-validateComparison <- function(rse){
+validateComparison <- function(rse, comparison){
   assay.data <- dplyr::as_tibble(assay(rse))
-  row_data_fc <- rowData(rse)$FC
+  row_data_fc <- rowData(rse)$logFC
   calc_fc <- rowMeans(assay.data[,rse$GROUP == 0]) - rowMeans(assay.data[,rse$GROUP == 1])
-  stopifnot((row_data_fc - calc_fc) < 2**(-10))
+  if(is.null(row_data_fc) | !(row_data_fc - calc_fc) < 2**(-10)){
+    stop(paste0("logFC for comparison ", comparison," not validated."))
+  }
 }
 
 # This is an orchestrator for create each comparison table input for enrichment
@@ -111,17 +113,17 @@ createComparisonExperiment <- function(CompleteIntensityExperiment,
   )
   
   # 3. Add class/group vectors so we know how to do enrichment
-  comparisonIntensityExperiment$GROUP = comparisonIntensityExperiment$Condition == down.condition
+  comparisonIntensityExperiment$GROUP <- comparisonIntensityExperiment$Condition == down.condition
   
   #4. need to set columns first
-  rownames(comparisonIntensityExperiment) <- rowData(comparisonIntensityExperiment)$ProteinId
+  # rownames(comparisonIntensityExperiment) <- rowData(comparisonIntensityExperiment)$ProteinId
   
   # 5. Validate FC before assigning
-  validateComparison(comparisonIntensityExperiment)
+  validateComparison(comparisonIntensityExperiment, comparison)
   
   ### Temporary Code while Enrichment Browser is in use ###
   #need to map column names correctly to what EnrichmentBrowser expects
-  rowData(comparisonIntensityExperiment) = 
+  rowData(comparisonIntensityExperiment) <- 
     dplyr::as_tibble(rowData(comparisonIntensityExperiment)) %>%
     rename(FC = logFC,
            ADJ.PVAL = adj.P.Val)

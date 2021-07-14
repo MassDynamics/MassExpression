@@ -49,6 +49,9 @@ runLimmaPipeline <- function(IntensityExperiment, normalisationMethod){
                                                                    longIntensityDT = longIntensityDT,
                                                                    conditionComparisonMapping = conditionComparisonMapping)
   
+  ## 
+  #saveRDS(longIntensityDT, "../../check_imputation_steps/longIntensityDT_ME_before_create_final.rds")
+  
   list(IntensityExperiment=IntensityExperiment,
        CompleteIntensityExperiment=CompleteIntensityExperiment)
 }
