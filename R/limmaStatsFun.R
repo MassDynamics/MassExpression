@@ -114,11 +114,8 @@ limmaStatsFun <- function(ID_type,
     levels = list(design.mat)
   )))
   
-  
-  design.mat <- model.matrix(~ condition,
-                             data = pData(eset))
+  # Fit linear models
   fit <- lmFit(eset, design.mat)
-  
   fit2 <- contrasts.fit(fit, contrasts = contrast.matrix)
   fit2 <- eBayes(fit2, robust = TRUE, trend = TRUE)
   
