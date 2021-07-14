@@ -84,7 +84,8 @@ validateComparison <- function(rse, comparison){
   assay.data <- dplyr::as_tibble(assay(rse))
   row_data_fc <- rowData(rse)$logFC
   calc_fc <- rowMeans(assay.data[,rse$GROUP == 0]) - rowMeans(assay.data[,rse$GROUP == 1])
-  if(is.null(row_data_fc) | !(row_data_fc - calc_fc) < 2**(-10)){
+  max_difference <- as.logical(max(((row_data_fc - calc_fc) < 2**(-10))))
+  if(is.null(row_data_fc) | !max_difference){
     stop(paste0("logFC for comparison ", comparison," not validated."))
   }
 }

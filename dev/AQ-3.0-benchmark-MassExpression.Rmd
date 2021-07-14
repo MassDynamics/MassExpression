@@ -344,7 +344,7 @@ ggplot(compare_final, aes(x = IntME, y = int_impute)) + geom_point()
 ```
 
 
-## Two runs of MassExpression
+# Two runs of MassExpression
 
 They are the same.
 
@@ -432,7 +432,7 @@ ggplot(compare_impute, aes(x = log2NIntNorm, y = log2NInt)) + geom_point()
 **ME worflow pre imputation**
 - Using the `log2NIntNorm` as int_type
 
-
+# Compare logFC and Pvals
 
 ```{r}
 expected_complete_new <- rowData(completeExperiment)
@@ -451,8 +451,13 @@ ggplot(compare, aes(x=`logFC.AZD8931_resistant_SKBR3_AZDRc.Parental_SKBR3`,
   theme_bw() +
   geom_smooth()
 ```
-
-
+```{r}
+ggplot(compare, aes(x=`P.Value.AZD8931_resistant_SKBR3_AZDRc.Parental_SKBR3`, 
+                    y = `Disco_P.Value.AZD8931_resistant_SKBR3_AZDRc...Parental_SKBR3`)) + 
+  geom_point() +
+  theme_bw() +
+  geom_smooth()
+```
 
 
 ## Compare results

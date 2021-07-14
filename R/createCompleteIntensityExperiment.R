@@ -36,22 +36,20 @@ createCompleteIntensityExperiment <- function(IntensityExperiment,
   metadataComplete <- metadata(IntensityExperiment)
   metadataComplete$NormalisationAppliedToAssay <- normalisationAppliedToAssay
   
+  # Join limma stats, imputed and replicate counts
+  imputedCounts <- computeImputedCounts(longIntensityDT)
+  replicateCounts <- computeReplicateCounts(longIntensityDT)
+  
+  rowDataComplete <- data.frame(rowData(IntensityExperiment)) %>% left_join(limmaStats)
+  rowDataComplete <- rowDataComplete %>% left_join(imputedCounts) 
+  rowDataComplete <- rowDataComplete %>% left_join(replicateCounts)
+  
   CompleteIntensityExperiment <- SummarizedExperiment(assays = SimpleList(intensities = intensityMatrixWide, 
                                                                           imputedMask = imputedMatrixWide),
-                                                      rowData = merge(rowData(IntensityExperiment),
-                                                                      limmaStats, by = "ProteinId", all.x = T), 
+                                                      rowData = rowDataComplete,
                                                       colData = colData(IntensityExperiment),
                                                       metadata = metadataComplete)
-    
-  # add imputed and replicate counts to the final object
-  imputedCounts <- computeImputedCounts(longIntensityDT)
-  rowData(CompleteIntensityExperiment) <- S4Vectors::merge(rowData(CompleteIntensityExperiment),
-                                                           as.data.frame(imputedCounts), by = "ProteinId", all.x = T)
 
-  
-  replicateCounts <- computeReplicateCounts(longIntensityDT)
-  rowData(CompleteIntensityExperiment) <- S4Vectors::merge(rowData(CompleteIntensityExperiment),
-                                                           as.data.frame(replicateCounts), by = "ProteinId", all.x = T)
   
   metadata(CompleteIntensityExperiment)$conditionComparisonMapping <- conditionComparisonMapping
   
