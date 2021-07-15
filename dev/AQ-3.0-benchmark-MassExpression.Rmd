@@ -9,9 +9,24 @@ knitr::opts_chunk$set(echo = TRUE)
 library(MassExpression)
 library(tidyverse)
 library(plotly)
+
+make_long_wide_df <- function(matrix_prot, new_int_col = "IntME"){
+  int_prot <- data.frame(matrix_prot)
+  int_prot$ProteinId <- rownames(int_prot)
+  long_int_me <- int_prot %>% pivot_longer(cols = c(LFQ.intensity.1_hu_C1:LFQ.intensity.6_hu_P3), 
+                                      values_to = new_int_col, names_to = "SampleName")
+  long_int_me$SampleName <- gsub("LFQ.intensity.","", long_int_me$SampleName)
+  long_int_me$SampleName <- tolower(long_int_me$SampleName)
+  return(long_int_me)
+}
 ```
 
 # Benchmark using Max Quant HER2 data and comparing the result with MaxQuant Discovery workflow
+
+## Load MaxQuant output and convert to generic format
+
+- Load raw data returned by MaxQuant
+- Convert to generic format `MaxQuantTranform`
 
 ```{r}
 mq_data_input <- "../../../data-s3/data-formats/maxquant/LFQ/HER2/data/"
@@ -25,7 +40,7 @@ colnames(data_int_me) <- gsub("LFQ.", "lfq.", colnames(data_int_me))
 ```
 
 
-## Load MaxQuant discovery 
+## Load HER2 output after running LFQprocessing
 
 ```{r}
 output_folder <- "../../../data-s3/data-formats/maxquant/LFQ/HER2/data/output/"
@@ -45,12 +60,158 @@ colnames(out_data_bench)[2:ncol(out_data_bench)] <- paste0("Disco_", colnames(ou
 
 # Intensities
 lfq_intensities <- out_data_1prot %>% dplyr::select(ProteinId, starts_with("lfq."))
-
 #out_data_1prot[out_data_1prot$ProteinId == "Q9Y2F5",] %>% select(starts_with("LFQ.intensity"))
 ```
 
+## Run MassExpression discovery
 
-## Compare steps
+```{r me-discovery}
+intensities <- input_gen$intensities
+design <- input_gen$design
+parameters <- input_gen$parameters
+normalisation_method <- parameters[parameters[,1] == "UseNormalisationMethod",2]
+species <- parameters[parameters[,1] == "Species",2]
+labellingMethod <- parameters[parameters[,1] == "LabellingMethod",2]
+
+
+results <- runGenericDiscovery(experimentDesign = design, 
+                               proteinIntensities = intensities, 
+                               normalisationMethod = normalisation_method, 
+                               species = species, 
+                               labellingMethod = labellingMethod)
+
+completeExperiment <- results$CompleteIntensityExperiment
+inten <- results$IntensityExperiment
+
+comparisonExperiments <- 
+    listComparisonExperiments(completeExperiment)
+  
+saveOutput(IntensityExperiment = inten, CompleteIntensityExperiment = completeExperiment, output_folder =  ".")
+```
+
+## Compare logFC and Pvals between MassExpression and LFQprocessing
+
+```{r}
+expected_complete_new <- rowData(completeExperiment)
+expected_comparison_new_run <- rowData(comparisonExperiments[[1]])
+
+sum(!(out_data_bench$ProteinId %in% expected_complete_new$ProteinId))
+sum(!(out_data_bench$ProteinId %in% expected_comparison$ProteinId))
+sum(!(expected_complete_new$ProteinId %in% out_data_bench$ProteinId))
+sum(!(expected_comparison$ProteinId %in% out_data_bench$ProteinId))
+
+compare_new_run <- out_data_bench %>% left_join(as_tibble(expected_comparison_new_run))
+
+
+expected_diff_fc_maxquant <- compare_new_run$FC - compare_new_run$Disco_logFC.AZD8931_resistant_SKBR3_AZDRc...Parental_SKBR3
+
+expected_diff_pval_maxquant <- compare_new_run$P.Value - compare_new_run$Disco_P.Value.AZD8931_resistant_SKBR3_AZDRc...Parental_SKBR3
+
+data_bench_maxquant <- out_data_bench
+save(data_bench_maxquant, expected_diff_fc_maxquant, expected_diff_pval_maxquant, file = "../tests/data/HER2_maxquant_workflow.RData")
+```
+
+
+```{r}
+ggplot(compare_new_run, aes(x=FC, 
+                    y = `Disco_logFC.AZD8931_resistant_SKBR3_AZDRc...Parental_SKBR3`)) + 
+  geom_point() +
+  theme_bw() +
+  geom_smooth()+
+  ggtitle("Proteins used in pairwise comparison")
+```
+
+
+```{r}
+compare_new_run$NImpute <- compare_new_run$NImputed..Parental_SKBR3 + compare_new_run$NImputed..AZD8931_resistant_SKBR3_AZDRc
+ggplot(compare_new_run, aes(x=-log10(P.Value), 
+                    y = -log10(`Disco_P.Value.AZD8931_resistant_SKBR3_AZDRc...Parental_SKBR3`), colour=NImpute)) + 
+  geom_point() +
+  theme_bw() +
+  geom_smooth()+
+  scale_colour_viridis_c()+
+  ggtitle("using proteins used in pairwise comparison")
+```
+
+
+```{r}
+compare$diffPval <- (compare$Disco_P.Value.AZD8931_resistant_SKBR3_AZDRc...Parental_SKBR3 - compare$P.Value.AZD8931_resistant_SKBR3_AZDRc.Parental_SKBR3) > 0.001 
+table(compare$diffPval)
+```
+
+```{r}
+diff_true <- NULL
+for(diff in seq(0,1,0.001)){
+  compare$diffPval <- (compare$Disco_P.Value.AZD8931_resistant_SKBR3_AZDRc...Parental_SKBR3 - compare$P.Value.AZD8931_resistant_SKBR3_AZDRc.Parental_SKBR3) > diff
+  num <- ifelse(is.na(table(compare$diffPval)[2]), 0, as.numeric(table(compare$diffPval)[2]))
+  diff_true <-  c(diff_true, num)
+}
+
+plot(seq(0,1,0.001), diff_true)
+```
+
+
+```{r}
+compare$anyImpute <- compare$NImputed..Parental_SKBR3 + compare$NImputed..AZD8931_resistant_SKBR3_AZDRc > 0
+ggplot(compare, aes(x=`P.Value.AZD8931_resistant_SKBR3_AZDRc.Parental_SKBR3`, 
+                    y = `Disco_P.Value.AZD8931_resistant_SKBR3_AZDRc...Parental_SKBR3`, colour=anyImpute)) + 
+  geom_point() +
+  theme_bw() +
+  geom_smooth()
+```
+
+## Compare with data used for testings
+
+```{r}
+load("../tests/data/mq_lfq_output.Rdata")
+
+expected_complete <- rowData(expectedCompleteIntensityExperiment)
+data <- assay(expectedIntensityExperiment)
+
+expected_comparison <- rowData(expectedcomparisonExperiments[[1]])
+
+sum(!(out_data_bench$ProteinId %in% expected_complete$ProteinId))
+sum(!(expected_complete$ProteinId %in% out_data_bench$ProteinId))
+
+compare <- out_data_bench %>% left_join(as_tibble(expected_comparison))
+```
+
+### Compare test data with new run of MassExpression 
+
+```{r}
+expected_comparison_data <- expected_comparison[, c("P.Value", "FC","ProteinId")]
+expected_comparison_new_run_data <- expected_comparison_new_run[, c("P.Value", "FC", "ProteinId")]
+
+expected_comparison_data <- data.frame(expected_comparison_data) %>% dplyr::rename(P.Value_test = P.Value, 
+                                                                       FC_test = FC) %>%
+  left_join(data.frame(expected_comparison_new_run_data))
+
+plot(-log10(expected_comparison_data$P.Value), -log10(expected_comparison_data$P.Value_test))
+```
+
+
+```{r}
+p=ggplot(compare, aes(x=-log10(P.Value), 
+                    y = -log10(`Disco_P.Value.AZD8931_resistant_SKBR3_AZDRc...Parental_SKBR3`), label=ProteinId)) + 
+  geom_point() +
+  theme_bw() +
+  ggtitle("Test data: Using only proteins used in the comparison")
+
+ggplotly(p)
+```
+
+
+```{r}
+ggplot(compare, aes(x=FC, 
+                    y = `Disco_logFC.AZD8931_resistant_SKBR3_AZDRc...Parental_SKBR3`)) + 
+  geom_point() +
+  theme_bw() +
+  geom_smooth()+
+   ggtitle("Test data: Using only proteins used in the comparison")
+```
+
+
+# Compare steps
 
 - Initial intensities
 - Log2
@@ -96,33 +257,6 @@ ggplot(compare_initial, aes(x = MQstart_lfq.intensity.6_hu_p3, y = MEstart_lfq.i
 ```
 
 Initial data is the same. 
-
-
-## Compare results 2
-
-## Run MassExpression discovery
-
-```{r me-discovery}
-intensities <- input_gen$intensities
-design <- input_gen$design
-parameters <- input_gen$parameters
-normalisation_method <- parameters[parameters[,1] == "UseNormalisationMethod",2]
-species <- parameters[parameters[,1] == "Species",2]
-labellingMethod <- parameters[parameters[,1] == "LabellingMethod",2]
-
-
-results <- runGenericDiscovery(experimentDesign = design, 
-                               proteinIntensities = intensities, 
-                               normalisationMethod = normalisation_method, 
-                               species = species, 
-                               labellingMethod = labellingMethod)
-
-completeExperiment <- results$CompleteIntensityExperiment
-inten <- results$IntensityExperiment
-
-saveOutput(IntensityExperiment = inten, CompleteIntensityExperiment = completeExperiment, output_folder =  ".")
-```
-
 
 ## Exaclty before imputation
 
@@ -431,68 +565,6 @@ ggplot(compare_impute, aes(x = log2NIntNorm, y = log2NInt)) + geom_point()
 
 **ME worflow pre imputation**
 - Using the `log2NIntNorm` as int_type
-
-# Compare logFC and Pvals
-
-```{r}
-expected_complete_new <- rowData(completeExperiment)
-
-sum(!(out_data_bench$ProteinId %in% expected_complete_new$ProteinId))
-sum(!(expected_complete_new$ProteinId %in% out_data_bench$ProteinId))
-
-compare <- out_data_bench %>% left_join(as_tibble(expected_complete_new))
-```
-
-
-```{r}
-ggplot(compare, aes(x=`logFC.AZD8931_resistant_SKBR3_AZDRc.Parental_SKBR3`, 
-                    y = `Disco_logFC.AZD8931_resistant_SKBR3_AZDRc...Parental_SKBR3`)) + 
-  geom_point() +
-  theme_bw() +
-  geom_smooth()
-```
-```{r}
-ggplot(compare, aes(x=`P.Value.AZD8931_resistant_SKBR3_AZDRc.Parental_SKBR3`, 
-                    y = `Disco_P.Value.AZD8931_resistant_SKBR3_AZDRc...Parental_SKBR3`)) + 
-  geom_point() +
-  theme_bw() +
-  geom_smooth()
-```
-
-
-## Compare results
-
-
-```{r}
-load("../tests/data/mq_lfq_output.Rdata")
-
-expected_complete <- rowData(expectedCompleteIntensityExperiment)
-data <- assay(expectedIntensityExperiment)
-
-sum(!(out_data_bench$ProteinId %in% expected_complete$ProteinId))
-sum(!(expected_complete$ProteinId %in% out_data_bench$ProteinId))
-
-compare <- out_data_bench %>% left_join(as_tibble(expected_complete))
-```
-
-
-```{r}
-p=ggplot(compare, aes(x=-log10(`P.Value.AZD8931_resistant_SKBR3_AZDRc.Parental_SKBR3`), 
-                    y = -log10(`Disco_P.Value.AZD8931_resistant_SKBR3_AZDRc...Parental_SKBR3`), label=ProteinId)) + 
-  geom_point() +
-  theme_bw() 
-
-ggplotly(p)
-```
-
-
-```{r}
-ggplot(compare, aes(x=`logFC.AZD8931_resistant_SKBR3_AZDRc.Parental_SKBR3`, 
-                    y = `Disco_logFC.AZD8931_resistant_SKBR3_AZDRc...Parental_SKBR3`)) + 
-  geom_point() +
-  theme_bw() +
-  geom_smooth()
-```
 
 
 

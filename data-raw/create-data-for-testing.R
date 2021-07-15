@@ -28,4 +28,10 @@ save(expectedIntensityExperiment,
      file = file.path("../tests/data/mq_lfq_output.RData"))
 
 
+##########################
+# HER2 on Maxquant worflow
+##########################
+
+# test data created in dev/AQ-3.0-banchmark-MassExpression
+
 

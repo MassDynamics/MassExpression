@@ -136,12 +136,22 @@ test_comparisons_output <- function(complete_current, comparison_current){
     result = min(complete_current == comparison_current)
     expect_true(as.logical(result))
   })
-  
-  # test_that("intensities in comparison summarised experiments (SE) are as expected",{
-  #   result = min(comparison_expected == comparison_current)
-  #   expect_true(as.logical(result))
-  # })
 }
+
+test_concordance_maxquant_output <- function(current_diff_fc, expected_diff_fc, 
+                                             current_diff_pval, expected_diff_pval,
+                                             tolerance=10**-5){
+  test_that("logFC are not more different than a tolerance value",{
+    approx_same = all.equal(current_diff_fc, expected_diff_fc, tolerance = tolerance)
+    expect_true(approx_same)
+  })
+  
+  test_that("P.Values are not more different than a tolerance value",{
+    approx_same = all.equal(current_diff_pval, expected_diff_pval, tolerance = tolerance)
+    expect_true(approx_same)
+  })
+}
+
 
 ###########
 # Run tests
@@ -199,4 +209,15 @@ test_limma_output(current = currentCompleteIntensityExperiment,
 
 test_comparisons_output(complete_current = compare_me$Int,
                         comparison_current = compare_me$IntComp)
+
+# Compare with maxquant workflow
+load("../data/HER2_maxquant_workflow.RData")
+current_new_run <- data_bench_maxquant %>% left_join(as_tibble(rowData(currentcomparisonExperiments)))
+current_diff_fc_maxquant <- current_new_run$FC - current_new_run$Disco_logFC.AZD8931_resistant_SKBR3_AZDRc...Parental_SKBR3
+current_diff_pval_maxquant <- current_new_run$P.Value - current_new_run$Disco_P.Value.AZD8931_resistant_SKBR3_AZDRc...Parental_SKBR3
+
+test_concordance_maxquant_output(current_diff_fc = current_diff_fc_maxquant, 
+                                 expected_diff_fc = expected_diff_fc_maxquant, 
+                                 current_diff_pval = current_diff_pval_maxquant, 
+                                 expected_diff_pval = expected_diff_pval_maxquant)
 
