@@ -14,6 +14,8 @@ data(package="MassExpression")
 
 # Run example end-to-end
 
+Load data and run workflow with the runner `runGenericDiscovery`.
+
 ```{r fragpipe}
 library(MassExpression)
 
@@ -22,41 +24,58 @@ output_folder <- "path/to/output"
 design <- fragpipe_data$design
 intensities <- fragpipe_data$intensities
 
-# The flag should eventually come from the parameters file
-normalisation_method <- "None"
+intensities <- fragpipe_data$intensities
+design <- fragpipe_data$design
+parameters <- fragpipe_data$parameters
+normalisation_method <- parameters[parameters[,1] == "UseNormalisationMethod",2]
+species <- parameters[parameters[,1] == "Species",2]
+labellingMethod <- parameters[parameters[,1] == "LabellingMethod",2]
 
-listIntensityExperiments <- runGenericDiscovery(experimentDesign = design, 
-                                                proteinIntensities = intensities, 
-                                                NormalisationMethod = normalisation_method)
-                                                
-# Save output to folder
-Intensity <- listIntensityExperiments$IntensityExperiment
-CompleteIntensity <-  listIntensityExperiments$CompleteIntensityExperiment
-saveOutput(Intensity, CompleteIntensity, output_folder)
 
+results <- runGenericDiscovery(experimentDesign = design, 
+                               proteinIntensities = intensities, 
+                               normalisationMethod = normalisation_method, 
+                               species = species, 
+                               labellingMethod = labellingMethod)
+
+CompleteExperiment <- results$CompleteIntensityExperiment
+IntensityExperiment <- results$IntensityExperiment
+
+comparisonExperiments <- 
+    listComparisonExperiments(completeExperiment)
+  
+saveOutput(IntensityExperiment = IntensityExperiment, 
+CompleteIntensityExperiment = CompleteExperiment, output_folder =  output_folder)
+```
+
+Render QC
+
+```{r render-qc}
 # Render and save QC report 
 qc_report <- system.file("rmd","QC_report.Rmd", package = "MassExpression")
 
-# Redenr HTML
-rmarkdown::render(qc_report, 
+rmarkdown::render(qc_report,
                   params = list(listInt = listIntensityExperiments,
                                 experiment = "Mass Dynamics QC report",
-                                output_figure = file.path(output_folder, "figure_html/")),
-                  output_file = file.path(output_folder, "QC_report.html"),
+                                output_figure = file.path(output_folder, "figure_html/"),
+                                format = "html"),
+                  output_file = file.path(output_folder, "QC_Report.html"),
                   output_format=rmarkdown::html_document(
                             self_contained=FALSE,
                             lib_dir=file.path(output_folder,"qc_report_files"),
                             code_folding= "hide",
                             theme="united",
                             toc = TRUE,
+                            toc_float = TRUE,
                             fig_caption= TRUE,
                             df_print="paged"))
 # Render PDF
-rmarkdown::render(qc_report, 
+rmarkdown::render(qc_report,
                   params = list(listInt = listIntensityExperiments,
                                 experiment = "Mass Dynamics QC report",
-                                output_figure = file.path(output_folder, "figure_html/")),
-                  output_file = file.path(output_folder, "QC_report.pdf"),
+                                output_figure = file.path(output_folder_pdf, "figure_pdf/"),
+                                format = "pdf"),
+                  output_file = file.path(output_folder_pdf, "QC_Report.pdf"),
                   output_format=rmarkdown::pdf_document(
                     toc = TRUE,
                     fig_caption= TRUE))
@@ -65,8 +84,8 @@ rmarkdown::render(qc_report,
 
 
 
-`listIntensityExperiments` is a list containing two `SummarizedExperiment` objects:
-  - `IntensityExperiment`: contains the raw data (including missing values) and the results of the limma statistics (which can be accessed with `rowData(IntensityExperiment)`) 
+`results` is a list containing two `SummarizedExperiment` objects:
+  - `IntensityExperiment`: contains the raw data (including missing values)
   - `CompleteIntensityExperiment`: contains the imputed data and summary statistics about the number of replicates and imputed proteins in each group of the conditions of interest. 
 
 

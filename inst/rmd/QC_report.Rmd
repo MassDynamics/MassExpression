@@ -92,10 +92,13 @@ This QC Report is designed to help Scientists quickly assess the several aspect 
 design <- as_tibble(design)
 design <- design %>% tidyr::unite(SampleNameInPlots, Condition, Replicate, 
                                                       sep="_", remove=FALSE) %>%
-  dplyr::select(-Replicate, SampleName, Condition, SampleNameInPlots, everything())
+  dplyr::select(-Replicate, everything())
+
+design <- design %>% dplyr::select(SampleName, Condition, 
+                SampleNameInPlots, everything())
   
 
-knitr::kable(as_tibble(design), row.names = FALSE) 
+knitr::kable(design, row.names = FALSE) 
   #%>%
   #kableExtra::kable_classic(full_width = FALSE)
 #}else{
