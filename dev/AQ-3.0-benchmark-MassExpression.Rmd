@@ -73,6 +73,9 @@ normalisation_method <- parameters[parameters[,1] == "UseNormalisationMethod",2]
 species <- parameters[parameters[,1] == "Species",2]
 labellingMethod <- parameters[parameters[,1] == "LabellingMethod",2]
 
+#intensities <- read_delim("../data-private/protein_intensities.tsv", delim = "\t")
+#design <- read_delim("../data-private/experiment_design.tsv", delim = "\t")
+#parameters <- read_delim("../data-private/parameters.tsv", delim = "\t")
 
 results <- runGenericDiscovery(experimentDesign = design, 
                                proteinIntensities = intensities, 
