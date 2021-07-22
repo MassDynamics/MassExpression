@@ -9,18 +9,18 @@
 runLimmaPipeline <- function(IntensityExperiment, normalisationMethod){
   
   print("Starting DE with limma...")
-  
+
   longIntensityDT <- initialiseLongIntensityDT(IntensityExperiment)
   # Create valid condition names
-  encodedCondition <- condition_name_encoder(dt = longIntensityDT, 
+  encodedCondition <- condition_name_encoder(dt = longIntensityDT,
                                             condition_col_name = "Condition")
   longIntensityDT <- encodedCondition$dt
   conditionsDict <- encodedCondition$conditionsDict
-  
+
   # Create Median Normalized Measurements in each Condition/Replicate
   longIntensityDT <- normaliseIntensity(longIntensityDT=longIntensityDT,
                                         normalisationMethod=normalisationMethod)
-  
+
   # Imputation
   longIntensityDT <- imputeLFQ(longIntensityDT, 
                          id_type = "ProteinId", 
@@ -39,13 +39,14 @@ runLimmaPipeline <- function(IntensityExperiment, normalisationMethod){
                                    run_id_col_name = "RunId",
                                    rep_col_name = "Replicate",
                                    funDT = longIntensityDT)
-  stats = resultsQuant[["stats"]]
-  conditionComparisonMapping = resultsQuant[["conditionComparisonMapping"]]
+  statsOneModel <- resultsQuant[['statsOneModel']]
+  stats <- resultsQuant[["stats"]]
+  conditionComparisonMapping <- resultsQuant[["conditionComparisonMapping"]]
   
   conditionComparisonMapping <- condition_name_decode_comparison_mapping(dt = conditionComparisonMapping, dict=conditionsDict)
   longIntensityDT <- condition_name_decode_intensity_data(dt=longIntensityDT, dict=conditionsDict)
   stats <- condition_name_decode_limma_table(dt=stats, dict=conditionsDict)
-  
+
   print("Limma analysis completed. Creating output summarized experiment...")
   
   # SummarizedExperiment which contains the complete essay with imputed data and statistics
@@ -55,12 +56,10 @@ runLimmaPipeline <- function(IntensityExperiment, normalisationMethod){
                                                                    normalisationAppliedToAssay = normalisationMethod,
                                                                    longIntensityDT = longIntensityDT,
                                                                    conditionComparisonMapping = conditionComparisonMapping)
-  
-  ## 
-  #saveRDS(longIntensityDT, "../../check_imputation_steps/longIntensityDT_ME_before_create_final.rds")
-  
+
   list(IntensityExperiment=IntensityExperiment,
-       CompleteIntensityExperiment=CompleteIntensityExperiment)
+       CompleteIntensityExperiment=CompleteIntensityExperiment,
+       statsOneModel = statsOneModel)
 }
 
 

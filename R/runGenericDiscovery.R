@@ -30,8 +30,8 @@ runGenericDiscovery <- function(experimentDesign, proteinIntensities,
                                 normalisationMethod="None", species, labellingMethod){
   
   print("Starting generic discovery...")
-  
-  listMetadata <- list(Species = species, 
+
+  listMetadata <- list(Species = species,
                        LabellingMethod = labellingMethod, 
                        NormalisationAppliedToAssay = "None")
   
@@ -43,12 +43,9 @@ runGenericDiscovery <- function(experimentDesign, proteinIntensities,
   # Get Binary Statistic Comparisons and complete experiment containinig imputed Protein Intensity
   results <- runLimmaPipeline(IntensityExperiment,
                               normalisationMethod=normalisationMethod)
-  
-  CompleteIntensityExperiment <- results$CompleteIntensityExperiment
-  IntensityExperiment <- results$IntensityExperiment
-  
+
   print("Workflow completed.")
-  
+
   return(results)
 
 }

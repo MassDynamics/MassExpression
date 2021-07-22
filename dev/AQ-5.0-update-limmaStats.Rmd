@@ -1,0 +1,295 @@
+---
+title: "Update and benchmark limmaStatsFun"
+output:
+  html_document:
+    code_folding: hide
+    theme: united
+    toc: yes
+    fig_caption: yes
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(MassExpression)
+```
+
+
+```{r}
+multiTestMethod = "separate"
+```
+
+
+
+```{r comparison-stats}
+comparison_stats <- function(dt){
+  dt[is.na(dt)] <- "NA"
+  
+  perc_different <- sum(dt$one != dt$separate)/nrow(dt)
+  new_disc_in_anova <- sum(dt$one %in% c("-1","1") & dt$separate %in% "0")/nrow(dt)
+  missed_disc_in_anova <- sum(dt$one %in% c("0") & dt$separate %in% c("-1","1"))/nrow(dt)
+  changed_sign <- (sum(dt$one %in% c("-1") & dt$separate == c("1")) + sum(dt$one %in% c("1") & dt$separate %in% c("-1")))/nrow(dt)
+  prot_retained <- sum(dt$one != "NA" & dt$separate == "NA")/nrow(dt)
+  prot_missed <- sum(dt$one == "NA" & dt$separate != "NA")/nrow(dt)
+  
+  stats_df <- data.frame(perc_different=perc_different,
+       new_disc_in_single=new_disc_in_anova,
+       missed_disc_in_single=round(missed_disc_in_anova,10),
+       changed_sign=changed_sign,
+       prot_retained_in_single=prot_retained,
+       prot_missed_in_single=prot_missed)
+  
+  return(stats_df)
+}
+```
+
+
+# pd_iPRG_data
+
+```{r run-me}
+design <- pd_iPRG_data$design
+intensity <- pd_iPRG_data$intensities
+param <- pd_iPRG_data$parameters
+normalisation_method <- param[param[,1] == "UseNormalisationMethod",2]
+species <- param[param[,1] == "Species",2]
+labellingMethod <- param[param[,1] == "LabellingMethod",2]
+
+results <- runGenericDiscovery(experimentDesign = design, 
+                               proteinIntensities = intensity, 
+                               normalisationMethod = normalisation_method, 
+                               species = species, 
+                               labellingMethod = labellingMethod, 
+                               multiTestMethod = multiTestMethod)
+
+# Single comparisons
+CompleteExperiment <- results$CompleteIntensityExperiment
+IntensityExperiment <- results$IntensityExperiment
+single_stats <- data.frame(rowData(CompleteExperiment))
+anova_stats <- results$statsANOVA
+```
+
+
+```{r combine-results}
+colnames(single_stats)[4:length(colnames(single_stats))] <- paste0("sep.",colnames(single_stats)[4:length(colnames(single_stats))])
+colnames(anova_stats)[2:length(colnames(anova_stats))] <- paste0("one.",colnames(anova_stats)[2:length(colnames(anova_stats))])
+logfcs_sep <- colnames(single_stats)[grep("logFC|P.Value.|decide_", colnames(single_stats))]
+logfcs_one <- colnames(anova_stats)[grep("logFC|P.Value.|decide_", colnames(anova_stats))]
+combine_stats <- single_stats[,c("ProteinId",logfcs_sep)] %>% 
+  left_join(anova_stats[,c("ProteinId",logfcs_one)])
+
+colnames(combine_stats) <- gsub("condition","", colnames(combine_stats))
+```
+
+
+```{r}
+# 12
+indat <- data.frame(separate = combine_stats$sep.decide_sample1.sample2, 
+                    one=combine_stats$one.decide_sample1.sample2) 
+sample12 <- comparison_stats(indat)[1,] *100
+
+# 13
+indat <- data.frame(separate = combine_stats$sep.decide_sample1.sample3, 
+                    one=combine_stats$one.decide_sample1.sample3) 
+sample13 <- comparison_stats(indat)[1,] *100
+
+# 14
+indat <- data.frame(separate = combine_stats$sep.decide_sample1.sample4, 
+                    one=combine_stats$one.decide_sample1.sample4) 
+sample14 <- comparison_stats(indat)[1,] *100
+
+# 23
+indat <- data.frame(separate = combine_stats$sep.decide_sample2.sample3, 
+                    one=combine_stats$one.decide_sample2.sample3) 
+sample23 <- comparison_stats(indat)[1,] *100
+
+# 24
+indat <- data.frame(separate = combine_stats$sep.decide_sample2.sample4, 
+                    one=combine_stats$one.decide_sample2.sample4) 
+sample24 <- comparison_stats(indat)[1,] *100
+
+#34
+indat <- data.frame(separate = combine_stats$sep.decide_sample3.sample4, 
+                    one=combine_stats$one.decide_sample3.sample4) 
+sample34 <- comparison_stats(indat)[1,] *100
+
+combine_sample_stats <- bind_rows(sample12, sample13, sample14, sample23, sample24, sample34) %>%
+  mutate(comparison = c("1vs2","1vs3", "1vs4","2vs3","2vs4","3vs4")) %>%
+  pivot_longer(cols = perc_different:prot_missed_in_single, names_to = "Stat", values_to = "Perc")
+```
+
+
+```{r}
+lgfc_col <- colnames(combine_stats)[grep(".P.Value.", colnames(combine_stats))]
+logfc_df <- combine_stats[,lgfc_col]
+
+annotation_col <- data.frame(model = sapply(1:ncol(logfc_df), function(x) substr(lgfc_col[x], 1, 3)),
+                             comparison = sapply(1:ncol(logfc_df), function(x) gsub("sep.P.Value.|one.P.Value.","", lgfc_col[x])))
+rownames(annotation_col) <- colnames(logfc_df)
+
+pheatmap::pheatmap(logfc_df[rowSums(is.na(logfc_df)) ==0, ], annotation_col = annotation_col, main="Pvals - iRPG")
+```
+
+
+```{r}
+ggplot(combine_sample_stats, aes(x = Stat, y = Perc, colour = comparison)) + geom_point(size=1.5) + theme_bw() + coord_flip() + ggtitle("pd_iPRG_data")
+```
+
+# HER2
+
+```{r run-me-mq}
+design <- mq_lfq_data$design
+intensity <- mq_lfq_data$intensities
+param <- mq_lfq_data$parameters
+normalisation_method <- param[param[,1] == "UseNormalisationMethod",2]
+species <- param[param[,1] == "Species",2]
+labellingMethod <- param[param[,1] == "LabellingMethod",2]
+
+results <- runGenericDiscovery(experimentDesign = design, 
+                               proteinIntensities = intensity, 
+                               normalisationMethod = normalisation_method, 
+                               species = species, 
+                               labellingMethod = labellingMethod, 
+                               multiTestMethod = multiTestMethod)
+
+# Single comparisons
+CompleteExperiment <- results$CompleteIntensityExperiment
+IntensityExperiment <- results$IntensityExperiment
+single_stats <- data.frame(rowData(CompleteExperiment))
+anova_stats <- results$statsANOVA
+```
+
+
+```{r combine-results-mq}
+colnames(single_stats)[4:length(colnames(single_stats))] <- paste0("sep.",colnames(single_stats)[4:length(colnames(single_stats))])
+colnames(anova_stats)[2:length(colnames(anova_stats))] <- paste0("one.",colnames(anova_stats)[2:length(colnames(anova_stats))])
+logfcs_sep <- colnames(single_stats)[grep("logFC|P.Value.|decide_", colnames(single_stats))]
+logfcs_one <- colnames(anova_stats)[grep("logFC|P.Value.|decide_", colnames(anova_stats))]
+combine_stats <- single_stats[,c("ProteinId",logfcs_sep)] %>% 
+  left_join(anova_stats[,c("ProteinId",logfcs_one)])
+
+colnames(combine_stats) <- gsub("condition","", colnames(combine_stats))
+```
+
+**Exactly the same because we only have one comparison**
+
+```{r}
+# 12
+indat <- data.frame(separate = combine_stats$sep.decide_AZD8931_resistant_SKBR3_AZDRc.Parental_SKBR3, 
+                    one=combine_stats$one.decide_AZD8931_resistant_SKBR3_AZDRc.Parental_SKBR3) 
+comparison_stats(indat)[1,] *100
+```
+
+
+# Fragpipe
+
+```{r run-me-fragpipe}
+design <- fragpipe_data$design
+intensity <- fragpipe_data$intensities
+param <- fragpipe_data$parameters
+normalisation_method <- param[param[,1] == "UseNormalisationMethod",2]
+species <- param[param[,1] == "Species",2]
+labellingMethod <- param[param[,1] == "LabellingMethod",2]
+
+results <- runGenericDiscovery(experimentDesign = design, 
+                               proteinIntensities = intensity, 
+                               normalisationMethod = normalisation_method, 
+                               species = species, 
+                               labellingMethod = labellingMethod, 
+                               multiTestMethod = multiTestMethod)
+
+# Single comparisons
+CompleteExperiment <- results$CompleteIntensityExperiment
+IntensityExperiment <- results$IntensityExperiment
+single_stats <- data.frame(rowData(CompleteExperiment))
+anova_stats <- results$statsANOVA
+```
+
+
+```{r combine-results-fragpipe}
+colnames(single_stats)[4:length(colnames(single_stats))] <- paste0("sep.",colnames(single_stats)[4:length(colnames(single_stats))])
+colnames(anova_stats)[2:length(colnames(anova_stats))] <- paste0("one.",colnames(anova_stats)[2:length(colnames(anova_stats))])
+logfcs_sep <- colnames(single_stats)[grep("logFC|P.Value.|decide_", colnames(single_stats))]
+logfcs_one <- colnames(anova_stats)[grep("logFC|P.Value.|decide_", colnames(anova_stats))]
+combine_stats <- single_stats[,c("ProteinId",logfcs_sep)] %>% 
+  left_join(anova_stats[,c("ProteinId",logfcs_one)])
+
+colnames(combine_stats) <- gsub("condition","", colnames(combine_stats))
+```
+
+**Exactly the same because we only have one comparison**
+
+```{r}
+# control-recurrence
+indat <- data.frame(separate = combine_stats$sep.decide_control.recurrence, 
+                    one=combine_stats$one.decide_control.recurrence) 
+cont_rec <- comparison_stats(indat)[1,] *100
+
+# control-remission
+indat <- data.frame(separate = combine_stats$sep.decide_control.remission, 
+                    one=combine_stats$one.decide_control.remission) 
+cont_rem <- comparison_stats(indat)[1,] *100
+
+# control-ulcer
+indat <- data.frame(separate = combine_stats$sep.decide_control.ulcer, 
+                    one=combine_stats$one.decide_control.ulcer) 
+cont_ulcer <- comparison_stats(indat)[1,] *100
+
+# recurrence-remision
+indat <- data.frame(separate = combine_stats$sep.decide_recurrence.remission, 
+                    one=combine_stats$one.decide_recurrence.remission) 
+rec_rem <- comparison_stats(indat)[1,] *100
+
+# recurrence-remision
+indat <- data.frame(separate = combine_stats$sep.decide_recurrence.ulcer, 
+                    one=combine_stats$one.decide_recurrence.ulcer) 
+rec_ulc <- comparison_stats(indat)[1,] *100
+
+# remission-ulcer
+indat <- data.frame(separate = combine_stats$sep.decide_remission.ulcer, 
+                    one=combine_stats$one.decide_remission.ulcer) 
+rem_ulc <- comparison_stats(indat)[1,] *100
+
+
+combine_sample_stats <- bind_rows(cont_rec, cont_rem, cont_ulcer, rec_rem, rec_ulc, rem_ulc) %>%
+  mutate(comparison = c("cont_rec","cont_rem", "cont_ulcer","rec_rem","rec_ulc","rem_ulc")) %>%
+  pivot_longer(cols = perc_different:prot_missed_in_single, names_to = "Stat", values_to = "Perc")
+```
+
+
+
+```{r}
+ggplot(combine_sample_stats, aes(x = Stat, y = Perc, colour = comparison)) + geom_point(size=1.5) + theme_bw() + coord_flip() + ggtitle("fragpipe_data")
+```
+
+
+## Scatterplots
+
+```{r}
+lgfc_col <- colnames(combine_stats)[grep(".logFC.", colnames(combine_stats))]
+logfc_df <- combine_stats[,lgfc_col]
+pheatmap::pheatmap(logfc_df[rowSums(is.na(logfc_df)) ==0, ])
+```
+
+
+# Marks data
+
+```{r}
+library(readr)
+design <- read_delim("~/Projects/MD/user-data/thermo-diann/new-test/experiment_design.tsv", delim="\t")
+intensity <- read_delim("~/Projects/MD/user-data/thermo-diann/new-test/protein_intensities.tsv", delim="\t")
+param <- read_delim("~/Projects/MD/user-data/thermo-diann/new-test/parameters.tsv", delim="\t")
+normalisation_method <- param[param[,1] == "UseNormalisationMethod",2]
+species <- param[param[,1] == "Species",2]
+labellingMethod <- param[param[,1] == "LabellingMethod",2]
+
+results <- runGenericDiscovery(experimentDesign = design, 
+                               proteinIntensities = intensity, 
+                               normalisationMethod = normalisation_method, 
+                               species = species, 
+                               labellingMethod = labellingMethod, 
+                               multiTestMethod = multiTestMethod)
+```
+

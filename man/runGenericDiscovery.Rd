@@ -9,7 +9,8 @@ runGenericDiscovery(
   proteinIntensities,
   normalisationMethod = "None",
   species,
-  labellingMethod
+  labellingMethod,
+  multiTestMethod = "separate"
 )
 }
 \arguments{

@@ -13,7 +13,8 @@ limmaStatsFun(
   rep_col_name,
   funDT,
   pairwise.comp = NULL,
-  all.comparisons = TRUE
+  all.comparisons = TRUE,
+  multiTestMethod = multiTestMethod
 )
 }
 \description{
