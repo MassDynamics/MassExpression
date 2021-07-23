@@ -14,7 +14,7 @@
 #' @importFrom dplyr left_join as_tibble
 
 SEToLongDT <- function(IntensityExperiment){
-  wide <- data.frame(assay(IntensityExperiment))
+  wide <- as_tibble(assay(IntensityExperiment))
   wide$ProteinId <- rowData(IntensityExperiment)$ProteinId
   long <- wide %>% pivot_longer(cols = all_of(colnames(assay(IntensityExperiment))), 
                                 names_to = "SampleName", 
