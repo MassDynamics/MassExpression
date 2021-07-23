@@ -50,6 +50,7 @@ ensure_package_installed_with_version("Hmisc", '4.5-0', repos = "http://cran.rst
 ensure_package_installed_with_version("corrplot", '0.90', repos = "http://cran.rstudio.com/")
 ensure_package_installed_with_version("DT", '0.18', repos = "http://cran.rstudio.com/")
 ensure_package_installed_with_version("Rcpp", '1.0.7', repos = "http://cran.rstudio.com/")
+ensure_package_installed_with_version("RcppArmadillo", '0.10.6.0.0', repos = "http://cran.rstudio.com/")
 ensure_package_installed_with_version("readr", '2.0.0', repos = "http://cran.rstudio.com/")
 
 #### Install packages Bioconductor
