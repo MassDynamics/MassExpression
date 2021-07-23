@@ -1,11 +1,6 @@
 ---
 title: "Mass Dynamics Quality Control Report"
 output:
-  pdf_document:
-    toc: yes
-    toc_depth: 3
-    fig_caption: false
-    latex_engine: lualatex
   html_document:
     code_folding: hide
     theme: united
@@ -13,6 +8,11 @@ output:
     fig_caption: yes
     lib_dir: qc_report_files
     df_print: paged
+  pdf_document:
+    toc: yes
+    toc_depth: 3
+    fig_caption: false
+    latex_engine: lualatex
   always_allow_html: true
 params:
   listInt: empty
@@ -91,11 +91,7 @@ This QC Report is designed to help Scientists quickly assess the several aspect 
 
 ```{r experimental-design, eval=TRUE, warning=FALSE, echo=FALSE, error=FALSE, message=FALSE, results='asis'}
 design <- as_tibble(design)
-
-if (params$format == "pdf"){
-  design$SampleName <- make.names(design$SampleName)
-} 
-
+design$SampleName <- make.names(design$SampleName)
 design <- design %>% tidyr::unite(SampleNameInPlots, Condition, Replicate, 
                                                       sep="_", remove=FALSE) %>%
   dplyr::select(-Replicate, everything())

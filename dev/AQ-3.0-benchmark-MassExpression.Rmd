@@ -592,5 +592,56 @@ ggplot(compare_me, aes(x=`saved_logFC.AZD8931_resistant_SKBR3_AZDRc.Parental_SKB
 ```
 
 
-# Enrichment
+# Marks data
+
+
+```{r}
+intensi <- read_delim("~/Downloads/report.pg_matrix (1).tsv", delim = "\t")
+#intensi <- intensi %>% tidyr::separate(Protein.Group, into = "ProteinId", sep=";")
+intensi <- intensi %>% rename(ProteinId = Protein.Group)
+intensi <- intensi %>% dplyr::select(ProteinId, Genes,First.Protein.Description, ends_with(".raw")) %>%
+  dplyr::rename(Description = First.Protein.Description, 
+                GeneName = Genes)
+mat_int <- intensi[,4:ncol(intensi)]
+
+head(intensi)
+mat_int[is.na(mat_int)] <- 0
+
+intensi <- cbind(intensi[,1:3], mat_int)
+write_delim(intensi, "~/Projects/MD/user-data/thermo-diann/new-test/protein_intensities.tsv", delim="\t")
+```
+
+
+```{r}
+library(readr)
+library(MassExpression)
+library(tidyverse)
+design <- read_delim("~/Projects/MD/user-data/thermo-diann/new-test/experiment_design.tsv", delim="\t", col_names = TRUE)
+design$Condition <- gsub("-",".",design$Condition)
+write_delim(design, "~/Projects/MD/user-data/thermo-diann/new-test/experiment_design.tsv", delim="\t", col_names = TRUE)
+
+intensity <- read_delim("~/Projects/MD/user-data/thermo-diann/new-test/protein_intensities.tsv", delim="\t", col_names = TRUE)
+#intensity1 <- intensity[!(intensity$ProteinId %in% "A0A1B0GTU1" & intensity$`F:\\Thermo-example-data\\DIA-NN\\04172020_A1_DIA_Rep1.raw` == 0),]
+param <- read_delim("~/Projects/MD/user-data/thermo-diann/new-test/parameters.tsv", delim="\t", col_names = FALSE)
+
+# param$X2[param$X1 %in% "Species"] <- "Other"
+# param$X2[param$X1 %in% "UseNormalisationMethod"] <- "None"
+# write_delim(param, "~/Projects/MD/user-data/thermo-diann/new-test/parameters.tsv", delim="\t", col_names = FALSE)
+
+
+normalisation_method <- param$X2[param$X1 == "UseNormalisationMethod"]
+species <- param$X2[param$X1 ==  "Species"]
+labellingMethod <- param$X2[param$X1 == "LabellingMethod"]
+
+results <- runGenericDiscovery(experimentDesign = design, 
+                               proteinIntensities = intensity, 
+                               normalisationMethod = normalisation_method, 
+                               species = species, 
+                               labellingMethod = labellingMethod)
+
+CompleteIntensityExperiment <- results$CompleteIntensityExperiment
+IntensityExperiment <- results$IntensityExperiment
+design <- colData(IntensityExperiment)
+
+```
 
