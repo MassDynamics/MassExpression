@@ -489,7 +489,7 @@ plot_imputed_vs_not <- function(CompleteIntensityExperiment, byCondition=FALSE){
                                    colour = Imputed)) +
     geom_density(alpha=0.4) +
     theme_minimal() +
-    ggtitle("Intensity (Imputed vs Not)") +
+    ggtitle("Intensity (Imputed vs Actual)") +
     labs(x = "Log2 Intensity")
   
   if(byCondition){

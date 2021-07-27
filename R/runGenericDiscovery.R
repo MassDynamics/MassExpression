@@ -29,6 +29,8 @@
 runGenericDiscovery <- function(experimentDesign, proteinIntensities, 
                                 normalisationMethod="None", species, labellingMethod){
   
+  print("Starting generic discovery...")
+  
   listMetadata <- list(Species = species, 
                        LabellingMethod = labellingMethod, 
                        NormalisationAppliedToAssay = "None")
@@ -44,6 +46,8 @@ runGenericDiscovery <- function(experimentDesign, proteinIntensities,
   
   CompleteIntensityExperiment <- results$CompleteIntensityExperiment
   IntensityExperiment <- results$IntensityExperiment
+  
+  print("Workflow completed.")
   
   return(results)
 

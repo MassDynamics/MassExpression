@@ -73,6 +73,7 @@ limmaStatsFun <- function(ID_type,
     condition = get(condition_col_name),
     Replicate = get(rep_col_name)
   )]))
+  #sample_dt$condition <- make.names(sample_dt$condition)
   rownames(sample_dt) <- sample_dt$run_id
   
   

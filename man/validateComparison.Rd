@@ -4,7 +4,7 @@
 \alias{validateComparison}
 \title{This is a simple check to validate the intensity/cls vector match the statistics}
 \usage{
-validateComparison(rse)
+validateComparison(rse, comparison)
 }
 \description{
 This is a simple check to validate the intensity/cls vector match the statistics

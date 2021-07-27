@@ -15,15 +15,21 @@ createCompleteIntensityExperiment <- function(IntensityExperiment,
                                               longIntensityDT, 
                                               conditionComparisonMapping){
   
+  #########
+  # 1. Create intensity matrix and mask of imputed data
+  #########
+  
   # replace Intensity with missing values to normalized log scale with imputed values
   wideIntensityDT <- longIntensityDT %>% tidyr::pivot_wider(id_cols = "ProteinId", 
                                                      names_from = "SampleName", 
-                                                     values_from = "log2NIntNorm")
+                                                     values_from = "log2NIntNorm") %>%
+    mutate(ProteinId = forcats::fct_reorder(ProteinId, rownames(IntensityExperiment)))
   
   # Mask of imputed data
   wideImputedDT <- longIntensityDT %>% tidyr::pivot_wider(id_cols = "ProteinId", 
                                                             names_from = "SampleName", 
-                                                            values_from = "Imputed")
+                                                            values_from = "Imputed")%>%
+    mutate(ProteinId = forcats::fct_reorder(ProteinId, rownames(IntensityExperiment)))
   
   intensityMatrixWide <- wideIntensityDT %>% dplyr::select(-ProteinId)
   intensityMatrixWide <- as.matrix(intensityMatrixWide)
@@ -33,16 +39,32 @@ createCompleteIntensityExperiment <- function(IntensityExperiment,
   imputedMatrixWide <- as.matrix(imputedMatrixWide)
   rownames(imputedMatrixWide) <- wideImputedDT$ProteinId
 
+  # Order coldata
+  intensityMatrixWide <- intensityMatrixWide[, colnames(IntensityExperiment)]
+  imputedMatrixWide <- imputedMatrixWide[,colnames(IntensityExperiment)]
+  
+  #########
+  # 2. Create Create metadata
+  #########
   metadataComplete <- metadata(IntensityExperiment)
   metadataComplete$NormalisationAppliedToAssay <- normalisationAppliedToAssay
   
-  # Join limma stats, imputed and replicate counts
+  #########
+  # 3. Join limma stats, imputed and replicate counts
+  #########
   imputedCounts <- computeImputedCounts(longIntensityDT)
   replicateCounts <- computeReplicateCounts(longIntensityDT)
   
   rowDataComplete <- data.frame(rowData(IntensityExperiment)) %>% left_join(limmaStats)
   rowDataComplete <- rowDataComplete %>% left_join(imputedCounts) 
   rowDataComplete <- rowDataComplete %>% left_join(replicateCounts)
+
+  
+  #########
+  # 4. Create final summaized experiment
+  #########
+  # Validate data for summarised experiments
+  .validateInputCompleteExperiment(rowDataComplete, IntensityExperiment, intensityMatrixWide, imputedMatrixWide)
   
   CompleteIntensityExperiment <- SummarizedExperiment(assays = SimpleList(intensities = intensityMatrixWide, 
                                                                           imputedMask = imputedMatrixWide),
@@ -54,4 +76,23 @@ createCompleteIntensityExperiment <- function(IntensityExperiment,
   metadata(CompleteIntensityExperiment)$conditionComparisonMapping <- conditionComparisonMapping
   
   return(CompleteIntensityExperiment)
+}
+
+
+
+.validateInputCompleteExperiment <- function(rowDataComplete, IntensityExperiment, intensityMatrixWide, imputedMatrixWide){
+  
+  protRowInt <- sum(rowDataComplete$ProteinId != rownames(intensityMatrixWide)) == 0
+  protRowImp <- sum(rowDataComplete$ProteinId != rownames(imputedMatrixWide)) == 0
+  colInt <- sum(colData(IntensityExperiment)$SampleName != colnames(intensityMatrixWide)) == 0
+  colImp <- sum(colData(IntensityExperiment)$SampleName != colnames(imputedMatrixWide)) == 0
+  
+  if(!protRowInt | !protRowImp){
+    stop("Cannot create CompleteIntensityExperiment: ProteinId ordering of intensities and protein features is not the same.")
+  }
+  
+  if(!colInt | !colImp){
+    stop("Cannot create CompleteIntensityExperiment: colnames order of intensities and coldata is not the same.")
+  }
+  
 }

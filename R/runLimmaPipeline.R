@@ -8,13 +8,18 @@
 
 runLimmaPipeline <- function(IntensityExperiment, normalisationMethod){
   
+  print("Starting DE with limma...")
+  
   longIntensityDT <- initialiseLongIntensityDT(IntensityExperiment)
+  # Create valid condition names
+  encodedCondition <- condition_name_encoder(dt = longIntensityDT, 
+                                            condition_col_name = "Condition")
+  longIntensityDT <- encodedCondition$dt
+  conditionsDict <- encodedCondition$conditionsDict
   
   # Create Median Normalized Measurements in each Condition/Replicate
   longIntensityDT <- normaliseIntensity(longIntensityDT=longIntensityDT,
                                         normalisationMethod=normalisationMethod)
-  
-  #saveRDS(longIntensityDT, "data-raw/longIntensityDT_preImp.rds")
   
   # Imputation
   longIntensityDT <- imputeLFQ(longIntensityDT, 
@@ -24,7 +29,7 @@ runLimmaPipeline <- function(IntensityExperiment, normalisationMethod){
                          f_imputePosition= 1.8)
 
   
-  # RunId will be unique to a row wherease replicate may not
+  # RunId will be unique to a row wheraes replicate may not
   longIntensityDT[, RunId := str_c(Condition, Replicate, sep = ".")]
   
   # Run LIMMA
@@ -37,9 +42,11 @@ runLimmaPipeline <- function(IntensityExperiment, normalisationMethod){
   stats = resultsQuant[["stats"]]
   conditionComparisonMapping = resultsQuant[["conditionComparisonMapping"]]
   
-  # data used for DE analysis - filtered, imputed, normalised
-  # eset not used for now but would be good to produce stats QC related to limma: variance plots
-  # eset = resultsQuant[["eset"]]
+  conditionComparisonMapping <- condition_name_decode_comparison_mapping(dt = conditionComparisonMapping, dict=conditionsDict)
+  longIntensityDT <- condition_name_decode_intensity_data(dt=longIntensityDT, dict=conditionsDict)
+  stats <- condition_name_decode_limma_table(dt=stats, dict=conditionsDict)
+  
+  print("Limma analysis completed. Creating output summarized experiment...")
   
   # SummarizedExperiment which contains the complete essay with imputed data and statistics
   # about the number of proteins imputed in each condition 

@@ -1,14 +1,19 @@
-# MassExpression
+MassExpression
+================
 
-Universal Imports + High Quality QC + Differential Expression Analysis = Awesomeness. 
+[![Codecov test
+coverage](https://codecov.io/gh/https://github.com/MassDynamics/MassExpression/branch/main/graph/badge.svg)](https://codecov.io/gh/https://github.com/MassDynamics/MassExpression?branch=main)
+
+Universal Imports + High Quality QC + Differential Expression Analysis =
+Awesomeness.
 
 ## Download sample data
 
-aws s3 sync s3://md-test-experiments/universal-input/data-formats/ . 
+aws s3 sync s3://md-test-experiments/universal-input/data-formats/ .
 
-## RData available in the package for testing 
+## RData available in the package for testing
 
-```{r}
+``` r
 data(package="MassExpression")
 ```
 
@@ -16,7 +21,7 @@ data(package="MassExpression")
 
 Load data and run workflow with the runner `runGenericDiscovery`.
 
-```{r fragpipe}
+``` r
 library(MassExpression)
 
 output_folder <- "path/to/output"
@@ -48,9 +53,9 @@ saveOutput(IntensityExperiment = IntensityExperiment,
 CompleteIntensityExperiment = CompleteExperiment, output_folder =  output_folder)
 ```
 
-Render QC
+# Render QC
 
-```{r render-qc}
+``` r
 # Render and save QC report 
 qc_report <- system.file("rmd","QC_report.Rmd", package = "MassExpression")
 
@@ -81,68 +86,73 @@ rmarkdown::render(qc_report,
                     fig_caption= TRUE))
 ```
 
-
-
-
-`results` is a list containing two `SummarizedExperiment` objects:
-  - `IntensityExperiment`: contains the raw data (including missing values)
-  - `CompleteIntensityExperiment`: contains the imputed data and summary statistics about the number of replicates and imputed proteins in each group of the conditions of interest. 
-
+`results` is a list containing two `SummarizedExperiment` objects: -
+`IntensityExperiment`: contains the raw data (including missing values)
+- `CompleteIntensityExperiment`: contains the imputed data and summary
+statistics about the number of replicates and imputed proteins in each
+group of the conditions of interest.
 
 # Outputs
 
-The MassExpression package should produce outputs in several different formats, each serving a different purpose:
+The MassExpression package should produce outputs in several different
+formats, each serving a different purpose:
 
-1. Results Tables (these are standard human readable tables with parsed/transformed data, processed data and statistics)
-2. JSON Objects. (these are designed as inputs to a RAILS database for internal MD use)
-    a. protein_viz.json (this is the data required for the volcano plot analysis feature. It is the LIMMA statistics for each binary comparison).
-    b. protein_counts_and_intensities.json (this is the protein intensities in long form broken down by each protein/experimental condition with associate statistics and imputation flag.)
-3. .RData object (this is a catchall for experiment data we want to )
+1.  Results Tables (these are standard human readable tables with
+    parsed/transformed data, processed data and statistics)
+2.  JSON Objects. (these are designed as inputs to a RAILS database for
+    internal MD use)
+    1.  protein\_viz.json (this is the data required for the volcano
+        plot analysis feature. It is the LIMMA statistics for each
+        binary comparison).
+    2.  protein\_counts\_and\_intensities.json (this is the protein
+        intensities in long form broken down by each
+        protein/experimental condition with associate statistics and
+        imputation flag.)
+3.  .RData object (this is a catchall for experiment data we want to )
 
 **Save artefacts**
 
-The DE results from `IntensityExperiment` are going to be displayed for a user and therefore they need to be parsed into a `json` output (using the `writeProteinViz` function).  
+The DE results from `IntensityExperiment` are going to be displayed for
+a user and therefore they need to be parsed into a `json` output (using
+the `writeProteinViz` function).
 
-```{r}
+``` r
 CompleteIntensityExperiment <- listIntensityExperiments$CompleteIntensityExperiment
 results <- listIntensityExperiments$IntensityExperiment
 writeProteinViz(outputFolder = outputFolder, IntensityExperiment=results$IntensityExperiment)
 ```
 
-**Schema of the protein_counts_and_intensities.json output**
+**Schema of the protein\_counts\_and\_intensities.json output**
 
-```
-[
-	{
-		"ProteinGroupId": "100",
-		"ProteinId": "O35593",
-		"GeneName": "Psmd14",
-		"ProteinDescription": "26S proteasome non-ATPase regulatory subunit 14",
-		"FastaHeaders": "sp|O35593|PSDE_MOUSE 26S proteasome non-ATPase regulatory subunit 14 OS=Mus musculus OX=10090 GN=Psmd14 PE=1 SV=2",
-		"ProteinQValue": 0,
-		"ProteinScore": 10.73,
-		"conditions": [
-			{
-				"name": "Cerebellum",
-				"precentageOfReplicates": 0.5,
-				"numberOfReplicateCount": 4,
-				"intensityValues": [
-					{
-						"replicateNum": 1,
-						"centeredIntensity": 0.749918461968428,
-						"z_norm": 0.894384217678135,
-						"log2NInt_ProteinGroupId": -2.96634794751,
-						"Imputed": 0
-					},
-					{
-						"replicateNum": 2,
-						"centeredIntensity": 0.647910901219001,
-						"z_norm": 0.772725721394879,
-						"log2NInt_ProteinGroupId": -3.07935607412021,
-						"Imputed": 0
-					},
-			}
-	}
-]
-
-```
+    [
+        {
+            "ProteinGroupId": "100",
+            "ProteinId": "O35593",
+            "GeneName": "Psmd14",
+            "ProteinDescription": "26S proteasome non-ATPase regulatory subunit 14",
+            "FastaHeaders": "sp|O35593|PSDE_MOUSE 26S proteasome non-ATPase regulatory subunit 14 OS=Mus musculus OX=10090 GN=Psmd14 PE=1 SV=2",
+            "ProteinQValue": 0,
+            "ProteinScore": 10.73,
+            "conditions": [
+                {
+                    "name": "Cerebellum",
+                    "precentageOfReplicates": 0.5,
+                    "numberOfReplicateCount": 4,
+                    "intensityValues": [
+                        {
+                            "replicateNum": 1,
+                            "centeredIntensity": 0.749918461968428,
+                            "z_norm": 0.894384217678135,
+                            "log2NInt_ProteinGroupId": -2.96634794751,
+                            "Imputed": 0
+                        },
+                        {
+                            "replicateNum": 2,
+                            "centeredIntensity": 0.647910901219001,
+                            "z_norm": 0.772725721394879,
+                            "log2NInt_ProteinGroupId": -3.07935607412021,
+                            "Imputed": 0
+                        },
+                }
+        }
+    ]

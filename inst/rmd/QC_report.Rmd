@@ -85,8 +85,12 @@ This QC Report is designed to help Scientists quickly assess the several aspect 
 
 # 1. Experiment Design and Summary of Results
 
+
 - **Species** of experiment: `r metadata(CompleteIntensityExperiment)$Species`
+
 - **Normalisation method applied to assay**: `r metadata(CompleteIntensityExperiment)$NormalisationAppliedToAssay`
+
+
 
 
 ```{r experimental-design, eval=TRUE, warning=FALSE, echo=FALSE, error=FALSE, message=FALSE, results='asis'}
@@ -361,12 +365,12 @@ if(normalised){
 ```
   
 
-## B. Imputed vs not imputed {.tabset .tabset-fade .tabset-pills}
+## B. Imputed vs actual intensities {.tabset .tabset-fade .tabset-pills}
 
 <details>
-  <summary>Density distribution of imputed vs not imputed intensities</summary>
+  <summary>Density distribution of imputed vs actual intensities</summary>
   <span>
-    <p>Initial intensities equal to zero are considered as missing values and imputed prior to the DE analysis. Imputation is performed using the MNAR ("Missing Not At Random") method as adopted in Perseus. Imputed values are randomly drawn from a normal distribution with mean equal to the observed mean (mean of the available intensities) shifted by -1.8 times the observed standard deviation, and a standard deviation equal to the observed standard deviation scaled by a factor of 0.3 (as in Perseus). The plots below show the distribution of imputed values (Imputed = TRUE) and not imputed values (Imputed = FALSE), all of which are then used for the downstream DE analyses. </p>
+    <p>Initial intensities equal to zero are considered as missing values and imputed prior to the DE analysis. Imputation is performed using the MNAR ("Missing Not At Random") method as adopted in Perseus. Imputed values are randomly drawn from a normal distribution with mean equal to the observed mean (mean of the available intensities) shifted by -1.8 times the observed standard deviation, and a standard deviation equal to the observed standard deviation scaled by a factor of 0.3 (as in Perseus). The plots below show the distribution of imputed values (Imputed = TRUE) and actual values (Imputed = FALSE), all of which are then used for the downstream DE analyses. </p>
   </span>
 </details> 
 

@@ -1,7 +1,3 @@
-################
-### protein intensities
-################
-
 #' This function converts the assay data in a protein intensity to a long data.table object with 
 #' intensities for each protein Id and intensity column
 #' 
@@ -76,3 +72,6 @@ computeReplicateCounts <- function(intensityDF){
   colnames(replicateCounts)[-1] <- str_c("NReplicates: ", colnames(replicateCounts)[-1])
   return(replicateCounts)
 }
+
+
+

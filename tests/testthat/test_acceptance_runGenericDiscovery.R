@@ -18,8 +18,8 @@ test_raw_output <- function(current, expected, tolerance=10**-5){
   })
   
   test_that("rawSE: sample names in colData raw are the same",{
-    current_sample_names <- colData(current)$IntensityColumn
-    expected_sample_names <- colData(expected)$IntensityColumn
+    current_sample_names <- colData(current)$SampleName
+    expected_sample_names <- colData(expected)$SampleName
     result = min(expected_sample_names == current_sample_names)
     expect_true(as.logical(result))
   })
@@ -65,8 +65,8 @@ test_complete_output <- function(current, expected, tolerance=10**-5){
   })
   
   test_that("completeSE: sample names in colData complete are the same",{
-    current_sample_names <- colData(current)$IntensityColumn
-    expected_sample_names <- colData(expected)$IntensityColumn
+    current_sample_names <- colData(current)$SampleName
+    expected_sample_names <- colData(expected)$SampleName
     result = min(expected_sample_names == current_sample_names)
     expect_true(as.logical(result))
   })
