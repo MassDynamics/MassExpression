@@ -28,6 +28,7 @@ preparePlottingData <- function(Experiment, log=FALSE){
 #' Plot first 2 dimensions of PCA
 #' 
 #' @param Experiment SummarizedExperiment object
+#' @param format 'pdf' or 'html'. Prepare image to be rendered for pdf or html Rmd output
 #' @param log logical. Whether data should be logged before plotting
 #' @param onlyDEProteins logical. TRUE if only DE proteins should be considered. 
 #' @format "pdf" or "html". If html an interactive plot is returned using plotly. 
@@ -310,7 +311,9 @@ plot_protein_missingness <- function(Experiment){
 #' @param CompleteIntensityExperiment  SummarizedExperiment object of the data used for the DE analysis 
 #' (log-transformed, normalised when required). 
 #' @param includeImputed logical. Whether imputed values should be considered when computing the RLE values.
-#'  
+#' @param plotRawRLE logical. If TRUE RLE using the raw log2 initial data is used. 
+#' Otherwise, normalised data are used.
+#' 
 #' @export plot_rle_boxplot
 #' @importFrom tidyr pivot_longer
 #' @importFrom data.table data.table
@@ -439,6 +442,8 @@ plot_log_measurement_boxplot <- function(Experiment){
 #' Density distribution of intensity values
 #'
 #' @param Experiment SummarizedExperiment object
+#' @param log logical. If TRUE log2 transformation is applied to the intensity 
+#' before plotting
 #' 
 #' @export plot_density_distr
 plot_density_distr <- function(Experiment, log=FALSE){
@@ -530,7 +535,8 @@ plot_condition_cv_distribution <- function(Experiment){
 
 
 #' Volcano plot of results
-#' @param Experiment SummarizedExperiment object
+#' @param comparison.statistics data.frame containing 
+#' `FoldChange`, `PValue`, `AdjustedPValue` and `ProteinId` columns 
 #' @export plot_volcano
 
 plot_volcano <- function(comparison.statistics){
@@ -545,7 +551,8 @@ plot_volcano <- function(comparison.statistics){
 
 
 #' MA plot of results
-#' @param Experiment SummarizedExperiment object
+#' @param comparison.statistics data.frame containing 
+#' `FoldChange`, `AveExpr`, and `ProteinId` columns.
 #' @export plot_ma
 
 plot_ma <- function(comparison.statistics){

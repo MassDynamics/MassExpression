@@ -14,7 +14,8 @@ mq_lfq_data
 MaxQuant LFQ
 }
 \details{
-The data can be used to run the entire workflow `runGenericDiscovery`.
+The data can be used to run the entire workflow `runGenericDiscovery`. 
+Download MaxQuant processed data from: https://app.massdynamics.com/experiments/c6fc6c60-fe65-47cb-bd6d-a021f0ed8720#/results-files
 }
 \references{
 PRIDE Project PXD002057

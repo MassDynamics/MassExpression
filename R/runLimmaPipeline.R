@@ -1,26 +1,32 @@
 #' This function orchestrates imputation, normalization and the binary limma statistics accross all experimental comparisons
 #' 
-#' @param experimentDesign Output from createSummarizedExperiment
+#' @param IntensityExperiment Output from createSummarizedExperiment
 #' @param normalisationMethod logical. Whether to perform median normalisation by condition. 
+#' @param fitSeparateModels logical. TRUE to fit separate limma models for each pairwise comparisons 
+#' (e.g. filtering and `lmFit` are run separately by comparison).
+#' @param returnDecideTestColumn logical. If TRUE the row data of the `CompleteIntensityExperiment` will contain the output from 
+#' `limma::decideTests`. 
+#' if FALSE a single model is run for all contrasts.
+#' 
+#' 
 #' @export runLimmaPipeline
 #' @import data.table
 #' @importFrom stringr str_c
 
-runLimmaPipeline <- function(IntensityExperiment, normalisationMethod){
+runLimmaPipeline <- function(IntensityExperiment, normalisationMethod, fitSeparateModels, returnDecideTestColumn){
   
   print("Starting DE with limma...")
-  
+
   longIntensityDT <- initialiseLongIntensityDT(IntensityExperiment)
   # Create valid condition names
-  encodedCondition <- condition_name_encoder(dt = longIntensityDT, 
-                                            condition_col_name = "Condition")
+  encodedCondition <- condition_name_encoder(dt = longIntensityDT)
   longIntensityDT <- encodedCondition$dt
   conditionsDict <- encodedCondition$conditionsDict
-  
+
   # Create Median Normalized Measurements in each Condition/Replicate
   longIntensityDT <- normaliseIntensity(longIntensityDT=longIntensityDT,
                                         normalisationMethod=normalisationMethod)
-  
+
   # Imputation
   longIntensityDT <- imputeLFQ(longIntensityDT, 
                          id_type = "ProteinId", 
@@ -38,14 +44,21 @@ runLimmaPipeline <- function(IntensityExperiment, normalisationMethod){
                                    condition_col_name = "Condition",
                                    run_id_col_name = "RunId",
                                    rep_col_name = "Replicate",
-                                   funDT = longIntensityDT)
-  stats = resultsQuant[["stats"]]
-  conditionComparisonMapping = resultsQuant[["conditionComparisonMapping"]]
+                                   funDT = longIntensityDT,
+                                returnDecideTestColumn=returnDecideTestColumn)
+  
+  if(fitSeparateModels){
+    stats <- resultsQuant[["statsSepModels"]]
+  }else{
+    stats <- resultsQuant[['statsOneModel']] 
+  }
+ 
+  conditionComparisonMapping <- resultsQuant[["conditionComparisonMapping"]]
   
   conditionComparisonMapping <- condition_name_decode_comparison_mapping(dt = conditionComparisonMapping, dict=conditionsDict)
   longIntensityDT <- condition_name_decode_intensity_data(dt=longIntensityDT, dict=conditionsDict)
   stats <- condition_name_decode_limma_table(dt=stats, dict=conditionsDict)
-  
+
   print("Limma analysis completed. Creating output summarized experiment...")
   
   # SummarizedExperiment which contains the complete essay with imputed data and statistics
@@ -55,10 +68,7 @@ runLimmaPipeline <- function(IntensityExperiment, normalisationMethod){
                                                                    normalisationAppliedToAssay = normalisationMethod,
                                                                    longIntensityDT = longIntensityDT,
                                                                    conditionComparisonMapping = conditionComparisonMapping)
-  
-  ## 
-  #saveRDS(longIntensityDT, "../../check_imputation_steps/longIntensityDT_ME_before_create_final.rds")
-  
+
   list(IntensityExperiment=IntensityExperiment,
        CompleteIntensityExperiment=CompleteIntensityExperiment)
 }
@@ -85,4 +95,76 @@ normaliseIntensity <- function(longIntensityDT, normalisationMethod){
     stop(paste0("Normalisation method ",normalisationMethod," not availble.  Available methods are: `Median` and `None`"))
   }
   return(normaliseDT)
+}
+
+
+##########################
+# Internal function to encode and decode condition names to avoi problems with makeContrats
+##########################
+
+#' Create sanitized condition names to be valid for input to makeContrasts
+#' @param dt data.table with columns `Condition` to be encoded
+#' @keywords internal
+#' @noRd
+condition_name_encoder <- function(dt) {
+  dt_copy = copy(dt)
+  dt_copy[, original := Condition]
+  dt_copy[, Condition := make.names(original)]
+  
+  conditionsDict <- unique(dt_copy[,c("original", "Condition")])
+  setnames(conditionsDict, "Condition", "safe")
+  dt_copy[, `:=`(original = NULL)]
+  
+  list(dt=dt_copy, conditionsDict=conditionsDict)
+}
+
+#' Decode condition names for intensity data to return initial names provided in input
+#' @param dt data.table with columns `Condition` to be decoded
+#' @param dict mapping dictionary to use for condition name decoding
+#' @keywords internal
+#' @noRd
+condition_name_decode_intensity_data <- function(dt, dict){
+  dt_copy = copy(dt)
+  dt_copy <- merge(dt_copy, dict, by.x = "Condition", by.y = "safe", all.x = T)
+  dt_copy[, `:=`(Condition = NULL)]
+  setnames(dt_copy, "original", "Condition")
+  dt_copy[, RunId := str_c(Condition, Replicate, sep = ".")]
+  return(dt_copy)
+}
+
+
+#' Decode to initial condition names in limma table
+#' @param dt limma table
+#' @param dict mapping dictionary to use for condition name decoding
+#' @keywords internal
+#' @noRd
+condition_name_decode_limma_table <- function(dt, dict){
+  dt_copy <- copy(dt)
+  dt_columns <- colnames(dt_copy)
+  for (i in 1:dict[, .N]) {
+    original <- dict[i, original]
+    safe <- dict[i, safe]
+    
+    dt_columns <- str_replace(dt_columns, pattern = safe, replacement = original)
+  }
+  colnames(dt_copy) <- dt_columns
+  return(dt_copy)
+}
+
+#' Decode to initial condition names in comparison mapping 
+#' @param dt data.tabl with mapping of pairwise comparison performed
+#' @param dict mapping dictionary to use for condition name decoding
+#' @keywords internal
+#' @noRd
+condition_name_decode_comparison_mapping <- function(dt, dict){
+  dt_copy <- copy(dt)
+  for (i in 1:dict[, .N]) {
+    original <- dict[i, original]
+    safe <- dict[i, safe]
+    
+    dt_copy[, up.condition := str_replace(up.condition, pattern = safe, replacement = original)]
+    dt_copy[, down.condition := str_replace(down.condition, pattern = safe, replacement = original)]
+  }
+  dt_copy[, comparison.string := paste(up.condition, down.condition, sep="-")]
+  return(dt_copy)
 }

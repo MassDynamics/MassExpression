@@ -1,7 +1,17 @@
 #' This function performs the differential expression analysis with limma including all pairwise comparisons 
 #' using the condition provided
+#' @param ID_type str. Column name of feature ID, e.g. `ProteinId`
+#' @param int_type str. Column name containing intensities to use for the differential expression analysis, e.g. `log2NIntNorm`
+#' @param condition_col_name str. Column name for the condition of interest, e.g. `Condition`. Used to build all pairwise comparisons.  
+#' @param run_id_col_name str. Column name for the unique identifier of condition and replicate, e.g. `RunId`
+#' @param rep_col_name str. Replicate column name. e.g. `Replicate`
+#' @param funDT data.table. long table containing intensities for all proteins and samples. 
+#' @param pairwise.comp chr. XX In the future this will allow the possibility of including only some pairwise comparisons of interest. 
+#' @param all.comparisons logical. TRUE to run differential expression analysis for all pairwise comparisons.  
+#' @param returnDecideTestColumn logical. If TRUE the row data of the `CompleteIntensityExperiment` will contain the output from 
+#' `limma::decideTests`. 
 
-#' @export
+#' @export limmaStatsFun
 #' @import limma
 #' @import foreach
 #' @import Biobase 
@@ -15,9 +25,11 @@ limmaStatsFun <- function(ID_type,
                             rep_col_name,
                             funDT,
                             pairwise.comp = NULL,
-                            all.comparisons = TRUE) {
+                            all.comparisons = TRUE,
+                          returnDecideTestColumn) {
   
   
+  # Create all possible pairwise comparisons using Condition
   if (all.comparisons) {
      comination_mat <- combn(x = funDT[, unique(get(condition_col_name))], 2)
     pairwise.comp <- foreach (i = 1:ncol(comination_mat), .packages="foreach") %do% {
@@ -29,23 +41,18 @@ limmaStatsFun <- function(ID_type,
     pairwise.comp <- rbindlist(pairwise.comp)
   }
   
-  
   funDT <- funDT[str_order(get(run_id_col_name), numeric = T)]
   funDT[, ID := str_c("ID.", get(ID_type))]
   
-  # Filter for IDs that are not present in at least one experiment
-  filterDT <- unique(funDT[, .(get(condition_col_name), get(run_id_col_name))])[, .(max_count = .N), by = .(V1)]
-  filterDT <- merge(funDT, filterDT, by.x = condition_col_name, by.y = "V1", all.x = T)
-  filterDT <- filterDT[Imputed == 0, .(count_rep = .N, 
-                                       max_count = max(max_count, na.rm = T)), 
-                       by = c(condition_col_name, "ID")][, repPC := count_rep/max_count]
-  
+  # Filter protein
+  filterDT <- prepareForFiltering(funDT=funDT, 
+                             condition_col_name=condition_col_name, 
+                             run_id_col_name=run_id_col_name)
   isPresent <- filterDT[repPC >= 0.5, unique(ID)]
   funDT <- funDT[ID %in% isPresent]
   
+  # Create wide matrix of counts
   fun.formula <- as.formula(str_c("ID ~ ", run_id_col_name))
-  
-  
   int_matrix <-
     dcast.data.table(funDT, fun.formula, value.var = int_type)
   int_matrix <- int_matrix[str_order(ID, numeric = T)]
@@ -68,6 +75,7 @@ limmaStatsFun <- function(ID_type,
   rownames(imputed_matrix) <- imp_mat_rawnames
   isZ <- imputed_matrix == 1
   
+  # Create sample information dataframe
   sample_dt <- as.data.frame(unique(funDT[, .(
     run_id = get(run_id_col_name),
     condition = get(condition_col_name),
@@ -76,7 +84,7 @@ limmaStatsFun <- function(ID_type,
   #sample_dt$condition <- make.names(sample_dt$condition)
   rownames(sample_dt) <- sample_dt$run_id
   
-  
+  # Create features information dataframe
   feature_dt <- data.frame(ID = rownames(int_matrix), otherinfo = NA)
   
   rownames(feature_dt) <- feature_dt$ID
@@ -88,6 +96,7 @@ limmaStatsFun <- function(ID_type,
     featureData = AnnotatedDataFrame(feature_dt)
   )
   
+  # DE model
   design.mat <- model.matrix(~ 0 + condition,
                              data = pData(eset))
   myContrasts = NULL
@@ -127,10 +136,82 @@ limmaStatsFun <- function(ID_type,
     )
   stats <- as.data.table(stats)
   stats <- stats[, .(ID, AveExpr, F, adj.P.Val)]
-  #ipair = 1
-  #### pairwise comparisons
+  
+  one_model_stats <- extractOneModelStats(fitObject=fit2, 
+                                           statsANOVA=stats,
+                                           pairwiseComp=pairwise.comp,
+                                           myContrasts=myContrasts,
+                                          returnDecideTestColumn=returnDecideTestColumn)
+  
+  sep_models_stats <- fitSeparateModels(stats=stats, eset=eset, 
+                                         pairwise.comp=pairwise.comp,
+                                         funDT=funDT, 
+                                         filterDT=filterDT,
+                                         condition_col_name=condition_col_name, 
+                                         run_id_col_name=run_id_col_name, 
+                                        returnDecideTestColumn=returnDecideTestColumn)
+
+
+  one_model_stats[, ID := str_replace_all(ID, "ID.", "")]
+  setnames(one_model_stats, "ID", ID_type)
+  
+  sep_models_stats[, ID := str_replace_all(ID, "ID.", "")]
+  setnames(sep_models_stats, "ID", ID_type)
+  
+  return(list(statsSepModels=sep_models_stats, 
+              eset = eset, 
+              conditionComparisonMapping = conditionComparisonMapping, 
+              statsOneModel=one_model_stats))
+}
+
+
+
+#' @keywords internal
+#' @noRd
+extractOneModelStats <- function(fitObject, statsANOVA, pairwiseComp, myContrasts, returnDecideTestColumn){
+  stats <- statsANOVA
+  for (ipair in 1:pairwiseComp[, .N]) {
+    left <- pairwiseComp[ipair, left]
+    right <- pairwiseComp[ipair, right]
+    myContrasts = str_c("condition",left, "-", "condition",right)
+    s_dt <-
+      as.data.table(topTable(
+        fitObject,
+        number = nrow(fitObject),
+        sort.by = "p",
+        confint = 0.95,
+        coef = myContrasts
+      ))
+    s_dt <- s_dt[, .(ID, logFC, CI.L, CI.R, P.Value, adj.P.Val)]
+    comparison <- str_replace_all(myContrasts, "condition", "")
+    colnames(s_dt)[colnames(s_dt) != "ID"] <-
+      str_c(colnames(s_dt)[colnames(s_dt) != "ID"], comparison, sep = " ")
+    stats <- merge(stats, s_dt, by = "ID", all = T)
+  }
+  
+  if(returnDecideTestColumn){
+    # Decide test
+    dtest <- decideTests(fitObject)
+    pid <- rownames(dtest)
+    dtest <- as.data.table(dtest)
+    colnames(dtest) <- paste0("decide_", colnames(dtest))
+    dtest$ID <- pid
+    stats <- merge(stats, dtest, by = "ID", all = T)
+  }
+  
+  return(stats)
+}
+
+
+#' Fit separate models one for each parwise comparison
+#' @keywords internal
+#' @noRd
+fitSeparateModels <- function(statsANOVA, eset, pairwise.comp, funDT, 
+                              filterDT, condition_col_name, run_id_col_name, 
+                              returnDecideTestColumn){
+  stats <- statsANOVA
+  #### single pairwise comparisons
   for (ipair in 1:pairwise.comp[, .N]) {
-    #print(ipair)
     subsecting <- funDT[get(condition_col_name) %in% pairwise.comp[ipair, c(left, right)], unique(get(run_id_col_name))]
     
     # Filter for IDs that are not present in at least one experiment in pairwise manner
@@ -169,19 +250,38 @@ limmaStatsFun <- function(ID_type,
           coef = myContrasts
         ))
       s_dt <- s_dt[, .(ID, logFC, CI.L, CI.R, P.Value, adj.P.Val)]
-      #q_vals <- qvalue(s_dt[, P.Value])
-      #s_dt[, Q.Value := q_vals$qvalues]
       
       comparison <- str_replace_all(myContrasts, "condition", "")
       colnames(s_dt)[colnames(s_dt) != "ID"] <-
         str_c(colnames(s_dt)[colnames(s_dt) != "ID"], comparison, sep = " ")
       stats <- merge(stats, s_dt, by = "ID", all = T)
+      
+      if(returnDecideTestColumn){
+        dtest <- decideTests(fit2) 
+        pid <- rownames(dtest)
+        dtest <- as.data.table(dtest)
+        colnames(dtest) <- paste0("decide_", colnames(dtest))
+        dtest$ID <- pid
+        stats <- merge(stats, dtest, by = "ID", all = T)
+      }
+      
     }
-    
-    
   }
+  return(stats)
+}
+
+
+#' Create a mapping for comparison strings to conditions used later when writing output.
+#' @param conditionComparisonMapping List of SummarizedExperiments, one per pairwise condition
+#' @param separator character to use as up/down condition separator 
+#' @noRd
+#' @keywords internal
+assembleComparisonConditionMapping <- function(conditionComparisonMapping, seperator = " - "){
   
-  stats[, ID := str_replace_all(ID, "ID.", "")]
-  setnames(stats, "ID", ID_type)
-  return(list(stats=stats, eset = eset, conditionComparisonMapping = conditionComparisonMapping))
+  colnames(conditionComparisonMapping) = c("up.condition", "down.condition")
+  conditionComparisonMapping$comparison.string = str_c(conditionComparisonMapping$up.condition,
+                                                       seperator,
+                                                       conditionComparisonMapping$down.condition)
+  
+  return(conditionComparisonMapping)
 }

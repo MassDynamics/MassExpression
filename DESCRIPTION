@@ -1,18 +1,17 @@
 Package: MassExpression
 Type: Package
 Title: MassExpression
-Version: 0.0.42
+Version: 0.0.43
 Author: Anna Quaglieri
      <anna@massdynamics.com> and Joseph
      Bloom <joseph@massdynamics.com>
 Maintainer: The package maintainer <yourself@somewhere.net>
 Description: Universal Imports + High Quality QC + Differential Expression Analysis = Awesomeness. 
-License: use_mit_license()
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Depends: 
   R (>= 3.5),
-  foreach (>= 1.5.1),
   Biobase (>= 2.46.0),
   SummarizedExperiment (>= 1.16.1)
 Imports: 
@@ -35,9 +34,13 @@ Imports:
   FactoMineR (>= 2.4),
   factoextra (>= 1.0.7),
   scales (>= 1.1.1),
-  tibble (>= 3.1.2)
+  tibble (>= 3.1.2),
+  rmarkdown (>= 2.9), 
+  foreach (>= 1.5.1),
+  knitr (>= 1.33)
 RoxygenNote: 7.1.1
 Suggests: 
     covr,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+VignetteBuilder: knitr

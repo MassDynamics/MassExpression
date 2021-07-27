@@ -18,6 +18,9 @@ plot_rle_boxplot(
 (log-transformed, normalised when required).}
 
 \item{includeImputed}{logical. Whether imputed values should be considered when computing the RLE values.}
+
+\item{plotRawRLE}{logical. If TRUE RLE using the raw log2 initial data is used. 
+Otherwise, normalised data are used.}
 }
 \description{
 RLE values are computed using the data from the CompleteIntensityExperiment which contains 

@@ -13,9 +13,9 @@ imputeLFQ(myQuantDT, id_type, int_type, f_imputeStDev, f_imputePosition)
 
 \item{int_type}{the column of myQuantDT to be imputed}
 
-\item{f_imputePosition}{The Position parameter for MNAR Imputation}
+\item{f_imputeStDev}{The Standard Deviation parameter for MNAR Imputation}
 
-\item{f_imputStDev}{The Standard Deviation parameter for MNAR Imputation}
+\item{f_imputePosition}{The Position parameter for MNAR Imputation}
 }
 \value{
 quantification data with missing values imputed

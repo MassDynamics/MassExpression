@@ -7,7 +7,8 @@
 plot_ma(comparison.statistics)
 }
 \arguments{
-\item{Experiment}{SummarizedExperiment object}
+\item{comparison.statistics}{data.frame containing 
+`FoldChange`, `AveExpr`, and `ProteinId` columns.}
 }
 \description{
 MA plot of results

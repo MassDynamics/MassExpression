@@ -1,14 +1,20 @@
 #' This function orchestrates the MassExpression workflow (could be called by a  workflow step)
 #' 
-#' @param experimentDesign XX.
-#' @param proteinIntensities XX
-#' @param normalisationMethod Normalisation method. One of "none" or "median". 
+#' @param experimentDesign data.frame. Experiment design provided in input by the user. Required columsn are: `SampleName` and `Condition`.
+#' @param proteinIntensities data.frame. Wide matrix of intensities. Rows are proteins and columns are SampleNames. Required column: `ProteinId`. 
+#' @param normalisationMethod Normalisation method. One of "None" or "Median". 
 #' @param species Species. One of 'Human', 'Mouse', 'Yeast', 'Other'
 #' @param labellingMethod One of 'LFQ' or 'TMT'
+#' @param fitSeparateModels logical. TRUE to fit separate limma models for each pairwise comparisons 
+#' (e.g. filtering and `lmFit` are run separately by comparison).
+#' @param returnDecideTestColumn logical. If TRUE the row data of the `CompleteIntensityExperiment` will contain the output from 
+#' `limma::decideTests`. 
+#' if FALSE a single model is run for all contrasts.
 #' 
 #' @return List of two SummarisedExperiment objects: `IntensityExperiment` 
 #' containing the raw intensities and  `CompleteIntensityExperiment` including 
 #' imputed intensities and the results of the limma DE analysis. 
+#' 
 
 #' @examples 
 #' design <- fragpipe_data$design
@@ -27,11 +33,14 @@
 #' @export
 
 runGenericDiscovery <- function(experimentDesign, proteinIntensities, 
-                                normalisationMethod="None", species, labellingMethod){
+                                normalisationMethod="None", species, 
+                                labellingMethod, 
+                                fitSeparateModels = TRUE,
+                                returnDecideTestColumn = FALSE){
   
   print("Starting generic discovery...")
-  
-  listMetadata <- list(Species = species, 
+
+  listMetadata <- list(Species = species,
                        LabellingMethod = labellingMethod, 
                        NormalisationAppliedToAssay = "None")
   
@@ -42,13 +51,12 @@ runGenericDiscovery <- function(experimentDesign, proteinIntensities,
 
   # Get Binary Statistic Comparisons and complete experiment containinig imputed Protein Intensity
   results <- runLimmaPipeline(IntensityExperiment,
-                              normalisationMethod=normalisationMethod)
-  
-  CompleteIntensityExperiment <- results$CompleteIntensityExperiment
-  IntensityExperiment <- results$IntensityExperiment
-  
+                              normalisationMethod=normalisationMethod, 
+                              fitSeparateModels=fitSeparateModels,
+                              returnDecideTestColumn=returnDecideTestColumn)
+
   print("Workflow completed.")
-  
+
   return(results)
 
 }

@@ -210,7 +210,8 @@ test_limma_output(current = currentCompleteIntensityExperiment,
 test_comparisons_output(complete_current = compare_me$Int,
                         comparison_current = compare_me$IntComp)
 
-# Compare with maxquant workflow
+################################
+# Compare with output directly from maxquant workflow
 load("../data/HER2_maxquant_workflow.RData")
 current_new_run <- data_bench_maxquant %>% left_join(as_tibble(rowData(currentcomparisonExperiments)))
 current_diff_fc_maxquant <- current_new_run$FC - current_new_run$Disco_logFC.AZD8931_resistant_SKBR3_AZDRc...Parental_SKBR3

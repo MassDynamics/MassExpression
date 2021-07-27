@@ -13,3 +13,6 @@ build:
 install:
 	Rscript -e "devtools::install(build_vignettes = TRUE, upgrade = TRUE)"
 
+readme:
+	Rscript -e "rmarkdown::render('README.Rmd')"
+

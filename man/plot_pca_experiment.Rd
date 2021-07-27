@@ -17,6 +17,8 @@ plot_pca_experiment(
 \arguments{
 \item{Experiment}{SummarizedExperiment object}
 
+\item{format}{'pdf' or 'html'. Prepare image to be rendered for pdf or html Rmd output}
+
 \item{log}{logical. Whether data should be logged before plotting}
 
 \item{onlyDEProteins}{logical. TRUE if only DE proteins should be considered.}

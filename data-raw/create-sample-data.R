@@ -84,39 +84,12 @@ convert_protein_groups_to_universal <- function(proteinGroups){
 
 
 
-################
-# MaxQuant-SILAC - NOT INCLUDED IN THE PACKGE
-################
-
-pg <- read_delim("../../data-s3/data-formats/maxquant/SILAC/paper-sample-dataset/data/proteinGroups.txt",  "\t",
-                 escape_double = FALSE, trim_ws = TRUE, col_types = cols(Reverse = col_character()))
-summary <- read_delim("../../data-s3/data-formats/maxquant/SILAC/paper-sample-dataset/data/summary.txt",  "\t",
-                 escape_double = FALSE, trim_ws = TRUE)
-design <- read_delim("../../data-s3/data-formats/maxquant/SILAC/paper-sample-dataset/data/experimentalDesign.txt",  "\t", escape_double = FALSE, trim_ws = TRUE)
-sample_data_mq_silac <- design %>% filter(Experiment %in% c("Heart", "COL", "PAN")) %>%
-  unite(runs, Fraction, Experiment, sep = "_",remove = FALSE)
-
-
-protein.id.col <- "Majority protein IDs"
-intensity_columns <- c("Ratio H/L normalized Heart", "Ratio H/L normalized PAN", "Ratio H/L normalized COL")
-pg_silac <- pg[,c(protein.id.col,intensity_columns)]
-assay_mq_silac <- pg_silac %>% rename(protein_id = all_of(protein.id.col),
-                                "Heart" = `Ratio H/L normalized Heart`,
-                                "PAN"  = `Ratio H/L normalized PAN`,
-                                "COL" = `Ratio H/L normalized COL`)
-
-parameters <- data.frame(X1 = c("Species", "UseNormalisationMethod", "LabellingMethod"),
-                                X2 = c("Human","None","SILAC"))
-
-mq_silac_data <- list(intensities = assay_mq_silac, design = sample_data_mq_silac, parameters = parameters)
-
-save(mq_silac_data, file = "./data/example_mq_silac.rda")
-
-
-
 ###########
 ## fragpipe
 ###########
+
+# Download MaxQuant processed data from: https://app.massdynamics.com/experiments/1e2b17ed-835d-40bf-be75-c6a15f962ed0#/results-files
+# Find raw data at PRIDE entry PXD026401
 
 protein.intensities = read.csv("../../data-s3/data-formats/fragpipe/LFQ/PXD026401/data/combined_protein.tsv", sep = "\t", stringsAsFactors = F)
 cols <- colnames(protein.intensities)[grepl("Total.Intensity", colnames(protein.intensities))]
@@ -153,6 +126,10 @@ save(fragpipe_data, file = "./data/example_fragpipe.rda")
 
 ######################
 #### Maxquant LFQ HER2
+######################
+
+# Download MaxQuant processed data from: https://app.massdynamics.com/experiments/c6fc6c60-fe65-47cb-bd6d-a021f0ed8720#/results-files
+
 experiment_home <- "../../data-s3/data-formats/maxquant/LFQ/HER2/data/"
 protein.intensities <- read.csv(file.path(experiment_home, "proteinGroups.txt"), sep = "\t", stringsAsFactors = F)
 design <- read.csv(file.path(experiment_home, "experimentDesign_original.txt"), sep = "\t", stringsAsFactors = F)

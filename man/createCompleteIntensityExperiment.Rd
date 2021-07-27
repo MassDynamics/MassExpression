@@ -2,7 +2,7 @@
 % Please edit documentation in R/createCompleteIntensityExperiment.R
 \name{createCompleteIntensityExperiment}
 \alias{createCompleteIntensityExperiment}
-\title{Adds `intensityDF` information to `IntensityExperiment` with statistics about 
+\title{Adds `longIntensityDT` information to `IntensityExperiment` with statistics about 
 the number of replicates and number of imputed values in each condition of interest}
 \usage{
 createCompleteIntensityExperiment(
@@ -20,11 +20,11 @@ createCompleteIntensityExperiment(
 
 \item{normalisationAppliedToAssay}{one of 'None' or 'Median'}
 
-\item{conditionComparisonMapping}{a dataframe matching different limma statistics comparison strings to up and down conditions}
+\item{longIntensityDT}{Long format table with raw and imputed intensities. Each row is a feature (protein/peptide).}
 
-\item{intensityDF}{Long format table with raw and imputed intensities. Each row is a feature (protein/peptide).}
+\item{conditionComparisonMapping}{a dataframe matching different limma statistics comparison strings to up and down conditions}
 }
 \description{
-Adds `intensityDF` information to `IntensityExperiment` with statistics about 
+Adds `longIntensityDT` information to `IntensityExperiment` with statistics about 
 the number of replicates and number of imputed values in each condition of interest
 }

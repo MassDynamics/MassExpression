@@ -1,10 +1,11 @@
-#' Adds `intensityDF` information to `IntensityExperiment` with statistics about 
+#' Adds `longIntensityDT` information to `IntensityExperiment` with statistics about 
 #' the number of replicates and number of imputed values in each condition of interest
 #' @param IntensityExperiment output from `createSummarizedExperiment`
 #' @param limmaStats Statistic table from limma output
 #' @param normalisationAppliedToAssay one of 'None' or 'Median'
-#' @param intensityDF Long format table with raw and imputed intensities. Each row is a feature (protein/peptide).
+#' @param longIntensityDT Long format table with raw and imputed intensities. Each row is a feature (protein/peptide).
 #' @param conditionComparisonMapping a dataframe matching different limma statistics comparison strings to up and down conditions
+
 #' @export createCompleteIntensityExperiment
 #' 
 #' @importFrom SummarizedExperiment rowData

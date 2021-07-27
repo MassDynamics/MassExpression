@@ -14,7 +14,8 @@ pd_iPRG_data
 Proteome Discoverer LFQ
 }
 \details{
-The data can be used to run the entire workflow `runGenericDiscovery`.
+The data can be used to run the entire workflow `runGenericDiscovery`. 
+Download MaxQuant processed data from: https://app.massdynamics.com/experiments/1e2b17ed-835d-40bf-be75-c6a15f962ed0#/results-files
 }
 \references{
 PRIDE Project PXD010981

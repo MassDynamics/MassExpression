@@ -1,11 +1,53 @@
 MassExpression
 ================
 
-[![Codecov test
-coverage](https://codecov.io/gh/https://github.com/MassDynamics/MassExpression/branch/main/graph/badge.svg)](https://codecov.io/gh/https://github.com/MassDynamics/MassExpression?branch=main)
+-   [Test coverage](#test-coverage)
+-   [Download sample data](#download-sample-data)
+-   [RData available in the package for
+    testing](#rdata-available-in-the-package-for-testing)
+-   [Run example end-to-end](#run-example-end-to-end)
+-   [Render QC](#render-qc)
+-   [Outputs](#outputs)
 
 Universal Imports + High Quality QC + Differential Expression Analysis =
 Awesomeness.
+
+## Test coverage
+
+``` r
+library(covr)
+package_coverage()
+```
+
+    ## MassExpression Coverage: 49.58%
+
+    ## R/qc_plotting_functions.R: 0.00%
+
+    ## R/saveOutput.R: 0.00%
+
+    ## R/writeProteinViz.R: 0.00%
+
+    ## R/createSummarizedExperiment.R: 77.14%
+
+    ## R/limmaStatsFun.R: 92.64%
+
+    ## R/createCompleteIntensityExperiment.R: 94.87%
+
+    ## R/runLimmaPipeline.R: 95.35%
+
+    ## R/prepareEnrichment.R: 98.36%
+
+    ## R/condition_name_parsing.R: 100.00%
+
+    ## R/condition_name_sanitizer.R: 100.00%
+
+    ## R/imputeLFQ.R: 100.00%
+
+    ## R/prepareForFiltering.R: 100.00%
+
+    ## R/runGenericDiscovery.R: 100.00%
+
+    ## R/utils.R: 100.00%
 
 ## Download sample data
 
