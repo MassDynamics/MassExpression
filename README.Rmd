@@ -3,8 +3,6 @@ title: "MassExpression"
 output: github_document
 ---
 
-[![Codecov test coverage](https://codecov.io/gh/https://github.com/MassDynamics/MassExpression/branch/main/graph/badge.svg)](https://codecov.io/gh/https://github.com/MassDynamics/MassExpression?branch=main)
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
