@@ -7,9 +7,11 @@
 createSummarizedExperiment(experimentDesign, proteinIntensities, listMetadata)
 }
 \arguments{
-\item{experimentDesign}{XX.}
+\item{experimentDesign}{data.frame. Experiment design provided in input by the user. Required columsn are: `SampleName` and `Condition`.}
 
-\item{proteinIntensities}{XX}
+\item{proteinIntensities}{data.frame. Wide matrix of intensities. Rows are proteins and columns are SampleNames. Required column: `ProteinId`.}
+
+\item{listMetadata}{list of metadata: `Species`, `LabellingMethod`, `NormalisationAppliedToAssay`.}
 }
 \value{
 A SummarizedExperiment object

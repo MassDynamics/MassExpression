@@ -7,13 +7,21 @@
 runLimmaPipeline(
   IntensityExperiment,
   normalisationMethod,
-  multiTestMethod = multiTestMethod
+  fitSeparateModels,
+  returnDecideTestColumn
 )
 }
 \arguments{
+\item{IntensityExperiment}{Output from createSummarizedExperiment}
+
 \item{normalisationMethod}{logical. Whether to perform median normalisation by condition.}
 
-\item{experimentDesign}{Output from createSummarizedExperiment}
+\item{fitSeparateModels}{logical. TRUE to fit separate limma models for each pairwise comparisons 
+(e.g. filtering and `lmFit` are run separately by comparison).}
+
+\item{returnDecideTestColumn}{logical. If TRUE the row data of the `CompleteIntensityExperiment` will contain the output from 
+`limma::decideTests`. 
+if FALSE a single model is run for all contrasts.}
 }
 \description{
 This function orchestrates imputation, normalization and the binary limma statistics accross all experimental comparisons

@@ -7,7 +7,8 @@
 plot_volcano(comparison.statistics)
 }
 \arguments{
-\item{Experiment}{SummarizedExperiment object}
+\item{comparison.statistics}{data.frame containing 
+`FoldChange`, `PValue`, `AdjustedPValue` and `ProteinId` columns}
 }
 \description{
 Volcano plot of results

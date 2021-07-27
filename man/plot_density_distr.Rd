@@ -8,6 +8,9 @@ plot_density_distr(Experiment, log = FALSE)
 }
 \arguments{
 \item{Experiment}{SummarizedExperiment object}
+
+\item{log}{logical. If TRUE log2 transformation is applied to the intensity 
+before plotting}
 }
 \description{
 Density distribution of intensity values

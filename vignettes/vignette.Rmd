@@ -3,9 +3,6 @@ title: "Introduction to MassExpression"
 author: "Mass Dynamics"
 date: "`r Sys.Date()`"
 output:
-  html_document:
-    fig_caption: yes
-    toc_float: true
   rmarkdown::html_vignette:
     fig_caption: yes
     toc_float: true
@@ -22,7 +19,8 @@ knitr::opts_chunk$set(echo = TRUE,
                       message = FALSE,
                       warning = FALSE,
                       collapse = TRUE,
-                      comment = "#>")
+                      comment = "#>", 
+                      fig.width = 6, fig.height = 6)
 ```
 
 
@@ -30,17 +28,14 @@ knitr::opts_chunk$set(echo = TRUE,
 
 ```{r eval=FALSE}
 library(devtools)
-devtools::install_github("XXX")
+library(tibble)
+devtools::install_github("MassExpression")
 ```
 
 
 ```{r eval=TRUE}
 library(MassExpression)
 utils::packageVersion("MassExpression")
-```
-
-```{r}
-ls("package:MassExpression")
 ```
 
 # Internal data available 
@@ -70,48 +65,158 @@ results <- runGenericDiscovery(experimentDesign = design,
 
 IntensityExperiment <- results$IntensityExperiment
 CompleteIntensityExperiment <-  results$CompleteIntensityExperiment
+design <- colData(CompleteIntensityExperiment)
 ```
 
 
 # Plot results
 
-## PCA
+# 1. Experiment Design and Summary of Results
 
-```{r pca-imputed, fig.width = 8, fig.height = 6}
+
+- **Species** of experiment: `r metadata(CompleteIntensityExperiment)$Species`
+
+- **Normalisation method applied to assay**: `r metadata(CompleteIntensityExperiment)$NormalisationAppliedToAssay`
+
+
+```{r experimental-design, eval=TRUE, warning=FALSE, echo=FALSE, error=FALSE, message=FALSE, results='asis'}
+design <- tibble::as_tibble(design)
+design$SampleName <- make.names(design$SampleName)
+design <- design %>% tidyr::unite(SampleNameInPlots, Condition, Replicate, 
+                                                      sep="_", remove=FALSE) %>%
+  dplyr::select(-Replicate, everything())
+
+design <- design %>% dplyr::select(SampleName, Condition, 
+                SampleNameInPlots, everything())
+  
+
+knitr::kable(design, row.names = FALSE) 
+```
+
+\clearpage
+
+The table below reports the number of proteins (*Number of Proteins* column) considered for each pairwise comparison analysis (proteins with more than 50% missing values across samples are removed) and the number of DE proteins detected in each comparison (*Number DE Proteins* column). The overall total number of proteins included in the exeriment is `r nrow(rowData(CompleteIntensityExperiment))`.
+
+
+```{r  summary-de, eval=TRUE, warning=FALSE, echo=FALSE, error=FALSE, message=FALSE, results='asis'}
+stats <- tibble::as_tibble(rowData(CompleteIntensityExperiment))
+pval_proteins <- stats %>%
+  dplyr::select(ProteinId, starts_with("adj.P.Val"))
+
+total_proteins_in_experiment <- nrow(pval_proteins)
+total_proteins_de <- length(pval_proteins$adj.P.Val < 0.05)
+
+n_proteins_by_cond <- pval_proteins
+n_proteins_by_cond$adj.P.Val <- NULL
+
+n_proteins_by_cond_long <- n_proteins_by_cond %>% tidyr::pivot_longer(cols = starts_with("adj.P.Val"), names_to = "Comparison",values_to = "AdjPval")
+n_proteins_by_cond_long$Comparison <- gsub("adj.P.Val.", "", n_proteins_by_cond_long$Comparison)
+
+summary_de <- n_proteins_by_cond_long %>% 
+  group_by(Comparison) %>%
+  summarise(`Number of Proteins` = sum(!is.na(AdjPval)),
+            `Number DE Proteins` = sum(AdjPval < 0.05, na.rm = TRUE))
+
+knitr::kable(summary_de, row.names = FALSE, caption="Summary of differential expression results across comparisons.") 
+```
+
+# 2. Experiment Health
+
+## A. Dimensionality reduction {.tabset .tabset-fade .tabset-pills}
+
+```{r pca-imputed}
 ## PCA
-p=pca_plot_experiment(CompleteIntensityExperiment, format = "html")
+p=plot_pca_experiment(CompleteIntensityExperiment, format = "html")
 p[[1]]
 ```
 
-```{r  scree-plot-pca, fig.width = 6, fig.height = 4}
+```{r  scree-plot-pca}
 p[[2]]
 ```
 
-
-
-## MDS
-
-```{r mds-impute, fig.width = 6, fig.height = 4}
-# 
-p=mds_plot_experiment(CompleteIntensityExperiment)
+```{r pca-imputed-de}
+p=plot_pca_experiment(CompleteIntensityExperiment, format = "html", onlyDEProteins = TRUE)
 p[[1]]
-```
-
-```{r fig.width = 6, fig.height = 4}
-p[[2]]
 ```
 
 ## B. Quantitative values CV distributions {.tabset .tabset-fade .tabset-pills}
 
-```{r cv-dist, fig.width = 8, fig.height = 5}
-plot_condition_cv_distribution(IntensityExperiment)
+```{r cv-dist}
+p=plot_condition_cv_distribution(IntensityExperiment)
+ggplotly(p[[1]]) %>% plotly::config(displayModeBar = T, 
+                        modeBarButtons = list(list('toImage')),
+                        displaylogo = F)
+```
+
+  
+```{r cv-table, eval=TRUE, warning=FALSE, echo=FALSE, error=FALSE, message=FALSE, results='asis'}
+cv_data <- p[[2]]
+cv_data <- tibble::as_tibble(cv_data) %>% group_by(Condition) %>%
+  summarise(`Median CV %` = round(median(cv, na.rm = TRUE)*100))
+
+knitr::kable(cv_data, row.names = FALSE)
+```
+
+  
+## C. Sample correlations
+
+
+```{r corr-samples}
+plot_samples_correlation_matrix(CompleteIntensityExperiment)
 ```
 
 
-## C. Intensity distribution across runs {.tabset .tabset-fade .tabset-pills}
+```{r corr-samples-de}
+plot_samples_correlation_matrix(CompleteIntensityExperiment, onlyDEProteins = TRUE)
+```
+  
+# 3. Feature completedness {.tabset .tabset-fade .tabset-pills}
+
+## By sample
+
+```{r sample-missingness}
+p <- plot_replicate_missingness(IntensityExperiment)
+ggplotly(p, tooltip = c("y")) %>% plotly::config(displayModeBar = T, 
+                                                  modeBarButtons = list(list('toImage')),
+                                                  displaylogo = F)
+```
 
 
-```{r rle-plots, fig.width = 8, fig.height = 6}
+## By protein
+
+```{r protein-missingness}
+p <- plot_protein_missingness(IntensityExperiment)
+
+ggplotly(p, tooltip = c("y")) %>% plotly::config(displayModeBar = T, 
+                                                  modeBarButtons = list(list('toImage')),
+                                                  displaylogo = F)
+```
+
+
+
+# 4. Normalisation and Imputation
+
+
+## A. Intensities distribution (before and after normalisation) {.tabset .tabset-fade .tabset-pills}
+
+### Raw intensities
+
+
+```{r raw-boxplots}
+normalised <- FALSE
+if(metadata(CompleteIntensityExperiment)$NormalisationAppliedToAssay != "None"){
+  normalised <- TRUE
+}
+
+# Plot RLE of log2 raw intensity as well as RLE of normalised 
+p_raw <- plot_log_measurement_boxplot(IntensityExperiment)
+p_raw + ggtitle("log2 Raw Intensities") 
+```
+
+### RLE (median centered protein intensities)
+
+
+```{r rle-plots}
 normalised <- FALSE
 if(metadata(CompleteIntensityExperiment)$NormalisationAppliedToAssay != "None"){
   normalised <- TRUE
@@ -120,57 +225,26 @@ if(metadata(CompleteIntensityExperiment)$NormalisationAppliedToAssay != "None"){
 # Plot RLE of log2 raw intensity as well as RLE of normalised 
 p_raw <- plot_rle_boxplot(IntensityExperiment, CompleteIntensityExperiment, 
                     includeImputed = FALSE, plotRawRLE = TRUE)
-p_raw <- p_raw + ggtitle("RLE of log2 Processed Intensities") 
-fig <- makeRLEBoxplotInteractive(p_raw)
-fig
+p_raw + ggtitle("RLE of log2 Raw Intensities") 
 ```
   
   
-```{r fig.width = 8, fig.height = 6}
+```{r}
 if(normalised){
   # Plot RLE of log2 raw intensity as well as RLE of normalised 
   p_norm <- plot_rle_boxplot(IntensityExperiment, CompleteIntensityExperiment, 
                       includeImputed = FALSE, plotRawRLE = FALSE)
-  p_norm <- p_norm + ggtitle("RLE of Normalised Intensities") 
-  fig <- makeRLEBoxplotInteractive(p_norm)
+  p_norm <- p_norm + ggtitle("RLE of Normalised log2 Intensities") 
+  
+  p_norm
 }
-fig
 ```
   
-  
-# 3. Feature completedness {.tabset .tabset-fade .tabset-pills}
 
-## By sample
-
-```{r sample-missingness, fig.width = 8, fig.height = 6}
-p <- replicate_missingness_experiment(IntensityExperiment)
-ggplotly(p, tooltip = c("y")) %>% config(displayModeBar = T, 
-                                                  modeBarButtons = list(list('toImage')),
-                                                  displaylogo = F)
-```
+## B. Imputed vs actual intensities {.tabset .tabset-fade .tabset-pills}
 
 
-## By protein
-
-```{r protein-missingness, fig.width = 6, fig.height = 6}
-p <- protein_missingness_experiment(IntensityExperiment)
-ggplotly(p, tooltip = c("y")) %>% config(displayModeBar = T, 
-                                                  modeBarButtons = list(list('toImage')),
-                                                  displaylogo = F)
-```
-
-
-## Clustering of samples and proteins using missing values
-
-```{r fig.width = 8, fig.height = 6}
-plot_heatmap_missingness(IntensityExperiment)
-```
-
-
-# 4. Imputed versus non imputed log2 intensity values
-
-
-```{r compare-imputed , fig.width = 6, fig.height = 6}
+```{r compare-imputed}
 plot_imputed_vs_not(CompleteIntensityExperiment = CompleteIntensityExperiment)
 ```
 

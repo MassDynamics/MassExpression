@@ -4,7 +4,7 @@
 #' @param myQuantDT quantification data
 #' @param id_type the id column of myQuantDT that indicates
 #' @param int_type the column of myQuantDT to be imputed
-#' @param f_imputStDev The Standard Deviation parameter for MNAR Imputation
+#' @param f_imputeStDev The Standard Deviation parameter for MNAR Imputation
 #' @param f_imputePosition The Position parameter for MNAR Imputation
 #' @return quantification data with missing values imputed
 #' @examples

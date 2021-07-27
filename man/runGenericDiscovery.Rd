@@ -10,19 +10,27 @@ runGenericDiscovery(
   normalisationMethod = "None",
   species,
   labellingMethod,
-  multiTestMethod = "separate"
+  fitSeparateModels = TRUE,
+  returnDecideTestColumn = FALSE
 )
 }
 \arguments{
-\item{experimentDesign}{XX.}
+\item{experimentDesign}{data.frame. Experiment design provided in input by the user. Required columsn are: `SampleName` and `Condition`.}
 
-\item{proteinIntensities}{XX}
+\item{proteinIntensities}{data.frame. Wide matrix of intensities. Rows are proteins and columns are SampleNames. Required column: `ProteinId`.}
 
-\item{normalisationMethod}{Normalisation method. One of "none" or "median".}
+\item{normalisationMethod}{Normalisation method. One of "None" or "Median".}
 
 \item{species}{Species. One of 'Human', 'Mouse', 'Yeast', 'Other'}
 
 \item{labellingMethod}{One of 'LFQ' or 'TMT'}
+
+\item{fitSeparateModels}{logical. TRUE to fit separate limma models for each pairwise comparisons 
+(e.g. filtering and `lmFit` are run separately by comparison).}
+
+\item{returnDecideTestColumn}{logical. If TRUE the row data of the `CompleteIntensityExperiment` will contain the output from 
+`limma::decideTests`. 
+if FALSE a single model is run for all contrasts.}
 }
 \value{
 List of two SummarisedExperiment objects: `IntensityExperiment` 

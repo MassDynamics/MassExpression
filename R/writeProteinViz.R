@@ -1,8 +1,9 @@
 #' This function writes a protein viz object which can be passed into MD's rails
 #' database
 #' 
-#' @param outputFolder Path to output folder
 #' @param IntensityExperiment Output from runGenericDiscovery
+#' @param outputFolder Path to output folder
+#' 
 #' @export writeProteinViz
 #' @importFrom data.table as.data.table
 #' @importFrom SummarizedExperiment rowData
@@ -59,8 +60,9 @@ writeProteinViz <- function(IntensityExperiment, outputFolder){
 
 
 #' This function takes the statistics table from limma and retrieves a single comparison's worth of statistics.
-#' @export filter_stats_table_on_comparison
 #' @import stringr
+#' @keywords internal
+#' @noRd
 filter_stats_table_on_comparison <- function(statisticsTable, comparison){
   example_col = str_c("P.Value ",comparison)
   stopifnot(example_col %in% colnames(statisticsTable))
@@ -88,7 +90,8 @@ filter_stats_table_on_comparison <- function(statisticsTable, comparison){
 
 #' This function ensures that all the missing columns are filled with NA's.
 #' It should probably flag important columns that are missing in the future. 
-#' @export fill_out_missing_columns
+#' @keywords internal
+#' @noRd
 fill_out_missing_columns <- function(comparisonStatistics){
   
   columnsPossible=  c("ProteinId","GeneId","Description",
@@ -104,8 +107,9 @@ fill_out_missing_columns <- function(comparisonStatistics){
 
 
 #' MD's protein viz needs specific attribute names so this function does that renaming
-#' @export rename_comparison_statistics_export
 #' @importFrom dplyr rename
+#' @keywords internal
+#' @noRd
 
 rename_comparison_statistics_export <- function(comparisonStatistics){
   

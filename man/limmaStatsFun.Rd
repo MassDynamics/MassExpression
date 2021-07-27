@@ -14,8 +14,28 @@ limmaStatsFun(
   funDT,
   pairwise.comp = NULL,
   all.comparisons = TRUE,
-  multiTestMethod = multiTestMethod
+  returnDecideTestColumn
 )
+}
+\arguments{
+\item{ID_type}{str. Column name of feature ID, e.g. `ProteinId`}
+
+\item{int_type}{str. Column name containing intensities to use for the differential expression analysis, e.g. `log2NIntNorm`}
+
+\item{condition_col_name}{str. Column name for the condition of interest, e.g. `Condition`. Used to build all pairwise comparisons.}
+
+\item{run_id_col_name}{str. Column name for the unique identifier of condition and replicate, e.g. `RunId`}
+
+\item{rep_col_name}{str. Replicate column name. e.g. `Replicate`}
+
+\item{funDT}{data.table. long table containing intensities for all proteins and samples.}
+
+\item{pairwise.comp}{chr. XX In the future this will allow the possibility of including only some pairwise comparisons of interest.}
+
+\item{all.comparisons}{logical. TRUE to run differential expression analysis for all pairwise comparisons.}
+
+\item{returnDecideTestColumn}{logical. If TRUE the row data of the `CompleteIntensityExperiment` will contain the output from 
+`limma::decideTests`.}
 }
 \description{
 This function performs the differential expression analysis with limma including all pairwise comparisons 

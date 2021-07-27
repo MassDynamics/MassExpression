@@ -9,7 +9,7 @@ writeLimmaStatisticsTable(CompleteIntensityExperiment, outputFolder)
 \arguments{
 \item{CompleteIntensityExperiment}{produced by runLimmaPipeline}
 
-\item{OutputFolder}{A path to a folder to write the statistics to.}
+\item{outputFolder}{A path to a folder to write the statistics to.}
 }
 \description{
 Write limma statistics for users to read

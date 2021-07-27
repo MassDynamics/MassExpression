@@ -1,6 +1,8 @@
 ---
 title: "MassExpression"
-output: github_document
+output:
+  github_document:
+    toc: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -9,13 +11,21 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Universal Imports + High Quality QC + Differential Expression Analysis = Awesomeness. 
 
+## Test coverage
+
+```{r}
+library(covr)
+package_coverage()
+```
+
+
 ## Download sample data
 
 aws s3 sync s3://md-test-experiments/universal-input/data-formats/ . 
 
 ## RData available in the package for testing 
 
-```{r}
+```{r eval=FALSE}
 data(package="MassExpression")
 ```
 
@@ -112,42 +122,4 @@ The DE results from `IntensityExperiment` are going to be displayed for a user a
 CompleteIntensityExperiment <- listIntensityExperiments$CompleteIntensityExperiment
 results <- listIntensityExperiments$IntensityExperiment
 writeProteinViz(outputFolder = outputFolder, IntensityExperiment=results$IntensityExperiment)
-```
-
-**Schema of the protein_counts_and_intensities.json output**
-
-```
-[
-	{
-		"ProteinGroupId": "100",
-		"ProteinId": "O35593",
-		"GeneName": "Psmd14",
-		"ProteinDescription": "26S proteasome non-ATPase regulatory subunit 14",
-		"FastaHeaders": "sp|O35593|PSDE_MOUSE 26S proteasome non-ATPase regulatory subunit 14 OS=Mus musculus OX=10090 GN=Psmd14 PE=1 SV=2",
-		"ProteinQValue": 0,
-		"ProteinScore": 10.73,
-		"conditions": [
-			{
-				"name": "Cerebellum",
-				"precentageOfReplicates": 0.5,
-				"numberOfReplicateCount": 4,
-				"intensityValues": [
-					{
-						"replicateNum": 1,
-						"centeredIntensity": 0.749918461968428,
-						"z_norm": 0.894384217678135,
-						"log2NInt_ProteinGroupId": -2.96634794751,
-						"Imputed": 0
-					},
-					{
-						"replicateNum": 2,
-						"centeredIntensity": 0.647910901219001,
-						"z_norm": 0.772725721394879,
-						"log2NInt_ProteinGroupId": -3.07935607412021,
-						"Imputed": 0
-					},
-			}
-	}
-]
-
 ```

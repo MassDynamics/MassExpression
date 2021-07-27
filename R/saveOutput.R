@@ -23,7 +23,7 @@ saveOutput <- function(IntensityExperiment, CompleteIntensityExperiment, output_
 
 #' Write limma statistics for users to read
 #' @param CompleteIntensityExperiment produced by runLimmaPipeline
-#' @param OutputFolder A path to a folder to write the statistics to.
+#' @param outputFolder A path to a folder to write the statistics to.
 #' @export
 
 writeLimmaStatisticsTable <- function(CompleteIntensityExperiment, outputFolder){

@@ -1,7 +1,8 @@
 #' This function creates a summarized experiment object from a protein intensity table and experiment design. 
 #' 
-#' @param experimentDesign XX.
-#' @param proteinIntensities XX
+#' @param experimentDesign data.frame. Experiment design provided in input by the user. Required columsn are: `SampleName` and `Condition`.
+#' @param proteinIntensities data.frame. Wide matrix of intensities. Rows are proteins and columns are SampleNames. Required column: `ProteinId`. 
+#' @param listMetadata list of metadata: `Species`, `LabellingMethod`, `NormalisationAppliedToAssay`.
 #' @return A SummarizedExperiment object
 #' @export
 #' @importFrom SummarizedExperiment SummarizedExperiment rowData colData
@@ -32,6 +33,10 @@ createSummarizedExperiment <- function(experimentDesign, proteinIntensities, lis
   len_levels_condition <- length(names(table(experimentDesign$Condition)))
   if(len_levels_condition < 2){
     stop("Condition in the experiment design should have at least 2 groups.")
+  }
+  
+  if(!(listMetadata$NormalisationAppliedToAssay %in% c("None", "Median"))){
+    stop("normalisationMethod should be one one of: 'Median' or `None`.")
   }
   
   # prepare colData with Replicate column 
