@@ -52,6 +52,8 @@ ensure_package_installed_with_version("DT", '0.18', repos = "http://cran.rstudio
 ensure_package_installed_with_version("Rcpp", '1.0.7', repos = "http://cran.rstudio.com/")
 ensure_package_installed_with_version("RcppArmadillo", '0.10.6.0.0', repos = "http://cran.rstudio.com/")
 ensure_package_installed_with_version("readr", '2.0.0', repos = "http://cran.rstudio.com/")
+ensure_package_installed_with_version("credentials", '1.3.1', repos = "http://cran.rstudio.com/")
+ensure_package_installed_with_version("matrixStats", '0.60.0', repos = "http://cran.rstudio.com/")
 
 #### Install packages Bioconductor
 ensure_package_installed_with_version("BiocManager", '1.30.16', repos = "http://cran.rstudio.com/")
