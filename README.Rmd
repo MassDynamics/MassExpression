@@ -11,21 +11,13 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Universal Imports + High Quality QC + Differential Expression Analysis = Awesomeness. 
 
-## Test coverage
-
-```{r}
-library(covr)
-package_coverage()
-```
-
-
 ## Download sample data
 
 aws s3 sync s3://md-test-experiments/universal-input/data-formats/ . 
 
 ## RData available in the package for testing 
 
-```{r eval=FALSE}
+```{r eval=TRUE}
 data(package="MassExpression")
 ```
 
@@ -65,7 +57,7 @@ saveOutput(IntensityExperiment = IntensityExperiment,
 CompleteIntensityExperiment = CompleteExperiment, output_folder =  output_folder)
 ```
 
-# Render QC
+## Render QC
 
 ```{r render-qc, eval=FALSE}
 # Render and save QC report 
@@ -100,21 +92,12 @@ rmarkdown::render(qc_report,
 
 
 `results` is a list containing two `SummarizedExperiment` objects:
+
   - `IntensityExperiment`: contains the raw data (including missing values)
+  
   - `CompleteIntensityExperiment`: contains the imputed data and summary statistics about the number of replicates and imputed proteins in each group of the conditions of interest. 
 
-
-# Outputs
-
-The MassExpression package should produce outputs in several different formats, each serving a different purpose:
-
-1. Results Tables (these are standard human readable tables with parsed/transformed data, processed data and statistics)
-2. JSON Objects. (these are designed as inputs to a RAILS database for internal MD use)
-    a. protein_viz.json (this is the data required for the volcano plot analysis feature. It is the LIMMA statistics for each binary comparison).
-    b. protein_counts_and_intensities.json (this is the protein intensities in long form broken down by each protein/experimental condition with associate statistics and imputation flag.)
-3. .RData object (this is a catchall for experiment data we want to )
-
-**Save artefacts**
+## Save artefacts
 
 The DE results from `IntensityExperiment` are going to be displayed for a user and therefore they need to be parsed into a `json` output (using the `writeProteinViz` function).  
 

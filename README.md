@@ -1,53 +1,15 @@
 MassExpression
 ================
 
--   [Test coverage](#test-coverage)
 -   [Download sample data](#download-sample-data)
 -   [RData available in the package for
     testing](#rdata-available-in-the-package-for-testing)
 -   [Run example end-to-end](#run-example-end-to-end)
--   [Render QC](#render-qc)
--   [Outputs](#outputs)
+    -   [Render QC](#render-qc)
+    -   [Save artefacts](#save-artefacts)
 
 Universal Imports + High Quality QC + Differential Expression Analysis =
 Awesomeness.
-
-## Test coverage
-
-``` r
-library(covr)
-package_coverage()
-```
-
-    ## MassExpression Coverage: 49.58%
-
-    ## R/qc_plotting_functions.R: 0.00%
-
-    ## R/saveOutput.R: 0.00%
-
-    ## R/writeProteinViz.R: 0.00%
-
-    ## R/createSummarizedExperiment.R: 77.14%
-
-    ## R/limmaStatsFun.R: 92.64%
-
-    ## R/createCompleteIntensityExperiment.R: 94.87%
-
-    ## R/runLimmaPipeline.R: 95.35%
-
-    ## R/prepareEnrichment.R: 98.36%
-
-    ## R/condition_name_parsing.R: 100.00%
-
-    ## R/condition_name_sanitizer.R: 100.00%
-
-    ## R/imputeLFQ.R: 100.00%
-
-    ## R/prepareForFiltering.R: 100.00%
-
-    ## R/runGenericDiscovery.R: 100.00%
-
-    ## R/utils.R: 100.00%
 
 ## Download sample data
 
@@ -95,7 +57,7 @@ saveOutput(IntensityExperiment = IntensityExperiment,
 CompleteIntensityExperiment = CompleteExperiment, output_folder =  output_folder)
 ```
 
-# Render QC
+## Render QC
 
 ``` r
 # Render and save QC report 
@@ -128,31 +90,16 @@ rmarkdown::render(qc_report,
                     fig_caption= TRUE))
 ```
 
-`results` is a list containing two `SummarizedExperiment` objects: -
-`IntensityExperiment`: contains the raw data (including missing values)
-- `CompleteIntensityExperiment`: contains the imputed data and summary
-statistics about the number of replicates and imputed proteins in each
-group of the conditions of interest.
+`results` is a list containing two `SummarizedExperiment` objects:
 
-# Outputs
+-   `IntensityExperiment`: contains the raw data (including missing
+    values)
 
-The MassExpression package should produce outputs in several different
-formats, each serving a different purpose:
+-   `CompleteIntensityExperiment`: contains the imputed data and summary
+    statistics about the number of replicates and imputed proteins in
+    each group of the conditions of interest.
 
-1.  Results Tables (these are standard human readable tables with
-    parsed/transformed data, processed data and statistics)
-2.  JSON Objects. (these are designed as inputs to a RAILS database for
-    internal MD use)
-    1.  protein\_viz.json (this is the data required for the volcano
-        plot analysis feature. It is the LIMMA statistics for each
-        binary comparison).
-    2.  protein\_counts\_and\_intensities.json (this is the protein
-        intensities in long form broken down by each
-        protein/experimental condition with associate statistics and
-        imputation flag.)
-3.  .RData object (this is a catchall for experiment data we want to )
-
-**Save artefacts**
+## Save artefacts
 
 The DE results from `IntensityExperiment` are going to be displayed for
 a user and therefore they need to be parsed into a `json` output (using
@@ -163,38 +110,3 @@ CompleteIntensityExperiment <- listIntensityExperiments$CompleteIntensityExperim
 results <- listIntensityExperiments$IntensityExperiment
 writeProteinViz(outputFolder = outputFolder, IntensityExperiment=results$IntensityExperiment)
 ```
-
-**Schema of the protein\_counts\_and\_intensities.json output**
-
-    [
-        {
-            "ProteinGroupId": "100",
-            "ProteinId": "O35593",
-            "GeneName": "Psmd14",
-            "ProteinDescription": "26S proteasome non-ATPase regulatory subunit 14",
-            "FastaHeaders": "sp|O35593|PSDE_MOUSE 26S proteasome non-ATPase regulatory subunit 14 OS=Mus musculus OX=10090 GN=Psmd14 PE=1 SV=2",
-            "ProteinQValue": 0,
-            "ProteinScore": 10.73,
-            "conditions": [
-                {
-                    "name": "Cerebellum",
-                    "precentageOfReplicates": 0.5,
-                    "numberOfReplicateCount": 4,
-                    "intensityValues": [
-                        {
-                            "replicateNum": 1,
-                            "centeredIntensity": 0.749918461968428,
-                            "z_norm": 0.894384217678135,
-                            "log2NInt_ProteinGroupId": -2.96634794751,
-                            "Imputed": 0
-                        },
-                        {
-                            "replicateNum": 2,
-                            "centeredIntensity": 0.647910901219001,
-                            "z_norm": 0.772725721394879,
-                            "log2NInt_ProteinGroupId": -3.07935607412021,
-                            "Imputed": 0
-                        },
-                }
-        }
-    ]
