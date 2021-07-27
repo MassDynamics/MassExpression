@@ -1,7 +1,7 @@
 Package: MassExpression
 Type: Package
 Title: MassExpression
-Version: 0.0.44
+Version: 0.0.45
 Author: Anna Quaglieri
      <anna@massdynamics.com> and Joseph
      Bloom <joseph@massdynamics.com>
@@ -40,7 +40,6 @@ Imports:
   knitr (>= 1.33)
 RoxygenNote: 7.1.1
 Suggests: 
-    covr,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 VignetteBuilder: knitr
