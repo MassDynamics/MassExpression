@@ -108,15 +108,19 @@ normaliseIntensity <- function(longIntensityDT, normalisationMethod){
 #' @noRd
 condition_name_encoder <- function(dt) {
   dt_copy = copy(dt)
-  dt_copy[, original := Condition]
-  dt_copy[, Condition := make.names(original)]
   
-  conditionsDict <- unique(dt_copy[,c("original", "Condition")])
-  setnames(conditionsDict, "Condition", "safe")
-  dt_copy[, `:=`(original = NULL)]
+  conditionsDict <- data.table(original=dt_copy[, unique(Condition)])
+  set.seed(255)
+  conditionsDict[, safe := stringi::stri_rand_strings(.N, 5, pattern = "[A-Za-z]")]
+  
+  dt_copy[, original := Condition]
+  dt_copy <- merge(dt_copy, conditionsDict, by="original", all = T)
+  dt_copy[, Condition := safe]
+  dt_copy[, `:=`(original = NULL, safe = NULL)]
   
   list(dt=dt_copy, conditionsDict=conditionsDict)
 }
+
 
 #' Decode condition names for intensity data to return initial names provided in input
 #' @param dt data.table with columns `Condition` to be decoded

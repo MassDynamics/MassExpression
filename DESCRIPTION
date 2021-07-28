@@ -1,7 +1,7 @@
 Package: MassExpression
 Type: Package
 Title: MassExpression
-Version: 0.0.45
+Version: 0.0.46
 Author: Anna Quaglieri
      <anna@massdynamics.com> and Joseph
      Bloom <joseph@massdynamics.com>
@@ -37,7 +37,8 @@ Imports:
   tibble (>= 3.1.2),
   rmarkdown (>= 2.9), 
   foreach (>= 1.5.1),
-  knitr (>= 1.33)
+  knitr (>= 1.33),
+  stringi (>= 1.7.3)
 RoxygenNote: 7.1.1
 Suggests: 
     testthat (>= 3.0.0)

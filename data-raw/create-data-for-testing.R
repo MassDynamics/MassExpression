@@ -25,7 +25,7 @@ expectedcomparisonExperiments <-
 save(expectedIntensityExperiment, 
      expectedCompleteIntensityExperiment, 
      expectedcomparisonExperiments,
-     file = file.path("../tests/data/mq_lfq_output.RData"))
+     file = file.path("tests/data/mq_lfq_output1.RData"))
 
 
 ##########################
