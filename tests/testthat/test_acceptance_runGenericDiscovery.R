@@ -193,6 +193,8 @@ currentComparisonExperiments_longdf <- make_long_wide_df(data.frame(assay(curren
 
 compare_me <- currentComparisonExperiments_longdf %>% left_join(currentCompleteIntensityExperiment_longdf)
 
+print(paste0("CURRENT:",getw()))
+print(paste0("CURRENT:",here()))
 load(file.path(here(), "tests/data/mq_lfq_output.RData"))
 
 test_raw_output(current = currentIntensityExperiment, 
