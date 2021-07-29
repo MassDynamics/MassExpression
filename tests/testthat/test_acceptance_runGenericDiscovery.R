@@ -1,5 +1,6 @@
 library(MassExpression)
 library(testthat)
+library(here)
 
 test_raw_output <- function(current, expected, tolerance=10**-5){
   test_that("rawSE: column names of assay in raw are the same",{
@@ -192,8 +193,7 @@ currentComparisonExperiments_longdf <- make_long_wide_df(data.frame(assay(curren
 
 compare_me <- currentComparisonExperiments_longdf %>% left_join(currentCompleteIntensityExperiment_longdf)
 
-
-load("../data/mq_lfq_output.RData")
+load(file.path(here(), "tests/data/mq_lfq_output.RData"))
 
 test_raw_output(current = currentIntensityExperiment, 
                 expected = expectedIntensityExperiment)
@@ -212,7 +212,7 @@ test_comparisons_output(complete_current = compare_me$Int,
 
 ################################
 # Compare with output directly from maxquant workflow
-load("../data/HER2_maxquant_workflow.RData")
+load(file.path(here(), "tests/data/HER2_maxquant_workflow.RData"))
 current_new_run <- data_bench_maxquant %>% left_join(as_tibble(rowData(currentcomparisonExperiments)))
 current_diff_fc_maxquant <- current_new_run$FC - current_new_run$Disco_logFC.AZD8931_resistant_SKBR3_AZDRc...Parental_SKBR3
 current_diff_pval_maxquant <- current_new_run$P.Value - current_new_run$Disco_P.Value.AZD8931_resistant_SKBR3_AZDRc...Parental_SKBR3
