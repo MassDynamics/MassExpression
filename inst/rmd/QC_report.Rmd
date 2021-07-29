@@ -69,8 +69,8 @@ CompleteIntensityExperiment <- params$listInt$CompleteIntensityExperiment
 IntensityExperiment <- params$listInt$IntensityExperiment
 design <- colData(IntensityExperiment)
 
-#design <- mq_lfq_data$design
-#intensities <- mq_lfq_data$intensities
+comparisonExperiments <- 
+    listComparisonExperiments(CompleteIntensityExperiment)
 ```
 
 
@@ -104,11 +104,6 @@ design <- design %>% dplyr::select(SampleName, Condition,
   
 
 knitr::kable(design, row.names = FALSE) 
-  #%>%
-  #kableExtra::kable_classic(full_width = FALSE)
-#}else{
-#  DT::datatable(as_tibble(design), rownames=FALSE, options=list(pageLength=15))
-#}
 ```
 
 \clearpage
