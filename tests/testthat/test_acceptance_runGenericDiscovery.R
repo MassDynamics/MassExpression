@@ -193,7 +193,7 @@ currentComparisonExperiments_longdf <- make_long_wide_df(data.frame(assay(curren
 
 compare_me <- currentComparisonExperiments_longdf %>% left_join(currentCompleteIntensityExperiment_longdf)
 
-load("..//data/mq_lfq_output.RData")
+load("../data/mq_lfq_output.RData")
 
 test_raw_output(current = currentIntensityExperiment, 
                 expected = expectedIntensityExperiment)

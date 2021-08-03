@@ -135,7 +135,10 @@ limmaStatsFun <- function(ID_type,
              sort.by = "none"
     )
   stats <- as.data.table(stats)
-  stats <- stats[, .(ID, AveExpr, F, adj.P.Val)]
+  
+  stat_select <- ifelse(ncol(contrast.matrix) == 1, "t", "F")
+  stats <- stats[, .(ID, AveExpr, get(stat_select), adj.P.Val)]
+  colnames(stats) <- c("ID", "AveExpr", stat_select, "adj.P.Val")
   
   one_model_stats <- extractOneModelStats(fitObject=fit2, 
                                            statsANOVA=stats,
@@ -152,10 +155,10 @@ limmaStatsFun <- function(ID_type,
                                         returnDecideTestColumn=returnDecideTestColumn)
 
 
-  one_model_stats[, ID := str_replace_all(ID, "ID.", "")]
+  one_model_stats[, ID := str_replace_all(ID, "^ID.", "")]
   setnames(one_model_stats, "ID", ID_type)
   
-  sep_models_stats[, ID := str_replace_all(ID, "ID.", "")]
+  sep_models_stats[, ID := str_replace_all(ID, "^ID.", "")]
   setnames(sep_models_stats, "ID", ID_type)
   
   return(list(statsSepModels=sep_models_stats, 
