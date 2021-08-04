@@ -2,12 +2,12 @@ steps:
   - label: Build
     command: docker build -t mass_expression .
     agents:
-      webtest: true
+      python: true
   - wait
   - label: Test
     command: docker run mass_expression make check
     agents:
-      webtest: true
+      python: true
   - wait
 
 
