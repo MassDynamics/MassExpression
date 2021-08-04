@@ -1,0 +1,41 @@
+---
+title: "Renovation workflow"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Useful reads
+
+- [Using `renv` in `docker`](https://community.rstudio.com/t/a-workflow-for-research-based-on-renv-and-docker/99838)
+- [Intro to renv](https://rstudio.github.io/renv/articles/renv.html)
+- [Using renv wth Docker](https://rstudio.github.io/renv/articles/docker.html)
+
+# Initialise renv bare = TRUE
+
+
+```{r eval=FALSE}
+renv::init(bare = TRUE)
+```
+
+```
+ Project '~/Projects/MD/universal-import/MassExpression' loaded. [renv 0.14.0]
+```
+
+```{r eval=FALSE}
+source("install.R")
+```
+
+
+```{r eval=FALSE}
+renv::snapshot()
+```
+
+
+# Setting up CI
+
+- Probably we can use buildkite 
+
+
