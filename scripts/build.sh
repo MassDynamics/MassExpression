@@ -9,6 +9,7 @@ mkdir -p $RENV_PATHS_CACHE_HOST
 ls -al
 ls renv
 ls renv/cache
+ls $RENV_PATHS_CACHE_HOST
 echo "---------------------------------------"
 
 docker build -t mass_expression .
@@ -22,4 +23,4 @@ RENV_PATHS_CACHE_CONTAINER=/usr/local/src/MassExpression/renv/cache
 docker run -v "${RENV_PATHS_CACHE_HOST}:${RENV_PATHS_CACHE_CONTAINER}"  -e "RENV_PATHS_CACHE=${RENV_PATHS_CACHE_CONTAINER}" mass_expression make installr
 
 ls renv
-ls renv/cache
+ls -al $RENV_PATHS_CACHE_HOST
