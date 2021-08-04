@@ -1,5 +1,5 @@
 installr:
-	Rscript install.R
+	R -e 'renv::restore()'
 
 check:
 	Rscript -e "devtools::check()"
