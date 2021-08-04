@@ -34,8 +34,11 @@ renv::snapshot()
 ```
 
 
+Still we need to add system dependencies in `Docker`. 
+
 # Setting up CI
 
-- Probably we can use buildkite 
+- We are going to setup Builkite hook to Github (cannot use travis for now since our repos are private)
+- Setup buildkite hook via GitHub 
 
 
