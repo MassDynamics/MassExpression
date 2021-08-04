@@ -2,6 +2,15 @@
 
 mkdir -p renv/cache
 
+echo "---------------------------------------"
+
+pwd
+ls renv/cache
+ls $(pwd)/renv/cache
+ls $(pwd)/renv/
+
+echo "---------------------------------------"
+
 docker build -t mass_expression .
 
 # the path to an renv cache on the host machine
