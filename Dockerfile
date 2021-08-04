@@ -13,5 +13,4 @@ RUN R -e "remotes::install_github('rstudio/renv@${RENV_VERSION}')"
 COPY . /usr/local/src/MassExpression
 WORKDIR /usr/local/src/MassExpression
 
-RUN R -e 'renv::restore()'
-
+RUN R --version
