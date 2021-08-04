@@ -1,7 +1,8 @@
 #!/bin/bash
 
-docker build -t mass_expression .
+mkdir -p renv/cache
 
+docker build -t mass_expression .
 
 # the path to an renv cache on the host machine
 RENV_PATHS_CACHE_HOST=$(pwd)/renv/cache
