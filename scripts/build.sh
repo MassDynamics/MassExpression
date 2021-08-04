@@ -5,7 +5,7 @@
 echo "---------------------------------------"
 dir=$(pwd)
 RENV_PATHS_CACHE_HOST=$(pwd)/renv/cache
-mkdir -p RENV_PATHS_CACHE_HOST
+mkdir -p $RENV_PATHS_CACHE_HOST
 ls -al
 ls renv
 ls renv/cache
