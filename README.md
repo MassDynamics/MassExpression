@@ -1,6 +1,8 @@
 MassExpression
 ================
 
+[![Build status](https://badge.buildkite.com/037977db1307d38b6c09ad8fe8299c630f26a32d1f768df65e.svg)](https://buildkite.com/mass-dynamics/massexpression)
+
 -   [Download sample data](#download-sample-data)
 -   [RData available in the package for
     testing](#rdata-available-in-the-package-for-testing)
