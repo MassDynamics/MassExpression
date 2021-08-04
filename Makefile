@@ -2,7 +2,7 @@ installr:
 	R -e 'renv::restore()'
 
 check:
-	Rscript -e "devtools::check()"
+	R -e "renv::restore();sessionInfo();devtools::check()"
 	
 document:
 	Rscript -e "devtools::document()"

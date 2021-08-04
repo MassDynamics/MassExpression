@@ -5,7 +5,7 @@ steps:
       python: true
   - wait
   - label: Test
-    command: docker run mass_expression make check
+    command: ./scripts/test.sh
     agents:
       python: true
   - wait
