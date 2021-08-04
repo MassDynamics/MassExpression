@@ -1,6 +1,6 @@
 steps:
   - label: Build
-    command: docker build -t mass_expression .
+    command: ./scripts/build.sh
     agents:
       python: true
   - wait
