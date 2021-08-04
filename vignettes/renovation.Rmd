@@ -36,6 +36,11 @@ renv::snapshot()
 
 Still we need to add system dependencies in `Docker`. 
 
+## Setting up the `renv` cache
+
+- https://github.com/rstudio/renv/issues/400
+- 
+
 # Setting up CI
 
 - We are going to setup Builkite hook to Github (cannot use travis for now since our repos are private)

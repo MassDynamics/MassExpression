@@ -3,7 +3,7 @@ FROM rocker/r-ver:4.1.0
 #RUN yum -y install libjpeg-turbo-devel
 #RUN yum --setopt=skip_missing_names_on_install=False -y install openssl-devel libcurl-devel libxml2-devel
 RUN apt-get update
-RUN apt-get install libssl-dev libcurl4-openssl-dev libz-dev libxml2-dev -y
+RUN apt-get install libssl-dev libcurl4-openssl-dev libz-dev libxml2-dev libpng-dev -y
 
 
 ENV RENV_VERSION 0.14.0
