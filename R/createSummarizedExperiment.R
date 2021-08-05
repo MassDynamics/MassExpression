@@ -45,7 +45,7 @@ createSummarizedExperiment <- function(experimentDesign, proteinIntensities, lis
     mutate(Replicate = row_number())
   
   # prepare rowdata
-  rowDataPossible <-  c("ProteinId","GeneId","Description")
+  rowDataPossible <-  c("ProteinId","GeneName","Description")
   rowDataPresent <- intersect(rowDataPossible, colnames(proteinIntensities))
   rowDataAbsent <- rowDataPossible[!(rowDataPossible %in% rowDataPresent)]
   

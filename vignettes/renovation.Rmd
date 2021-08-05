@@ -46,4 +46,4 @@ Still we need to add system dependencies in `Docker`.
 - We are going to setup Builkite hook to Github (cannot use travis for now since our repos are private)
 - Setup buildkite hook via GitHub 
 
-
+- `docker run -it mass_expression bash` 
