@@ -80,7 +80,8 @@ filter_stats_table_on_comparison <- function(statisticsTable, comparison){
   
   stopifnot(statisticsColumns %in% colnames(statisticsTable))
   
-  statisticsTable <- statisticsTable[,c("ProteinId",statisticsColumns)]
+  statisticsTable <- statisticsTable[,c("ProteinId", "GeneName", "Description",
+                                        statisticsColumns)]
   
   colnames(statisticsTable) <- gsub(str_c(" ",comparison), "",colnames(statisticsTable))
   
@@ -94,7 +95,7 @@ filter_stats_table_on_comparison <- function(statisticsTable, comparison){
 #' @noRd
 fill_out_missing_columns <- function(comparisonStatistics){
   
-  columnsPossible=  c("ProteinId","GeneId","Description",
+  columnsPossible=  c("ProteinId","GeneName","Description",
                        "logFC","adj.P.Val","P.Value",
                        "CI.L", "CI.R")
   
@@ -116,7 +117,7 @@ rename_comparison_statistics_export <- function(comparisonStatistics){
   comparisonStatistics = as_tibble(comparisonStatistics) %>% 
     dplyr::rename(
       ProteinId = ProteinId,
-      GeneName = GeneId,
+      GeneName = GeneName,
       Description = Description,
       PValue = P.Value,
       AdjustedPValue = adj.P.Val,

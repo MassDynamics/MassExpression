@@ -88,7 +88,7 @@ filterComparisonColumns <- function(CompleteIntensityExperiment,
   # we want the replicates and imputed counts which have the conditions strings
   # we want the basic protein info cols (prot, gene, desc)
   cols.index <- grepl("ProteinId", intensityColumns, fixed=T)+
-    grepl("GeneId", intensityColumns, fixed=T)+
+    grepl("GeneName", intensityColumns, fixed=T)+
     grepl("Description", intensityColumns, fixed=T)+
     grepl(str_c("Imputed: ",condition1), intensityColumns, fixed = T)+
     grepl(str_c("Replicates: ",condition1), intensityColumns, fixed = T)+
