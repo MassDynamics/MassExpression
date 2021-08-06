@@ -157,6 +157,8 @@ results <- runGenericDiscovery(experimentDesign = design,
 
 completeExperiment <- results$CompleteIntensityExperiment
 inten <- results$IntensityExperiment
+comparisonExperiments <- 
+  listComparisonExperiments(completeExperiment)
 
 ## Compare logFC and Pvals between MassExpression and LFQprocessing
 
@@ -176,8 +178,6 @@ expected_diff_fc_maxquant <- compare_new_run$FC - compare_new_run$Disco_logFC.AZ
 expected_diff_pval_maxquant <- compare_new_run$P.Value - compare_new_run$Disco_P.Value.AZD8931_resistant_SKBR3_AZDRc...Parental_SKBR3
 
 data_bench_maxquant <- out_data_bench
-save(data_bench_maxquant, expected_diff_fc_maxquant, expected_diff_pval_maxquant, file = "tests/data/HER2_maxquant_workflow.RData")
-
 
 ggplot(compare_new_run, aes(x=FC, 
                             y = `Disco_logFC.AZD8931_resistant_SKBR3_AZDRc...Parental_SKBR3`)) + 
@@ -202,3 +202,6 @@ ggplot(compare_new_run, aes(x = Disco_logFC.AZD8931_resistant_SKBR3_AZDRc...Pare
 
 ggplot(compare_new_run, aes(x = FC, y = -log10(`P.Value`))) + geom_point()
 
+
+
+save(data_bench_maxquant, expected_diff_fc_maxquant, expected_diff_pval_maxquant, file = "tests/data/HER2_maxquant_workflow.RData")

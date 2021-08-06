@@ -5,15 +5,18 @@
 #' @param fitSeparateModels logical. TRUE to fit separate limma models for each pairwise comparisons 
 #' (e.g. filtering and `lmFit` are run separately by comparison).
 #' @param returnDecideTestColumn logical. If TRUE the row data of the `CompleteIntensityExperiment` will contain the output from 
-#' `limma::decideTests`. 
-#' if FALSE a single model is run for all contrasts.
-#' 
+#' `limma::decideTests`. If FALSE a single model is run for all contrasts.
+#' @param conditionSeparator string. String used to separate up and down condition in output. 
 #' 
 #' @export runLimmaPipeline
 #' @import data.table
 #' @importFrom stringr str_c
 
-runLimmaPipeline <- function(IntensityExperiment, normalisationMethod, fitSeparateModels, returnDecideTestColumn){
+runLimmaPipeline <- function(IntensityExperiment, 
+                             normalisationMethod, 
+                             fitSeparateModels, 
+                             returnDecideTestColumn, 
+                             conditionSeparator){
   
   print("Starting DE with limma...")
 
@@ -45,7 +48,8 @@ runLimmaPipeline <- function(IntensityExperiment, normalisationMethod, fitSepara
                                    run_id_col_name = "RunId",
                                    rep_col_name = "Replicate",
                                    funDT = longIntensityDT,
-                                returnDecideTestColumn=returnDecideTestColumn)
+                                returnDecideTestColumn=returnDecideTestColumn, 
+                                conditionSeparator=conditionSeparator)
   
   if(fitSeparateModels){
     stats <- resultsQuant[["statsSepModels"]]
@@ -55,7 +59,9 @@ runLimmaPipeline <- function(IntensityExperiment, normalisationMethod, fitSepara
  
   conditionComparisonMapping <- resultsQuant[["conditionComparisonMapping"]]
   
-  conditionComparisonMapping <- condition_name_decode_comparison_mapping(dt = conditionComparisonMapping, dict=conditionsDict)
+  conditionComparisonMapping <- condition_name_decode_comparison_mapping(dt = conditionComparisonMapping, 
+                                                                         dict=conditionsDict, 
+                                                                         conditionSeparator=conditionSeparator)
   longIntensityDT <- condition_name_decode_intensity_data(dt=longIntensityDT, dict=conditionsDict)
   stats <- condition_name_decode_limma_table(dt=stats, dict=conditionsDict)
 
@@ -160,7 +166,7 @@ condition_name_decode_limma_table <- function(dt, dict){
 #' @param dict mapping dictionary to use for condition name decoding
 #' @keywords internal
 #' @noRd
-condition_name_decode_comparison_mapping <- function(dt, dict){
+condition_name_decode_comparison_mapping <- function(dt, dict, conditionSeparator){
   dt_copy <- copy(dt)
   for (i in 1:dict[, .N]) {
     original <- dict[i, original]
@@ -169,6 +175,6 @@ condition_name_decode_comparison_mapping <- function(dt, dict){
     dt_copy[, up.condition := str_replace(up.condition, pattern = safe, replacement = original)]
     dt_copy[, down.condition := str_replace(down.condition, pattern = safe, replacement = original)]
   }
-  dt_copy[, comparison.string := paste(up.condition, down.condition, sep="-")]
+  dt_copy[, comparison.string := paste(up.condition, down.condition, sep=conditionSeparator)]
   return(dt_copy)
 }

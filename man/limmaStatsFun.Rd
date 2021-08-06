@@ -12,9 +12,10 @@ limmaStatsFun(
   run_id_col_name,
   rep_col_name,
   funDT,
+  returnDecideTestColumn,
+  conditionSeparator,
   pairwise.comp = NULL,
-  all.comparisons = TRUE,
-  returnDecideTestColumn
+  all.comparisons = TRUE
 )
 }
 \arguments{
@@ -30,12 +31,14 @@ limmaStatsFun(
 
 \item{funDT}{data.table. long table containing intensities for all proteins and samples.}
 
+\item{returnDecideTestColumn}{logical. If TRUE the row data of the `CompleteIntensityExperiment` will contain the output from 
+`limma::decideTests`.}
+
+\item{conditionSeparator}{string. String used to separate up and down condition in output.}
+
 \item{pairwise.comp}{chr. XX In the future this will allow the possibility of including only some pairwise comparisons of interest.}
 
 \item{all.comparisons}{logical. TRUE to run differential expression analysis for all pairwise comparisons.}
-
-\item{returnDecideTestColumn}{logical. If TRUE the row data of the `CompleteIntensityExperiment` will contain the output from 
-`limma::decideTests`.}
 }
 \description{
 This function performs the differential expression analysis with limma including all pairwise comparisons 

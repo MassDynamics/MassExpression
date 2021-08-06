@@ -8,8 +8,8 @@
 #' @param fitSeparateModels logical. TRUE to fit separate limma models for each pairwise comparisons 
 #' (e.g. filtering and `lmFit` are run separately by comparison).
 #' @param returnDecideTestColumn logical. If TRUE the row data of the `CompleteIntensityExperiment` will contain the output from 
-#' `limma::decideTests`. 
-#' if FALSE a single model is run for all contrasts.
+#' `limma::decideTests`. If FALSE a single model is run for all contrasts.
+#' @param conditionSeparator string. String used to separate up and down condition in output. 
 #' 
 #' @return List of two SummarisedExperiment objects: `IntensityExperiment` 
 #' containing the raw intensities and  `CompleteIntensityExperiment` including 
@@ -36,13 +36,14 @@ runGenericDiscovery <- function(experimentDesign, proteinIntensities,
                                 normalisationMethod="None", species, 
                                 labellingMethod, 
                                 fitSeparateModels = TRUE,
-                                returnDecideTestColumn = FALSE){
+                                returnDecideTestColumn = FALSE, 
+                                conditionSeparator = " - "){
   
   print("Starting generic discovery...")
 
   listMetadata <- list(Species = species,
                        LabellingMethod = labellingMethod, 
-                       NormalisationAppliedToAssay = "None")
+                       NormalisationAppliedToAssay = normalisationMethod)
   
   # Create Data Rep
   IntensityExperiment <- createSummarizedExperiment(experimentDesign = experimentDesign, 
@@ -53,7 +54,8 @@ runGenericDiscovery <- function(experimentDesign, proteinIntensities,
   results <- runLimmaPipeline(IntensityExperiment,
                               normalisationMethod=normalisationMethod, 
                               fitSeparateModels=fitSeparateModels,
-                              returnDecideTestColumn=returnDecideTestColumn)
+                              returnDecideTestColumn=returnDecideTestColumn, 
+                              conditionSeparator = conditionSeparator)
 
   print("Workflow completed.")
 

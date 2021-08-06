@@ -10,6 +10,7 @@
 #' @param all.comparisons logical. TRUE to run differential expression analysis for all pairwise comparisons.  
 #' @param returnDecideTestColumn logical. If TRUE the row data of the `CompleteIntensityExperiment` will contain the output from 
 #' `limma::decideTests`. 
+#' @param conditionSeparator string. String used to separate up and down condition in output. 
 
 #' @export limmaStatsFun
 #' @import limma
@@ -24,9 +25,10 @@ limmaStatsFun <- function(ID_type,
                             run_id_col_name,
                             rep_col_name,
                             funDT,
+                            returnDecideTestColumn,
+                          conditionSeparator, 
                             pairwise.comp = NULL,
-                            all.comparisons = TRUE,
-                          returnDecideTestColumn) {
+                            all.comparisons = TRUE) {
   
   
   # Create all possible pairwise comparisons using Condition
@@ -102,20 +104,18 @@ limmaStatsFun <- function(ID_type,
                              data = pData(eset))
   myContrasts = NULL
   
-  condition_seperator = "-"
-  
   for (irow in 1:pairwise.comp[, .N]) {
     left <- pairwise.comp[irow, left]
     right <- pairwise.comp[irow, right]
     
-    newContrast <- str_c("condition",left, condition_seperator, "condition",right)
+    newContrast <- str_c("condition",left, conditionSeparator, "condition",right)
     myContrasts = c(myContrasts, newContrast)
   }
   
   
   conditionComparisonMapping <- assembleComparisonConditionMapping(
     pairwise.comp, 
-    seperator = condition_seperator
+    seperator = conditionSeparator
     )
   
   
@@ -145,7 +145,8 @@ limmaStatsFun <- function(ID_type,
                                            statsANOVA=stats,
                                            pairwiseComp=pairwise.comp,
                                            myContrasts=myContrasts,
-                                          returnDecideTestColumn=returnDecideTestColumn)
+                                          returnDecideTestColumn=returnDecideTestColumn, 
+                                          conditionSeparator=conditionSeparator)
   
   sep_models_stats <- fitSeparateModels(stats=stats, eset=eset, 
                                          pairwise.comp=pairwise.comp,
@@ -153,7 +154,8 @@ limmaStatsFun <- function(ID_type,
                                          filterDT=filterDT,
                                          condition_col_name=condition_col_name, 
                                          run_id_col_name=run_id_col_name, 
-                                        returnDecideTestColumn=returnDecideTestColumn)
+                                        returnDecideTestColumn=returnDecideTestColumn, 
+                                        conditionSeparator=conditionSeparator)
 
 
 
@@ -170,12 +172,14 @@ limmaStatsFun <- function(ID_type,
 
 #' @keywords internal
 #' @noRd
-extractOneModelStats <- function(fitObject, statsANOVA, pairwiseComp, myContrasts, returnDecideTestColumn){
+extractOneModelStats <- function(fitObject, statsANOVA, pairwiseComp, 
+                                 myContrasts, returnDecideTestColumn, 
+                                 conditionSeparator){
   stats <- statsANOVA
   for (ipair in 1:pairwiseComp[, .N]) {
     left <- pairwiseComp[ipair, left]
     right <- pairwiseComp[ipair, right]
-    myContrasts = str_c("condition",left, "-", "condition",right)
+    myContrasts = str_c("condition",left, conditionSeparator, "condition",right)
     s_dt <-
       as.data.table(topTable(
         fitObject,
@@ -210,7 +214,7 @@ extractOneModelStats <- function(fitObject, statsANOVA, pairwiseComp, myContrast
 #' @noRd
 fitSeparateModels <- function(statsANOVA, eset, pairwise.comp, funDT, 
                               filterDT, condition_col_name, run_id_col_name, 
-                              returnDecideTestColumn){
+                              returnDecideTestColumn, conditionSeparator){
   stats <- statsANOVA
   #### single pairwise comparisons
   for (ipair in 1:pairwise.comp[, .N]) {
@@ -232,7 +236,7 @@ fitSeparateModels <- function(statsANOVA, eset, pairwise.comp, funDT,
       left <- pairwise.comp[ipair, left]
       right <- pairwise.comp[ipair, right]
       myContrasts = c(myContrasts,
-                      str_c("condition",left, "-", "condition",right))
+                      str_c("condition",left, conditionSeparator, "condition",right))
       contrast.matrix <- eval(as.call(c(
         as.symbol("makeContrasts"),
         as.list(myContrasts),

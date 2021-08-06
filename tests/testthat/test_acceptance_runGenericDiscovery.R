@@ -102,22 +102,22 @@ test_complete_output <- function(current, expected, tolerance=10**-5){
 
 test_limma_output <- function(current, expected, tolerance=10**-5){
   test_that("logFCs are equal", {
-    current_vector <- rowData(current)[,"logFC AZD8931_resistant_SKBR3_AZDRc-Parental_SKBR3"]
-    expected_vector <- rowData(expected)[,"logFC AZD8931_resistant_SKBR3_AZDRc-Parental_SKBR3"]
+    current_vector <- rowData(current)[,"logFC AZD8931_resistant_SKBR3_AZDRc - Parental_SKBR3"]
+    expected_vector <- rowData(expected)[,"logFC AZD8931_resistant_SKBR3_AZDRc - Parental_SKBR3"]
     approx_same = all.equal(current_vector, expected_vector, tolerance = tolerance)
     expect_true(approx_same) # tolerate small differences
   })
   
   test_that("PValues are equal", {
-    current_vector <- rowData(current)[,"P.Value AZD8931_resistant_SKBR3_AZDRc-Parental_SKBR3"]
-    expected_vector <- rowData(expected)[,"P.Value AZD8931_resistant_SKBR3_AZDRc-Parental_SKBR3"]
+    current_vector <- rowData(current)[,"P.Value AZD8931_resistant_SKBR3_AZDRc - Parental_SKBR3"]
+    expected_vector <- rowData(expected)[,"P.Value AZD8931_resistant_SKBR3_AZDRc - Parental_SKBR3"]
     approx_same = all.equal(current_vector, expected_vector, tolerance = tolerance)
     expect_true(approx_same) # tolerate small differences
   })
   
   test_that("Adj PValues are equal", {
-    current_vector <- rowData(current)[,"adj.P.Val AZD8931_resistant_SKBR3_AZDRc-Parental_SKBR3"]
-    expected_vector <- rowData(expected)[,"adj.P.Val AZD8931_resistant_SKBR3_AZDRc-Parental_SKBR3"]
+    current_vector <- rowData(current)[,"adj.P.Val AZD8931_resistant_SKBR3_AZDRc - Parental_SKBR3"]
+    expected_vector <- rowData(expected)[,"adj.P.Val AZD8931_resistant_SKBR3_AZDRc - Parental_SKBR3"]
     approx_same = all.equal(current_vector, expected_vector, tolerance = tolerance)
     expect_true(approx_same) # tolerate small differences
   })

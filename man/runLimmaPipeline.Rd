@@ -8,7 +8,8 @@ runLimmaPipeline(
   IntensityExperiment,
   normalisationMethod,
   fitSeparateModels,
-  returnDecideTestColumn
+  returnDecideTestColumn,
+  conditionSeparator
 )
 }
 \arguments{
@@ -20,8 +21,9 @@ runLimmaPipeline(
 (e.g. filtering and `lmFit` are run separately by comparison).}
 
 \item{returnDecideTestColumn}{logical. If TRUE the row data of the `CompleteIntensityExperiment` will contain the output from 
-`limma::decideTests`. 
-if FALSE a single model is run for all contrasts.}
+`limma::decideTests`. If FALSE a single model is run for all contrasts.}
+
+\item{conditionSeparator}{string. String used to separate up and down condition in output.}
 }
 \description{
 This function orchestrates imputation, normalization and the binary limma statistics accross all experimental comparisons
