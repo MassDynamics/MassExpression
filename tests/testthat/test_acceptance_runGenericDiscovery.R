@@ -1,6 +1,5 @@
 library(MassExpression)
 library(testthat)
-library(here)
 
 test_raw_output <- function(current, expected, tolerance=10**-5){
   test_that("rawSE: column names of assay in raw are the same",{

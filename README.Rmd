@@ -5,37 +5,51 @@ output:
     toc: yes
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
 Universal Imports + High Quality QC + Differential Expression Analysis = Awesomeness. 
 
-## Download sample data
+# Workflow example
 
-aws s3 sync s3://md-test-experiments/universal-input/data-formats/ . 
+```{r setup, include=FALSE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message = FALSE,
+                      warning = FALSE,
+                      collapse = TRUE,
+                      comment = "#>", 
+                      fig.width = 6, fig.height = 6)
+```
 
-## RData available in the package for testing 
+
+## Setup 
+
+```{r eval=FALSE}
+library(devtools)
+library(tibble)
+devtools::install_github("MassExpression")
+```
+
 
 ```{r eval=TRUE}
+library(plotly)
+library(stringr)
+
+library(MassExpression)
+utils::packageVersion("MassExpression")
+```
+
+## Internal data available 
+
+```{r}
 data(package="MassExpression")
 ```
 
-# Run example end-to-end
 
-Load data and run workflow with the runner `runGenericDiscovery`.
+## Run workflow with sample data
 
-```{r fragpipe, eval=FALSE}
-library(MassExpression)
 
-output_folder <- "path/to/output"
-
-design <- fragpipe_data$design
-intensities <- fragpipe_data$intensities
-
-intensities <- fragpipe_data$intensities
-design <- fragpipe_data$design
-parameters <- fragpipe_data$parameters
+```{r eval=FALSE}
+intensities <- mq_lfq_data$intensities
+design <- mq_lfq_data$design
+parameters <- mq_lfq_data$parameters
 normalisation_method <- parameters[parameters[,1] == "UseNormalisationMethod",2]
 species <- parameters[parameters[,1] == "Species",2]
 labellingMethod <- parameters[parameters[,1] == "LabellingMethod",2]
@@ -47,17 +61,36 @@ results <- runGenericDiscovery(experimentDesign = design,
                                species = species, 
                                labellingMethod = labellingMethod)
 
-CompleteExperiment <- results$CompleteIntensityExperiment
 IntensityExperiment <- results$IntensityExperiment
+CompleteIntensityExperiment <-  results$CompleteIntensityExperiment
+design <- colData(CompleteIntensityExperiment)
+```
 
-comparisonExperiments <- 
-    listComparisonExperiments(completeExperiment)
+
+`results` is a list containing two `SummarizedExperiment` objects:
+
+  - `IntensityExperiment`: contains the raw data (including missing values)
   
+  - `CompleteIntensityExperiment`: contains the imputed data and summary statistics about the number of replicates and imputed proteins in each group of the conditions of interest. 
+
+
+# Generate vignette
+
+```{r eval=FALSE}
+tools::buildVignettes(dir = ".", tangle=TRUE)
+```
+
+
+# Save output and create QC reports
+
+```{r fragpipe, eval=FALSE}
+output_folder <- "path/to/output/folder"
+
 saveOutput(IntensityExperiment = IntensityExperiment, 
 CompleteIntensityExperiment = CompleteExperiment, output_folder =  output_folder)
 ```
 
-## Render QC
+## Render QC 
 
 ```{r render-qc, eval=FALSE}
 # Render and save QC report 
@@ -91,18 +124,9 @@ rmarkdown::render(qc_report,
 ```
 
 
-`results` is a list containing two `SummarizedExperiment` objects:
 
-  - `IntensityExperiment`: contains the raw data (including missing values)
-  
-  - `CompleteIntensityExperiment`: contains the imputed data and summary statistics about the number of replicates and imputed proteins in each group of the conditions of interest. 
+# Session Information
 
-## Save artefacts
-
-The DE results from `IntensityExperiment` are going to be displayed for a user and therefore they need to be parsed into a `json` output (using the `writeProteinViz` function).  
-
-```{r eval=FALSE}
-CompleteIntensityExperiment <- listIntensityExperiments$CompleteIntensityExperiment
-results <- listIntensityExperiments$IntensityExperiment
-writeProteinViz(outputFolder = outputFolder, IntensityExperiment=results$IntensityExperiment)
+```{r}
+sessionInfo()
 ```
