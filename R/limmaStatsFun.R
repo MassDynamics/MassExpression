@@ -41,8 +41,9 @@ limmaStatsFun <- function(ID_type,
     pairwise.comp <- rbindlist(pairwise.comp)
   }
   
+  # Reorder/create new protein id column for simplicity 
   funDT <- funDT[str_order(get(run_id_col_name), numeric = T)]
-  funDT[, ID := str_c("ID.", get(ID_type))]
+  funDT[, ID := str_c(get(ID_type))]
   
   # Filter protein
   filterDT <- prepareForFiltering(funDT=funDT, 
@@ -155,10 +156,8 @@ limmaStatsFun <- function(ID_type,
                                         returnDecideTestColumn=returnDecideTestColumn)
 
 
-  one_model_stats[, ID := str_replace_all(ID, "^ID.", "")]
+
   setnames(one_model_stats, "ID", ID_type)
-  
-  sep_models_stats[, ID := str_replace_all(ID, "^ID.", "")]
   setnames(sep_models_stats, "ID", ID_type)
   
   return(list(statsSepModels=sep_models_stats, 
