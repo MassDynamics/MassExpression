@@ -24,14 +24,16 @@ knitr::opts_chunk$set(echo = TRUE,
 ```{r eval=FALSE}
 library(devtools)
 library(tibble)
+library(plotly)
+library(stringr)
+```
+
+```{r eval=FALSE}
 devtools::install_github("MassExpression")
 ```
 
 
 ```{r eval=TRUE}
-library(plotly)
-library(stringr)
-
 library(MassExpression)
 utils::packageVersion("MassExpression")
 ```
