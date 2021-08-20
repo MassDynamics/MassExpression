@@ -4,12 +4,19 @@
 \alias{saveOutput}
 \title{Save RData with SummarizedExperiment object and ProteinViz json}
 \usage{
-saveOutput(IntensityExperiment, CompleteIntensityExperiment, output_folder)
+saveOutput(
+  IntensityExperiment,
+  CompleteIntensityExperiment,
+  longIntensityDT,
+  output_folder
+)
 }
 \arguments{
 \item{IntensityExperiment}{XX.}
 
 \item{CompleteIntensityExperiment}{XX}
+
+\item{longIntensityDT}{XX}
 
 \item{output_folder}{XX}
 }

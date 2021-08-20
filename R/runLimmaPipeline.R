@@ -76,7 +76,8 @@ runLimmaPipeline <- function(IntensityExperiment,
                                                                    conditionComparisonMapping = conditionComparisonMapping)
 
   list(IntensityExperiment=IntensityExperiment,
-       CompleteIntensityExperiment=CompleteIntensityExperiment)
+       CompleteIntensityExperiment=CompleteIntensityExperiment, 
+       longIntensityDT=longIntensityDT)
 }
 
 
