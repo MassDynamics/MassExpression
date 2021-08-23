@@ -28,7 +28,7 @@ saveOutput <- function(IntensityExperiment, CompleteIntensityExperiment,
   longDTProt <- merge(longIntensityDT, limmaStats, by="ProteinId", all.x=TRUE)
   longDTProt <- as.data.table(longDTProt)
   
-  writeReplicateData(longDTProt, outputFolder)
+  writeReplicateData(longDTProt, output_folder)
 }
 
 
@@ -58,6 +58,7 @@ writeReplicateData <- function(longDTProt, outputFolder){
   protList <- lapply(proteinSet, function(prot) oneProteinReplData(longDTProt[ProteinId %in% prot,]))
   protDF <- do.call(rbind, protList)
   
+  dir.create(outputFolder, showWarnings = FALSE)
   outPath = file.path(outputFolder,"protein_counts_and_intensity.json")
   write_json(protDF, outPath, digits = NA, na = "null")
 }
@@ -67,7 +68,6 @@ writeReplicateData <- function(longDTProt, outputFolder){
 #' @param oneProt data.table single protein information stored in long format. 
 #' Columns required: `ProteinId`, `GeneName`, `Description`, `log2NInt`, `Condition`,
 #'  `Replicate`, `Imputed`. 
-#'  @import tibble
 #' @export oneProteinReplData
 #' 
 oneProteinReplData <- function(oneProt){
@@ -86,11 +86,11 @@ oneProteinReplData <- function(oneProt){
     oneCondRepl <- data.table(oneProt)[Condition %in% cond, c("log2NInt", "Imputed")] 
     oneCondRepl$replicateNum <- 1:nrow(oneCondRepl)
     
-    entryCond <- tibble(infoOneCond, intensityValues=list(oneCondRepl))
+    entryCond <- dplyr::tibble(infoOneCond, intensityValues=list(oneCondRepl))
     conditions[cond_idx, ] <- entryCond
   }
   
   colnames(conditions) <- c("name", "numberOfReplicateCount", "precentageOfReplicates", "intensityValues")
   # Combine with protein Infos
-  oneProtNested <- tibble(infoProt, conditions=list(conditions))
+  oneProtNested <- dplyr::tibble(infoProt, conditions=list(conditions))
 }

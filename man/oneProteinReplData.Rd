@@ -9,8 +9,7 @@ oneProteinReplData(oneProt)
 \arguments{
 \item{oneProt}{data.table single protein information stored in long format. 
 Columns required: `ProteinId`, `GeneName`, `Description`, `log2NInt`, `Condition`,
- `Replicate`, `Imputed`. 
- @import tibble}
+ `Replicate`, `Imputed`.}
 }
 \description{
 Transform data for one protein from a long format to the nested data structure needed for the Replicates tab.

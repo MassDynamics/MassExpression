@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="cb4855c5-d71d-47f0-bdcc-bb74fbb45011" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/R/runLimmaPipeline.R" beforeDir="false" afterPath="$PROJECT_DIR$/R/runLimmaPipeline.R" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/R/saveOutput.R" beforeDir="false" afterPath="$PROJECT_DIR$/R/saveOutput.R" afterDir="false" />
-    </list>
+    <list default="true" id="cb4855c5-d71d-47f0-bdcc-bb74fbb45011" name="Default Changelist" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />

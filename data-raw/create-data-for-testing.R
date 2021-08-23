@@ -205,3 +205,19 @@ ggplot(compare_new_run, aes(x = FC, y = -log10(`P.Value`))) + geom_point()
 
 
 save(data_bench_maxquant, expected_diff_fc_maxquant, expected_diff_pval_maxquant, file = "tests/data/HER2_maxquant_workflow.RData")
+
+
+
+# Test data fro writeReplicatesData
+
+SampleDT <- data.table(ProteinId = c(rep("Prot1", 10), rep("Prot2", 10)),
+                       GeneName = NA, Description = NA,
+                       log2NInt = rep(1.5, 20),
+                       Condition = c(rep(c("A", "B"), each=5), rep(c("A", "B"), each=5)), 
+                       Replicate = c(1:5, 1:5, 1:5, 1:5), 
+                       Imputed =  c(0,0,0,0,0,
+                                    0,0,0,1,1,
+                                    1,0,0,0,0,
+                                    1,1,0,0,0))
+
+writeReplicateData(SampleDT, "tests/data")
