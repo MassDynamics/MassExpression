@@ -72,10 +72,13 @@ writeReplicateData <- function(longDTProt, outputFolder){
 #' 
 oneProteinReplData <- function(oneProt){
   infoProt <- unique(oneProt[,c("ProteinId", "GeneName", "Description")])
+  setnames(infoProt, old = "Description", new = "ProteinDescription")
+  infoProt <- infoProt[, ProteinGroupId:=ProteinId]
+  infoProt <- infoProt[,c("ProteinGroupId", "ProteinId", "GeneName", "ProteinDescription")]
   
   infoConds <- oneProt[, numberOfReplicateCount:= length(Replicate), by = Condition ]
   infoConds <- infoConds[, precentageOfReplicates:= sum(Imputed==0)/length(Replicate), by = Condition ]
-  infoConds <- unique(infoConds[, c("Condition", "numberOfReplicateCount", "precentageOfReplicates")])
+  infoConds <- unique(infoConds[, c("Condition", "precentageOfReplicates","numberOfReplicateCount")])
   setnames(infoConds, old = "Condition", new = "name")
   
   conditions <- data.frame(matrix(NA, nrow = length(infoConds$name), ncol = 4))
@@ -85,12 +88,14 @@ oneProteinReplData <- function(oneProt){
     
     oneCondRepl <- data.table(oneProt)[Condition %in% cond, c("log2NInt", "Imputed")] 
     oneCondRepl$replicateNum <- 1:nrow(oneCondRepl)
+    setnames(oneCondRepl, old = "log2NInt", new = "log2NInt_ProteinGroupId")
+    oneCondRepl <- oneCondRepl[,c("replicateNum", "log2NInt_ProteinGroupId", "Imputed")]
     
     entryCond <- dplyr::tibble(infoOneCond, intensityValues=list(oneCondRepl))
     conditions[cond_idx, ] <- entryCond
   }
   
-  colnames(conditions) <- c("name", "numberOfReplicateCount", "precentageOfReplicates", "intensityValues")
+  colnames(conditions) <- c("name", "precentageOfReplicates", "numberOfReplicateCount", "intensityValues")
   # Combine with protein Infos
   oneProtNested <- dplyr::tibble(infoProt, conditions=list(conditions))
 }
