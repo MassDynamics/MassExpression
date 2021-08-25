@@ -146,7 +146,7 @@ oneProteinReplData <- function(oneProt){
   infoProt <- infoProt[, ProteinGroupId:=ProteinId]
   infoProt <- infoProt[,c("ProteinGroupId", "ProteinId", "GeneName", "ProteinDescription")]
   
-  infoConds <- oneProt[, numberOfReplicateCount:= length(Replicate), by = Condition ]
+  infoConds <- oneProt[, numberOfReplicateCount:= sum(Imputed==0), by = Condition ]
   infoConds <- infoConds[, precentageOfReplicates:= sum(Imputed==0)/length(Replicate), by = Condition ]
   infoConds <- unique(infoConds[, c("Condition", "precentageOfReplicates","numberOfReplicateCount")])
   setnames(infoConds, old = "Condition", new = "name")
