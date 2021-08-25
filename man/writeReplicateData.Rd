@@ -12,7 +12,7 @@ writeReplicateData(longDTProt, outputFolder)
 Columns required: `ProteinId`, `GeneName`, `Description`, `log2NInt`, `Condition`,
  `Replicate`, `Imputed`.}
 
-\item{outputFolder}{A path to a folder to write the statistics to.}
+\item{outputFolder}{str. Path to folder where `data` should be saved.}
 }
 \description{
 Write data needed for the Replicates tab

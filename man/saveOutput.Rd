@@ -8,17 +8,22 @@ saveOutput(
   IntensityExperiment,
   CompleteIntensityExperiment,
   longIntensityDT,
-  output_folder
+  outputFolder
 )
 }
 \arguments{
-\item{IntensityExperiment}{XX.}
+\item{IntensityExperiment}{Summarised experiment object returned by the `runGenericDiscovery` function. 
+This contains the initial data (row intensities and expeirment design) provided in input.}
 
-\item{CompleteIntensityExperiment}{XX}
+\item{CompleteIntensityExperiment}{Summarised experiment object returned by the `runGenericDiscovery` function. 
+This contains the results of the differential expression analysis, the intensities used for the analysis and a masking logical matrix 
+showing which intensities have been imputed.}
 
-\item{longIntensityDT}{XX}
+\item{longIntensityDT}{Tabular data structure resturned by the `runGenericDiscovery` function. 
+This contains, for each protein and sample, the raw, log2-transformed, normalised (when required) intensities, 
+and a column indicating whether imputation has occurred for each intensity.}
 
-\item{output_folder}{XX}
+\item{outputFolder}{str. Path to folder where `data` should be saved}
 }
 \description{
 Save RData with SummarizedExperiment object and ProteinViz json
