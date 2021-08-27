@@ -77,7 +77,7 @@ writeProteinQuantIntensities <- function(CompleteIntensityExperiment, outputFold
   descriptionColumnsDT <- limmaStats[, c("ProteinId", "GeneName", "Description")]
   anovaCol <- ifelse("F" %in% colnames(limmaStats), "F", "t")
   resultsColumns <- c("AveExpr", anovaCol, "adj.P.Val", 
-                      colnames(limmaStats)[grep("logFC |CI.L |CI.R |P.Value |adj.P.Val ",
+                      colnames(limmaStats)[grep("logFC |CI.L |CI.R |P.Value |adj.P.Val |NImputed|NReplicates",
                       colnames(limmaStats))])
   resultsDT <- limmaStats[, ..resultsColumns]
   
