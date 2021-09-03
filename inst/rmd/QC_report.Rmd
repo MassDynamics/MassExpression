@@ -87,11 +87,6 @@ This QC Report is designed to help Scientists quickly assess the several aspect 
 # 1. Experiment Design and Summary of Results
 
 
-- **Species** of experiment: `r metadata(CompleteIntensityExperiment)$Species`
-
-- **Normalisation method applied to assay**: `r metadata(CompleteIntensityExperiment)$NormalisationAppliedToAssay`
-
-
 ```{r experimental-design, eval=TRUE, warning=FALSE, echo=FALSE, error=FALSE, message=FALSE, results='asis'}
 design <- as_tibble(design)
 design$SampleName <- make.names(design$SampleName)
@@ -167,9 +162,10 @@ p[[1]]
 p[[2]]
 ```
 
-```{r pca-imputed-de}
+```{r pca-imputed-de, results="asis"}
 p=plot_pca_experiment(CompleteIntensityExperiment, format = params$format, onlyDEProteins = TRUE)
-p[[1]]
+
+if(is.null(p[[1]])) cat("#### Not enough differentially expressed proteins to produce a PCA plot.")
 ```
 
 ## B. Quantitative values CV distributions {.tabset .tabset-fade .tabset-pills}
@@ -233,8 +229,9 @@ plot_samples_correlation_matrix(CompleteIntensityExperiment)
 ```
 
 
-```{r corr-samples-de}
-plot_samples_correlation_matrix(CompleteIntensityExperiment, onlyDEProteins = TRUE)
+```{r corr-samples-de, results='asis'}
+p=plot_samples_correlation_matrix(CompleteIntensityExperiment, onlyDEProteins = TRUE)
+if(is.null(p)) cat("#### Not enough differentially expressed proteins to produce a correlation plot.")
 ```
   
 # 3. Feature completedness {.tabset .tabset-fade .tabset-pills}

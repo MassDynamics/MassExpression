@@ -61,7 +61,7 @@ plot_pca_experiment <- function(Experiment,
   }
   
   if(nrow(intensities)<=4){
-    warning("Not enough DE proteins to produce a correlation plot.")
+    warning("Not enough DE proteins to produce a PCA plot.")
     return(NULL)
   }else{
     
@@ -644,6 +644,7 @@ plot_samples_correlation_matrix <- function(Experiment, onlyDEProteins=FALSE){
              tl.col = "black", order = "hclust")
   }else{
     warning("Not enough DE proteins to produce a correlation plot.")
+    return(NULL)
   }
   
 }
