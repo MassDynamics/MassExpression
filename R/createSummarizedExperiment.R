@@ -29,6 +29,7 @@ createSummarizedExperiment <- function(experimentDesign, proteinIntensities, lis
   if(!("ProteinId" %in% colnames(proteinIntensities))){
     stop("'ProteinId' column is not available in the protein intensities table.")
   }
+  proteinIntensities$ProteinId <- as.character(proteinIntensities$ProteinId)
   
   len_levels_condition <- length(names(table(experimentDesign$Condition)))
   if(len_levels_condition < 2){
