@@ -65,6 +65,7 @@ results <- runGenericDiscovery(experimentDesign = design,
 
 IntensityExperiment <- results$IntensityExperiment
 CompleteIntensityExperiment <-  results$CompleteIntensityExperiment
+longIntensityDT <- results$longIntensityDT
 design <- colData(CompleteIntensityExperiment)
 ```
 
@@ -83,13 +84,15 @@ tools::buildVignettes(dir = ".", tangle=TRUE)
 ```
 
 
-# Save output and create QC reports
+# Save output to display in the app and create QC reports
 
 ```{r fragpipe, eval=FALSE}
 output_folder <- "path/to/output/folder"
 
 saveOutput(IntensityExperiment = IntensityExperiment, 
-CompleteIntensityExperiment = CompleteExperiment, output_folder =  output_folder)
+CompleteIntensityExperiment = CompleteExperiment,
+longIntensityDT = longIntensityDT, 
+output_folder =  output_folder)
 ```
 
 ## Render QC 
@@ -99,7 +102,7 @@ CompleteIntensityExperiment = CompleteExperiment, output_folder =  output_folder
 qc_report <- system.file("rmd","QC_report.Rmd", package = "MassExpression")
 
 rmarkdown::render(qc_report,
-                  params = list(listInt = listIntensityExperiments,
+                  params = list(listInt = results,
                                 experiment = "Mass Dynamics QC report",
                                 output_figure = file.path(output_folder, "figure_html/"),
                                 format = "html"),
@@ -115,7 +118,7 @@ rmarkdown::render(qc_report,
                             df_print="paged"))
 # Render PDF
 rmarkdown::render(qc_report,
-                  params = list(listInt = listIntensityExperiments,
+                  params = list(listInt = results,
                                 experiment = "Mass Dynamics QC report",
                                 output_figure = file.path(output_folder_pdf, "figure_pdf/"),
                                 format = "pdf"),

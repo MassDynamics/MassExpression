@@ -6,8 +6,8 @@ MassExpression
     -   [Internal data available](#internal-data-available)
     -   [Run workflow with sample data](#run-workflow-with-sample-data)
 -   [Generate vignette](#generate-vignette)
--   [Save output and create QC
-    reports](#save-output-and-create-qc-reports)
+-   [Save output to display in the app and create QC
+    reports](#save-output-to-display-in-the-app-and-create-qc-reports)
     -   [Render QC](#render-qc)
 -   [Session Information](#session-information)
 
@@ -32,7 +32,7 @@ devtools::install_github("MassExpression")
 ``` r
 library(MassExpression)
 utils::packageVersion("MassExpression")
-#> [1] '0.0.59'
+#> [1] '0.0.68'
 ```
 
 ## Internal data available
@@ -60,6 +60,7 @@ results <- runGenericDiscovery(experimentDesign = design,
 
 IntensityExperiment <- results$IntensityExperiment
 CompleteIntensityExperiment <-  results$CompleteIntensityExperiment
+longIntensityDT <- results$longIntensityDT
 design <- colData(CompleteIntensityExperiment)
 ```
 
@@ -78,13 +79,15 @@ design <- colData(CompleteIntensityExperiment)
 tools::buildVignettes(dir = ".", tangle=TRUE)
 ```
 
-# Save output and create QC reports
+# Save output to display in the app and create QC reports
 
 ``` r
 output_folder <- "path/to/output/folder"
 
 saveOutput(IntensityExperiment = IntensityExperiment, 
-CompleteIntensityExperiment = CompleteExperiment, output_folder =  output_folder)
+CompleteIntensityExperiment = CompleteExperiment,
+longIntensityDT = longIntensityDT, 
+output_folder =  output_folder)
 ```
 
 ## Render QC
@@ -94,7 +97,7 @@ CompleteIntensityExperiment = CompleteExperiment, output_folder =  output_folder
 qc_report <- system.file("rmd","QC_report.Rmd", package = "MassExpression")
 
 rmarkdown::render(qc_report,
-                  params = list(listInt = listIntensityExperiments,
+                  params = list(listInt = results,
                                 experiment = "Mass Dynamics QC report",
                                 output_figure = file.path(output_folder, "figure_html/"),
                                 format = "html"),
@@ -110,7 +113,7 @@ rmarkdown::render(qc_report,
                             df_print="paged"))
 # Render PDF
 rmarkdown::render(qc_report,
-                  params = list(listInt = listIntensityExperiments,
+                  params = list(listInt = results,
                                 experiment = "Mass Dynamics QC report",
                                 output_figure = file.path(output_folder_pdf, "figure_pdf/"),
                                 format = "pdf"),
@@ -140,10 +143,10 @@ sessionInfo()
 #> [8] methods   base     
 #> 
 #> other attached packages:
-#>  [1] MassExpression_0.0.59       SummarizedExperiment_1.22.0
+#>  [1] MassExpression_0.0.68       SummarizedExperiment_1.22.0
 #>  [3] GenomicRanges_1.44.0        GenomeInfoDb_1.28.1        
 #>  [5] IRanges_2.26.0              S4Vectors_0.30.0           
-#>  [7] MatrixGenerics_1.4.1        matrixStats_0.60.0         
+#>  [7] MatrixGenerics_1.4.2        matrixStats_0.60.1         
 #>  [9] Biobase_2.52.0              BiocGenerics_0.38.0        
 #> 
 #> loaded via a namespace (and not attached):
@@ -156,13 +159,13 @@ sessionInfo()
 #> [19] stringr_1.4.0          zlibbioc_1.38.0        munsell_0.5.0         
 #> [22] gtable_0.3.0           codetools_0.2-18       evaluate_0.14         
 #> [25] knitr_1.33             fansi_0.5.0            scales_1.1.1          
-#> [28] limma_3.48.1           DelayedArray_0.18.0    jsonlite_1.7.2        
+#> [28] limma_3.48.3           DelayedArray_0.18.0    jsonlite_1.7.2        
 #> [31] XVector_0.32.0         ggplot2_3.3.5          digest_0.6.27         
 #> [34] stringi_1.7.3          dplyr_1.0.7            grid_4.1.0            
 #> [37] tools_4.1.0            bitops_1.0-7           magrittr_2.0.1        
-#> [40] RCurl_1.98-1.3         tibble_3.1.3           tidyr_1.1.3           
+#> [40] RCurl_1.98-1.4         tibble_3.1.3           tidyr_1.1.3           
 #> [43] crayon_1.4.1           pkgconfig_2.0.3        ellipsis_0.3.2        
 #> [46] pheatmap_1.0.12        Matrix_1.3-4           data.table_1.14.0     
 #> [49] assertthat_0.2.1       rmarkdown_2.10         iterators_1.0.13      
-#> [52] R6_2.5.0               compiler_4.1.0
+#> [52] R6_2.5.1               compiler_4.1.0
 ```
