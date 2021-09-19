@@ -11,6 +11,8 @@ MassExpression
     -   [Render QC](#render-qc)
 -   [Session Information](#session-information)
 
+[![DOI](https://zenodo.org/badge/377716166.svg)](https://zenodo.org/badge/latestdoi/377716166)
+
 Universal Imports + High Quality QC + Differential Expression Analysis =
 Awesomeness.
 
