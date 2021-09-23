@@ -15,10 +15,12 @@ createSummarizedExperiment <- function(experimentDesign, proteinIntensities, lis
   if(!("Condition" %in% colnames(experimentDesign))){
     stop("'Condition' column is not available in the experiment design.")
   }
+  experimentDesign$Condition <- as.character(experimentDesign$Condition)
   
   if(!("SampleName" %in% colnames(experimentDesign))){
     stop("'SampleName' column is not available in the experiment design.")
   }
+  experimentDesign$SampleName <- as.character(experimentDesign$SampleName)
   
   if(!(all(experimentDesign$SampleName %in% colnames(proteinIntensities)))){
     missing_samples <- experimentDesign$SampleName[!(experimentDesign$SampleName %in% colnames(proteinIntensities))] 
