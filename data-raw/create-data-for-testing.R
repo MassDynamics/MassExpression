@@ -28,6 +28,55 @@ save(expectedIntensityExperiment,
      file = file.path("tests/data/mq_lfq_output.RData"))
 
 
+
+
+
+######################################################
+# Output data to use for testing - HER2 with integer data for Condition names and SampleNames
+library(MassExpression)
+with_integer_condition <- TRUE
+
+design <- mq_lfq_data$design
+intensities <- mq_lfq_data$intensities
+
+if(with_integer_condition){
+design <- design %>% mutate(Condition = ifelse(Condition %in% "AZD8931_resistant_SKBR3_AZDRc",1,2),
+                            SampleName = 1:6)
+colnames(intensities) <- c(1:6, "ProteinId")
+}
+
+parameters <- mq_lfq_data$parameters
+normalisation_method <- parameters[parameters[,1] == "UseNormalisationMethod",2]
+species <- parameters[parameters[,1] == "Species",2]
+labellingMethod <- parameters[parameters[,1] == "LabellingMethod",2]
+
+
+listIntensityExperiments <- runGenericDiscovery(experimentDesign = design, 
+                                                proteinIntensities = intensities, 
+                                                normalisationMethod = normalisation_method, 
+                                                species = species, 
+                                                labellingMethod = labellingMethod)
+
+expectedCompleteIntensityExperiment <- listIntensityExperiments$CompleteIntensityExperiment
+expectedIntensityExperiment <- listIntensityExperiments$IntensityExperiment
+output_folder <- "tests/data"
+
+expectedcomparisonExperiments <- 
+  listComparisonExperiments(expectedCompleteIntensityExperiment)
+
+if(with_integer_condition){
+save(expectedIntensityExperiment, 
+     expectedCompleteIntensityExperiment, 
+     expectedcomparisonExperiments,
+     file = file.path("tests/data/mq_lfq_output_integers.RData"))
+}else{
+  save(expectedIntensityExperiment, 
+       expectedCompleteIntensityExperiment, 
+       expectedcomparisonExperiments,
+       file = file.path("tests/data/mq_lfq_output.RData"))
+}
+
+
 ##########################
 # HER2 on Maxquant worflow
 ##########################
@@ -113,7 +162,7 @@ convert_protein_groups_to_universal <- function(proteinGroups){
 library(stringr)
 
 ### Raw MaxQuant output
-mq_data_input <- "../../data-s3/data-formats/maxquant/LFQ/HER2/data/"
+mq_data_input <- "../../../data-s3/data-formats/maxquant/LFQ/HER2/data/"
 protein.intensities <- read.csv(file.path(mq_data_input, "proteinGroups.txt"), sep = "\t", stringsAsFactors = F)
 design <- read.csv(file.path(mq_data_input, "experimentDesign_original.txt"), sep = "\t", stringsAsFactors = F)
 
@@ -126,7 +175,7 @@ colnames(data_int_me) <- gsub("LFQ.", "lfq.", colnames(data_int_me))
 
 library(LFQProcessing)
 # Where the output from LFQ processing is saved
-output_folder <- "../../data-s3/data-formats/maxquant/LFQ/HER2/data/output/"
+output_folder <- "../../../data-s3/data-formats/maxquant/LFQ/HER2/data/output/"
 # her2 <- protein_quant_runner(upload_folder, output_folder)
 out_data <- read.delim(file.path(output_folder, "proteinGroups_quant.txt")) %>%
   dplyr::rename(Majority.protein.IDs=majority.protein.ids,
@@ -142,8 +191,16 @@ colnames(out_data_bench)[2:ncol(out_data_bench)] <- paste0("Disco_", colnames(ou
 lfq_intensities <- out_data_1prot %>% dplyr::select(ProteinId, starts_with("lfq."))
 
 ## Run MassExpression discovery
+with_integer_condition <- TRUE
 intensities <- input_gen$intensities
 design <- input_gen$design
+
+if(with_integer_condition){
+design <- design %>% mutate(Condition = ifelse(Condition %in% "AZD8931_resistant_SKBR3_AZDRc",1,2),
+                            SampleName = 1:6)
+colnames(intensities) <- c(1:6, "ProteinId")
+}
+
 parameters <- input_gen$parameters
 normalisation_method <- parameters[parameters[,1] == "UseNormalisationMethod",2]
 species <- parameters[parameters[,1] == "Species",2]
@@ -187,8 +244,12 @@ ggplot(compare_new_run, aes(x=FC,
   ggtitle("Proteins used in pairwise comparison")
 
 
-
+if(with_integer_condition){
+  compare_new_run$NImpute <- compare_new_run$NImputed..2 + compare_new_run$NImputed..1
+}else{
 compare_new_run$NImpute <- compare_new_run$NImputed..Parental_SKBR3 + compare_new_run$NImputed..AZD8931_resistant_SKBR3_AZDRc
+}
+
 ggplot(compare_new_run, aes(x=-log10(P.Value), 
                             y = -log10(`Disco_P.Value.AZD8931_resistant_SKBR3_AZDRc...Parental_SKBR3`), colour=NImpute)) + 
   geom_point() +
@@ -198,14 +259,17 @@ ggplot(compare_new_run, aes(x=-log10(P.Value),
   ggtitle("using proteins used in pairwise comparison")
 
 
-ggplot(compare_new_run, aes(x = Disco_logFC.AZD8931_resistant_SKBR3_AZDRc...Parental_SKBR3, y = -log10(`Disco_P.Value.AZD8931_resistant_SKBR3_AZDRc...Parental_SKBR3`))) + geom_point()
+library(cowplot)
+p1=ggplot(compare_new_run, aes(x = Disco_logFC.AZD8931_resistant_SKBR3_AZDRc...Parental_SKBR3, y = -log10(`Disco_P.Value.AZD8931_resistant_SKBR3_AZDRc...Parental_SKBR3`))) + geom_point()
+p2=ggplot(compare_new_run, aes(x = FC, y = -log10(`P.Value`))) + geom_point()
+plot_grid(p1,p2)
 
-ggplot(compare_new_run, aes(x = FC, y = -log10(`P.Value`))) + geom_point()
 
-
-
-save(data_bench_maxquant, expected_diff_fc_maxquant, expected_diff_pval_maxquant, file = "tests/data/HER2_maxquant_workflow.RData")
-
+if(with_integer_condition){
+  save(data_bench_maxquant, expected_diff_fc_maxquant, expected_diff_pval_maxquant, file = "tests/data/HER2_maxquant_workflow.RData")
+}else{
+  save(data_bench_maxquant, expected_diff_fc_maxquant, expected_diff_pval_maxquant, file = "tests/data/HER2_maxquant_workflow_integers.RData")
+}
 
 
 # Test data fro writeReplicatesData
@@ -221,3 +285,4 @@ SampleDT <- data.table(ProteinId = c(rep("Prot1", 10), rep("Prot2", 10)),
                                     1,1,0,0,0))
 
 writeReplicateData(SampleDT, "tests/data")
+
