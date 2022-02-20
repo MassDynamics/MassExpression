@@ -22,7 +22,7 @@ ensure_package_installed_with_version <- function (package, version, repos = rep
 
 }
 
-
+ensure_package_installed("roxygen2", repos = list("http://cran.rstudio.com/", "https://cran.ms.unimelb.edu.au/"))
 ensure_package_installed("devtools", repos = list("http://cran.rstudio.com/", "https://cran.ms.unimelb.edu.au/"))
 ensure_package_installed("grDevices", repos = list("http://cran.rstudio.com/", "https://cran.ms.unimelb.edu.au/"))
 
