@@ -25,6 +25,7 @@ ensure_package_installed_with_version <- function (package, version, repos = rep
 ensure_package_installed("roxygen2", repos = list("http://cran.rstudio.com/", "https://cran.ms.unimelb.edu.au/"))
 ensure_package_installed("devtools", repos = list("http://cran.rstudio.com/", "https://cran.ms.unimelb.edu.au/"))
 ensure_package_installed("grDevices", repos = list("http://cran.rstudio.com/", "https://cran.ms.unimelb.edu.au/"))
+ensure_package_installed("parallel", repos = list("http://cran.rstudio.com/", "https://cran.ms.unimelb.edu.au/"))
 
 
 ensure_package_installed_with_version("gert", "1.3.1",repos = "http://cran.rstudio.com/")
@@ -59,7 +60,6 @@ ensure_package_installed_with_version("credentials", '1.3.1', repos = "http://cr
 ensure_package_installed_with_version("matrixStats", '0.60.0', repos = "http://cran.rstudio.com/")
 ensure_package_installed_with_version("broom", '0.7.9', repos = "http://cran.rstudio.com/")
 ensure_package_installed_with_version("uuid", '1.0-3', repos = "http://cran.rstudio.com/")
-ensure_package_installed_with_version("parallel", '4.1.0', repos = "http://cran.rstudio.com/")
 
 
 #### Install packages Bioconductor
