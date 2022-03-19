@@ -37,6 +37,7 @@ preparePlottingData <- function(Experiment, log=FALSE){
 #' @details #' A protein is defined DE is the adjusted PValue is less than 0.05. 
 #' When multiple comparisons are available, the adjusted PValues of the F-test is used. 
 #' @import ggplot2 
+#' @importFrom uuid UUIDgenerate
 
 plot_pca_experiment <- function(Experiment, 
                                 format="pdf", 
@@ -64,7 +65,8 @@ plot_pca_experiment <- function(Experiment,
     warning("Not enough DE proteins to produce a PCA plot.")
     return(NULL)
   }else{
-    
+  
+    rownames(intensities) <- UUIDgenerate(use.time = NA, n = nrow(intensities))
     res.pca <- FactoMineR::PCA(t(intensities), graph = FALSE, ncp = 2)
     
     eig.val <- factoextra::get_eigenvalue(res.pca)
