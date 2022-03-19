@@ -52,6 +52,7 @@ saveOutput <- function(IntensityExperiment, CompleteIntensityExperiment,
 #' @param outputFolder str. Path to folder where `data` should be saved.
 #' @param fileName str. Name of file to write in output.
 #' @import data.table
+#' @importFrom parallel detectCores
 #' @export
 writeOutputFile <- function(data, outputFolder, fileName){
   dir.create(outputFolder, showWarnings = FALSE)

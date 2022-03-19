@@ -1,7 +1,7 @@
 Package: MassExpression
 Type: Package
 Title: MassExpression
-Version: 0.0.76
+Version: 0.0.77
 Author: Anna Quaglieri
      <anna@massdynamics.com> and Joseph
      Bloom <joseph@massdynamics.com>
@@ -39,7 +39,8 @@ Imports:
   foreach (>= 1.5.1),
   knitr (>= 1.33),
   stringi (>= 1.7.3),
-  uuid (>= 1.0-3)
+  uuid (>= 1.0-3), 
+  parallel(>= 4.1.0)
 RoxygenNote: 7.1.2
 Suggests: 
     testthat (>= 3.0.0)
