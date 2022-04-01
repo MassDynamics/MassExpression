@@ -34,7 +34,7 @@ devtools::install_github("MassDynamics/MassExpression")
 ``` r
 library(MassExpression)
 utils::packageVersion("MassExpression")
-#> [1] '0.0.72'
+#> [1] '0.0.78'
 ```
 
 ## Internal data available
@@ -87,9 +87,9 @@ tools::buildVignettes(dir = ".", tangle=TRUE)
 output_folder <- "path/to/output/folder"
 
 saveOutput(IntensityExperiment = IntensityExperiment, 
-CompleteIntensityExperiment = CompleteExperiment,
+CompleteIntensityExperiment = CompleteIntensityExperiment,
 longIntensityDT = longIntensityDT, 
-output_folder =  output_folder)
+outputFolder =  output_folder)
 ```
 
 ## Render QC
@@ -145,29 +145,30 @@ sessionInfo()
 #> [8] methods   base     
 #> 
 #> other attached packages:
-#>  [1] MassExpression_0.0.72       SummarizedExperiment_1.22.0
+#>  [1] MassExpression_0.0.78       SummarizedExperiment_1.22.0
 #>  [3] GenomicRanges_1.44.0        GenomeInfoDb_1.28.4        
-#>  [5] IRanges_2.26.0              S4Vectors_0.30.0           
+#>  [5] IRanges_2.26.0              S4Vectors_0.30.2           
 #>  [7] MatrixGenerics_1.4.3        matrixStats_0.61.0         
 #>  [9] Biobase_2.52.0              BiocGenerics_0.38.0        
 #> 
 #> loaded via a namespace (and not attached):
-#>  [1] tidyselect_1.1.1       xfun_0.26              purrr_0.3.4           
-#>  [4] lattice_0.20-44        colorspace_2.0-2       vctrs_0.3.8           
-#>  [7] generics_0.1.0         htmltools_0.5.2        yaml_2.2.1            
-#> [10] utf8_1.2.2             rlang_0.4.11           pillar_1.6.2          
-#> [13] glue_1.4.2             DBI_1.1.1              RColorBrewer_1.1-2    
-#> [16] GenomeInfoDbData_1.2.6 foreach_1.5.1          lifecycle_1.0.0       
-#> [19] stringr_1.4.0          zlibbioc_1.38.0        munsell_0.5.0         
-#> [22] gtable_0.3.0           codetools_0.2-18       evaluate_0.14         
-#> [25] knitr_1.34             fastmap_1.1.0          fansi_0.5.0           
-#> [28] scales_1.1.1           limma_3.48.3           DelayedArray_0.18.0   
-#> [31] jsonlite_1.7.2         XVector_0.32.0         ggplot2_3.3.5         
-#> [34] digest_0.6.27          stringi_1.7.4          dplyr_1.0.7           
-#> [37] grid_4.1.0             tools_4.1.0            bitops_1.0-7          
-#> [40] magrittr_2.0.1         RCurl_1.98-1.5         tibble_3.1.4          
-#> [43] tidyr_1.1.3            crayon_1.4.1           pkgconfig_2.0.3       
-#> [46] ellipsis_0.3.2         pheatmap_1.0.12        Matrix_1.3-4          
-#> [49] data.table_1.14.0      assertthat_0.2.1       rmarkdown_2.11        
-#> [52] iterators_1.0.13       R6_2.5.1               compiler_4.1.0
+#>  [1] tidyselect_1.1.2       xfun_0.29              purrr_0.3.4           
+#>  [4] lattice_0.20-45        colorspace_2.0-2       vctrs_0.3.8           
+#>  [7] generics_0.1.2         htmltools_0.5.2        yaml_2.2.2            
+#> [10] utf8_1.2.2             rlang_1.0.1            pillar_1.7.0          
+#> [13] glue_1.6.2             DBI_1.1.2              RColorBrewer_1.1-2    
+#> [16] uuid_1.0-3             GenomeInfoDbData_1.2.6 foreach_1.5.2         
+#> [19] lifecycle_1.0.1        stringr_1.4.0          zlibbioc_1.38.0       
+#> [22] munsell_0.5.0          gtable_0.3.0           codetools_0.2-18      
+#> [25] evaluate_0.14          knitr_1.37             fastmap_1.1.0         
+#> [28] fansi_1.0.2            scales_1.1.1           limma_3.48.3          
+#> [31] DelayedArray_0.18.0    jsonlite_1.8.0         XVector_0.32.0        
+#> [34] ggplot2_3.3.5          digest_0.6.29          stringi_1.7.6         
+#> [37] dplyr_1.0.8            grid_4.1.0             cli_3.2.0             
+#> [40] tools_4.1.0            bitops_1.0-7           magrittr_2.0.2        
+#> [43] RCurl_1.98-1.6         tibble_3.1.6           tidyr_1.2.0           
+#> [46] crayon_1.5.0           pkgconfig_2.0.3        pheatmap_1.0.12       
+#> [49] ellipsis_0.3.2         Matrix_1.4-0           data.table_1.14.2     
+#> [52] assertthat_0.2.1       rmarkdown_2.11         rstudioapi_0.13       
+#> [55] iterators_1.0.14       R6_2.5.1               compiler_4.1.0
 ```
