@@ -42,7 +42,7 @@ test_that("precentageOfReplicates is the same",{
 # test
 SampleDT <- data.table(ProteinId = c(rep("Prot1", 10), rep("Prot2", 10)),
                        GeneName = NA, Description = NA,
-                       log2NInt = rep(1.5, 20),
+                       log2NIntNorm = rep(1.5, 20),
                        Condition = c(rep(c("A", "B"), each=5), rep(c("A", "B"), each=5)), 
                        Replicate = c(1:5, 1:5, 1:5, 1:5), 
                        Imputed =  c(0,0,0,0,0,
