@@ -48,7 +48,8 @@ SampleDT <- data.table(ProteinId = c(rep("Prot1", 10), rep("Prot2", 10)),
                        Imputed =  c(0,0,0,0,0,
                                     0,0,0,1,1,
                                     1,0,0,0,0,
-                                    1,1,0,0,0))
+                                    1,1,0,0,0),
+                       SampleName = "sample name here")
 
 writeReplicateData(SampleDT, "../data/current")
 current <- read_json("../data/current/protein_counts_and_intensity.json", simplifyVector=TRUE)

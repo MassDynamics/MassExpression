@@ -157,10 +157,10 @@ oneProteinReplData <- function(oneProt){
     cond <- infoConds$name[cond_idx]
     infoOneCond <- infoConds[name %in% cond, ]
     
-    oneCondRepl <- data.table(oneProt)[Condition %in% cond, c("log2NIntNorm", "Imputed")] 
-    oneCondRepl$replicateNum <- 1:nrow(oneCondRepl)
+    oneCondRepl <- data.table(oneProt)[Condition %in% cond, c("SampleName","log2NIntNorm", "Imputed")] 
     setnames(oneCondRepl, old = "log2NIntNorm", new = "log2NInt_ProteinGroupId")
-    oneCondRepl <- oneCondRepl[,c("replicateNum", "log2NInt_ProteinGroupId", "Imputed")]
+    setnames(oneCondRepl, old = "SampleName", new = "Replicate")
+    oneCondRepl <- oneCondRepl[,c("Replicate", "log2NInt_ProteinGroupId", "Imputed")]
     
     entryCond <- dplyr::tibble(infoOneCond, intensityValues=list(oneCondRepl))
     conditions[cond_idx, ] <- entryCond
