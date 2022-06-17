@@ -72,6 +72,6 @@ ensure_package_installed_with_version("credentials", '1.3.1', repos = "http://cr
 ensure_package_installed_with_version("matrixStats", '0.60.0', repos = "http://cran.rstudio.com/")
 ensure_package_installed_with_version("broom", '0.7.9', repos = "http://cran.rstudio.com/")
 ensure_package_installed_with_version("uuid", '1.0-3', repos = "http://cran.rstudio.com/")
-ensure_package_installed_with_version("kableExtra", '1.3.4', repos = "http://cran.rstudio.com/")
+# ensure_package_installed_with_version("kableExtra", '1.3.4', repos = "http://cran.rstudio.com/")
 
 sessionInfo()
