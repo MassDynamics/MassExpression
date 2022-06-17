@@ -55,7 +55,6 @@ library(dplyr)
 library(stringr)
 library(MassExpression)
 library(plotly)
-library(kableExtra)
 
 CompleteIntensityExperiment <- params$listInt$CompleteIntensityExperiment
 IntensityExperiment <- params$listInt$IntensityExperiment

@@ -55,7 +55,6 @@ library(dplyr)
 library(stringr)
 library(MassExpression)
 library(plotly)
-library(kableExtra)
 
 CompleteIntensityExperiment <- params$listInt$CompleteIntensityExperiment
 IntensityExperiment <- params$listInt$IntensityExperiment
@@ -93,7 +92,8 @@ cv_data <- p[[2]]
 cv_data <- as_tibble(cv_data) %>% group_by(Condition) %>%
   summarise(`Median CV %` = round(median(cv, na.rm = TRUE)*100))
 
-cv_data %>%
-  kbl() %>%
-  kable_styling(full_width = F, position = "left")
+knitr::kable(cv_data, row.names = FALSE)
+
+# kbl() %>%
+# kable_styling(full_width = F, position = "left")
 ```

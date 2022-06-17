@@ -90,9 +90,9 @@ n_proteins <- n_proteins %>% rename(`Number of Proteins` = total_proteins_in_exp
 
 #knitr::kable(n_proteins, row.names = FALSE, caption="Summary of differential expression results across comparisons.") 
 
+knitr::kable(n_proteins, row.names = FALSE)
 
-n_proteins %>%
-  kbl() %>%
-  kable_styling(full_width = F, position = "left")
+# kbl() %>%
+# kable_styling(full_width = F, position = "left")
 
 ```
