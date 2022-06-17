@@ -4,7 +4,7 @@
 \alias{plot_condition_cv_distribution}
 \title{CV distributuions of a protein summarized by condition of interest}
 \usage{
-plot_condition_cv_distribution(Experiment)
+plot_condition_cv_distribution(Experiment, title = "Protein Intensity CV")
 }
 \arguments{
 \item{Experiment}{SummarizedExperiment object}

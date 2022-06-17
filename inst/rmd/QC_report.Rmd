@@ -237,12 +237,12 @@ if(is.null(p)) cat("#### Not enough differentially expressed proteins to produce
 # 3. Feature completedness {.tabset .tabset-fade .tabset-pills}
 
 <details>
-  <summary>Distribution of missing values by samples and by proteins and clustering using missing values</summary>
+  <summary>Distribution of missing values by samples and by proteins </summary>
   <span>
     <p> The amount of missing values can be affected by the biological condition or by technical factors and it can vary largely between experiments.</p>
    <p>For a healthy experiment we expect:</p>
     <ul>
-      <li>The distribution of missing values replicate to be similar across replicates, especially within the same biological conditions</li>
+      <li>The distribution of missing values by replicate to be similar across replicates, especially within the same biological conditions</li>
     </ul>
     <p>There isns't a strict threshold to look for in terms of % of missing values. However, an unusually large amount of missingness in one or a few replicates can be sympthomatic of technial problems and should be taken into account when intepreting the final differential expression results.<p>
   </span>

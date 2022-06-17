@@ -10,6 +10,9 @@ document:
 build:
 	Rscript -e "devtools::build()"
 
+test:
+	Rscript -e "devtools::test()"
+
 install:
 	Rscript -e "devtools::install(build_vignettes = TRUE, upgrade = TRUE)"
 

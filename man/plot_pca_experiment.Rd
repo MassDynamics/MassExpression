@@ -11,7 +11,8 @@ plot_pca_experiment(
   Experiment,
   format = "pdf",
   log = FALSE,
-  onlyDEProteins = FALSE
+  onlyDEProteins = FALSE,
+  title = "PCA plot"
 )
 }
 \arguments{

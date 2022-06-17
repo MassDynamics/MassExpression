@@ -4,7 +4,11 @@
 \alias{plot_samples_correlation_matrix}
 \title{Correlation plot of samples using DE proteins}
 \usage{
-plot_samples_correlation_matrix(Experiment, onlyDEProteins = FALSE)
+plot_samples_correlation_matrix(
+  Experiment,
+  onlyDEProteins = FALSE,
+  title = "All proteins"
+)
 }
 \arguments{
 \item{Experiment}{SummarizedExperiment object of imputed data.}

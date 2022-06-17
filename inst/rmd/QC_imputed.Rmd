@@ -1,0 +1,80 @@
+---
+title: "Distribution of imputed vs actual intensities"
+output:
+  html_document:
+    theme: united
+    toc: no
+    fig_caption: yes
+    lib_dir: qc_report_files
+params:
+  listInt: empty
+  experiment: empty
+  format: pdf
+  output_figure: figures
+---
+
+
+<style type="text/css">
+
+summary {
+  text-decoration: underline;
+  font-size: 16px;
+  color: grey;
+  cursor: pointer;
+  margin-bottom: 16px;
+}
+
+summary, summary:active {
+  border: none;
+}
+
+details span {
+  margin-top: 8px;
+  display: block;
+}
+
+#header .btn-group {
+  display: none;
+}
+
+.main-container {
+  max-width: 1400px !important;
+}
+</style>
+
+--- 
+
+```{r setup, include=FALSE}
+print(params)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, 
+                      fig.path = params$output_figure, dev = "svg")
+```
+
+
+```{r data-needed, include=FALSE, eval=TRUE}
+library(dplyr)
+library(stringr)
+library(MassExpression)
+library(plotly)
+library(kableExtra)
+
+CompleteIntensityExperiment <- params$listInt$CompleteIntensityExperiment
+IntensityExperiment <- params$listInt$IntensityExperiment
+design <- colData(IntensityExperiment)
+
+comparisonExperiments <- 
+    listComparisonExperiments(CompleteIntensityExperiment)
+```
+
+
+<details>
+  <summary>Density distribution of imputed vs actual intensities</summary>
+  <span>
+    <p>Initial intensities equal to zero are considered as missing values and imputed prior to the DE analysis. Imputation is performed using the MNAR ("Missing Not At Random") method as adopted in Perseus. Imputed values are randomly drawn from a normal distribution with mean equal to the observed mean (mean of the available intensities) shifted by -1.8 times the observed standard deviation, and a standard deviation equal to the observed standard deviation scaled by a factor of 0.3 (as in Perseus). The plots below show the distribution of imputed values (Imputed = TRUE) and actual values (Imputed = FALSE), all of which are then used for the downstream DE analyses. </p>
+  </span>
+</details> 
+
+
+```{r compare-imputed}
+plot_imputed_vs_not(CompleteIntensityExperiment = CompleteIntensityExperiment, title = NULL)
+```

@@ -42,14 +42,13 @@ preparePlottingData <- function(Experiment, log=FALSE){
 plot_pca_experiment <- function(Experiment, 
                                 format="pdf", 
                                 log=FALSE, 
-                                onlyDEProteins=FALSE){
+                                onlyDEProteins=FALSE, 
+                                title = "PCA plot"){
   # prepare data for plotting
   toPlot <- preparePlottingData(Experiment, log)
   intensities <- toPlot$intensities
   design <- toPlot$design
   
-  
-  title <- "PCA plot"
   if(onlyDEProteins){
     limmaStats <- rowData(Experiment)
     if(!("adj.P.Val" %in% colnames(limmaStats))){
@@ -209,8 +208,10 @@ plot_replicate_missingness <- function(Experiment){
     theme(axis.text.x = element_text(angle = 90, vjust = 0.2),
           panel.grid.major.y = element_blank(),
           panel.border = element_blank(),
-          axis.ticks.y = element_blank()
-    )
+          axis.ticks.y = element_blank(),
+          legend.position="bottom"
+    ) +
+    guides(fill=guide_legend(nrow=2,byrow=TRUE))
   p
   
 }
@@ -472,7 +473,8 @@ plot_density_distr <- function(Experiment, log=FALSE){
 #' @param byCondition logical. TRUE to produce separate density distributions by Condition.
 #' @export plot_imputed_vs_not
 
-plot_imputed_vs_not <- function(CompleteIntensityExperiment, byCondition=FALSE){
+plot_imputed_vs_not <- function(CompleteIntensityExperiment, byCondition=FALSE,
+                                title = "Intensity (Imputed vs Actual)"){
   
   assay1 <- as_tibble(assay(CompleteIntensityExperiment))
   assay1$ProteinId <- rownames(assay(CompleteIntensityExperiment))
@@ -496,7 +498,7 @@ plot_imputed_vs_not <- function(CompleteIntensityExperiment, byCondition=FALSE){
                                    colour = Imputed)) +
     geom_density(alpha=0.4) +
     theme_minimal() +
-    ggtitle("Intensity (Imputed vs Actual)") +
+    ggtitle(title) +
     labs(x = "Log2 Intensity")
   
   if(byCondition){
@@ -513,7 +515,7 @@ plot_imputed_vs_not <- function(CompleteIntensityExperiment, byCondition=FALSE){
 #' @param Experiment SummarizedExperiment object
 #' @export plot_condition_cv_distribution
 
-plot_condition_cv_distribution <- function(Experiment){
+plot_condition_cv_distribution <- function(Experiment, title = "Protein Intensity CV"){
   longIntensityDF <- SEToLongDT(Experiment)
   longIntensityDF$Imputed <- longIntensityDF$Intensity == 0
   
@@ -529,7 +531,7 @@ plot_condition_cv_distribution <- function(Experiment){
     geom_density(alpha=0.4) +
     theme_minimal() +
     scale_x_continuous("% CV", labels = scales::percent) +
-    ggtitle("Protein Intensity CV")
+    ggtitle(title)
   
   list(p, as_tibble(cvdt))
   
@@ -607,7 +609,7 @@ plot_heatmap_missingness <- function(Experiment, complete=FALSE){
 #' At least 5 DE proteins are required to produce the correlation plot.  
 #' 
 
-plot_samples_correlation_matrix <- function(Experiment, onlyDEProteins=FALSE){
+plot_samples_correlation_matrix <- function(Experiment, onlyDEProteins=FALSE, title = "All proteins"){
   
   # prepare data for plotting
   toPlot <- preparePlottingData(Experiment, log=FALSE)
@@ -620,7 +622,6 @@ plot_samples_correlation_matrix <- function(Experiment, onlyDEProteins=FALSE){
   column_name_order <- sapply(design$SampleName, function(z) which(colnames(intensities) %in% z))
   colnames(intensities)[column_name_order] <- design$plotSampleName
   
-  title <- "All proteins"
   if(onlyDEProteins){
     limmaStats <- rowData(Experiment)
     if(!("adj.P.Val" %in% colnames(limmaStats))){

@@ -1,0 +1,89 @@
+---
+title: "Sample correlations"
+output:
+  html_document:
+    theme: united
+    toc: no
+    fig_caption: yes
+    lib_dir: qc_report_files
+params:
+  listInt: empty
+  experiment: empty
+  format: pdf
+  output_figure: figures
+---
+
+
+<style type="text/css">
+
+summary {
+  text-decoration: underline;
+  font-size: 16px;
+  color: grey;
+  cursor: pointer;
+  margin-bottom: 16px;
+}
+
+summary, summary:active {
+  border: none;
+}
+
+details span {
+  margin-top: 8px;
+  display: block;
+}
+
+#header .btn-group {
+  display: none;
+}
+
+.main-container {
+  max-width: 1400px !important;
+}
+</style>
+
+--- 
+
+```{r setup, include=FALSE}
+print(params)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, 
+                      fig.path = params$output_figure, dev = "svg")
+```
+
+
+```{r data-needed, include=FALSE, eval=TRUE}
+library(dplyr)
+library(stringr)
+library(MassExpression)
+library(plotly)
+
+CompleteIntensityExperiment <- params$listInt$CompleteIntensityExperiment
+IntensityExperiment <- params$listInt$IntensityExperiment
+design <- colData(IntensityExperiment)
+
+comparisonExperiments <- 
+    listComparisonExperiments(CompleteIntensityExperiment)
+```
+
+
+<details>
+  <summary>Correlation plots details</summary>
+  <span>
+    <p>The correlation plot shows the Pearson's correlation between the samples in the experiment. Hierarchical clustering is adopted to order the samples in the matrix. Clustering of samples with high correlation aids with the visual inspection of similarity between samples.</p>
+    <p>This section displays two correlation plots:</p>
+    <ul>
+      <li>Using all intensities (imputed and normalised, when requested) used for the DE analysis.</li>
+      <li>Including only DE proteins. The DE proteins are defined as those proteins with an adjusted p-value < 0.05, where the p-value is the one of the limma ANOVA test which tests for differences using all categories of the condition of interest jointly. At least 5 DE proteins are required to produce this plot.</li>
+    </ul>
+    <p>For a healthy experiment we expect:</p>
+    <ul>
+      <li>Technical Replicates to have high correlations.</li>
+      <li>Biological Replicates to have higher correlations than non replicates.</li>
+    </ul>
+  </span>
+</details> 
+
+```{r corr-samples}
+plot_samples_correlation_matrix(CompleteIntensityExperiment)
+```
+

@@ -1,0 +1,101 @@
+---
+title: "RLE of Log2 normalised intensities"
+output:
+  html_document:
+    theme: united
+    toc: no
+    fig_caption: yes
+    lib_dir: qc_report_files
+params:
+  listInt: empty
+  experiment: empty
+  format: pdf
+  output_figure: figures
+---
+
+
+<style type="text/css">
+
+summary {
+  text-decoration: underline;
+  font-size: 16px;
+  color: grey;
+  cursor: pointer;
+  margin-bottom: 16px;
+}
+
+summary, summary:active {
+  border: none;
+}
+
+details span {
+  margin-top: 8px;
+  display: block;
+}
+
+#header .btn-group {
+  display: none;
+}
+
+.main-container {
+  max-width: 1400px !important;
+}
+</style>
+
+--- 
+
+```{r setup, include=FALSE}
+print(params)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, 
+                      fig.path = params$output_figure, dev = "svg")
+```
+
+
+```{r data-needed, include=FALSE, eval=TRUE}
+library(dplyr)
+library(stringr)
+library(MassExpression)
+library(plotly)
+library(kableExtra)
+
+CompleteIntensityExperiment <- params$listInt$CompleteIntensityExperiment
+IntensityExperiment <- params$listInt$IntensityExperiment
+design <- colData(IntensityExperiment)
+
+comparisonExperiments <- 
+    listComparisonExperiments(CompleteIntensityExperiment)
+```
+
+
+<details>
+  <summary>Relative Log Expression distributions</summary>
+  <span>
+    <p>It is useful to inspect the distribution of the Relative Log Expression (RLE) values to identify samples with largely unusual distributions. The RLE values for a protein are obtained by centering intensities to the protein medians, where the median is computed using only available intensities, i.e. non zero values. The RLE is computed on the log-transformed data before and after applying normalisation, when required. </p>
+   <p>For a healthy experiment we expect:</p>
+    <ul>
+      <li>The RLE boxplots to have a similar median - centered around zero - across all samples </li>
+      <li>The RLE boxplots to have a similar width of the boxes across samples </li>
+    </ul>
+     <p>If some samples show large deviations from the expected behaviour, it can be symptomatic of problems in the pre-processing of those samples.<p>
+  </span>
+</details> 
+
+  
+```{r}
+normalised <- FALSE
+if(metadata(CompleteIntensityExperiment)$NormalisationAppliedToAssay != "None"){
+  normalised <- TRUE
+}
+
+if(normalised){
+  # Plot RLE of log2 raw intensity as well as RLE of normalised 
+  p_norm <- plot_rle_boxplot(IntensityExperiment, CompleteIntensityExperiment, 
+                      includeImputed = FALSE, plotRawRLE = FALSE)
+  p_norm <- p_norm 
+  
+  p_norm
+} else {
+  print("No normalisation was applied to the data, therefore no difference is expected with the raw log2 data.")
+}
+```
+  
