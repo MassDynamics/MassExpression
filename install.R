@@ -12,7 +12,8 @@ ensure_package_installed_with_version <- function (package, version, repos = rep
     install_version(package, version = version, repos = repos)
     library(package, character.only=TRUE)
   } else if (packageVersion(package) != version) {
-    detach(package:readr,unload=TRUE)
+    print("Detach package")
+    detach(paste0("package:", package),unload=TRUE, character.only = TRUE)
     install_version(package, version = version, repos = repos)
     library(package, character.only=TRUE)
   }
@@ -46,6 +47,7 @@ if (typeof(biocManager_valid) == 'list'){
   sessionInfo()
   stop("BiocManager is not valid")
 }
+##################################
 
 ensure_package_installed_with_version("gert", "1.3.1",repos = "http://cran.rstudio.com/")
 ensure_package_installed_with_version("usethis","2.0.1", repos = "http://cran.rstudio.com/")
