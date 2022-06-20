@@ -118,7 +118,7 @@ rename_comparison_statistics_export <- function(comparisonStatistics){
     dplyr::rename(
       ProteinId = ProteinId,
       GeneName = GeneName,
-      Description = Description,
+      ProteinDescription = Description,
       PValue = P.Value,
       AdjustedPValue = adj.P.Val,
       FoldChange = logFC,
