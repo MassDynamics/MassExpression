@@ -1,0 +1,52 @@
+---
+title: ""
+output:
+  html_document:
+    theme: united
+    toc: no
+    fig_caption: yes
+    lib_dir: qc_report_files
+params:
+  listInt: empty
+  format: pdf
+  output_figure: figures
+---
+
+
+```{r setup, include=FALSE}
+print(params)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, 
+                      fig.path = params$output_figure, dev = "svg")
+```
+
+
+```{r data-needed, include=FALSE, eval=TRUE}
+library(dplyr)
+library(stringr)
+library(MassExpression)
+library(plotly)
+
+CompleteIntensityExperiment <- params$listInt$CompleteIntensityExperiment
+IntensityExperiment <- params$listInt$IntensityExperiment
+design <- colData(IntensityExperiment)
+
+comparisonExperiments <- 
+    listComparisonExperiments(CompleteIntensityExperiment)
+```
+
+
+```{r cv-dist}
+p=plot_condition_cv_distribution(IntensityExperiment, title = NULL)
+```
+
+  
+```{r cv-table, eval=TRUE, warning=FALSE, echo=FALSE, error=FALSE, message=FALSE, results='asis'}
+cv_data <- p[[2]]
+cv_data <- as_tibble(cv_data) %>% group_by(Condition) %>%
+  summarise(`Median CV %` = round(median(cv, na.rm = TRUE)*100))
+
+knitr::kable(cv_data, row.names = FALSE)
+
+# kbl() %>%
+# kable_styling(full_width = F, position = "left")
+```

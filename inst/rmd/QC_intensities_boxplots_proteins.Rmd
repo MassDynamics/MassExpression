@@ -1,5 +1,5 @@
 ---
-title: "Log2 raw intensities distrbution"
+title: ""
 output:
   html_document:
     theme: united
@@ -11,37 +11,6 @@ params:
   format: pdf
   output_figure: figures
 ---
-
-
-<style type="text/css">
-
-summary {
-  text-decoration: underline;
-  font-size: 16px;
-  color: grey;
-  cursor: pointer;
-  margin-bottom: 16px;
-}
-
-summary, summary:active {
-  border: none;
-}
-
-details span {
-  margin-top: 8px;
-  display: block;
-}
-
-#header .btn-group {
-  display: none;
-}
-
-.main-container {
-  max-width: 1400px !important;
-}
-</style>
-
---- 
 
 ```{r setup, include=FALSE}
 print(params)
@@ -65,12 +34,6 @@ comparisonExperiments <-
 ```
 
 
-<details>
-  <summary>Log2 raw intensities distributions</summary>
-  <span>
-    <p>Missing values are not considered when creating the boxplot. Zero intensities are considered as missing values.</p>
-  </span>
-</details> 
 
 
 ```{r raw-boxplots}

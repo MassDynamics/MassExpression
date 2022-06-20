@@ -18,7 +18,7 @@ runLimmaPipeline <- function(IntensityExperiment,
                              returnDecideTestColumn, 
                              conditionSeparator){
   
-  print("Starting DE with limma...")
+  print("Starting pre-processing")
 
   longIntensityDT <- initialiseLongIntensityDT(IntensityExperiment)
   # Create valid condition names
@@ -42,6 +42,7 @@ runLimmaPipeline <- function(IntensityExperiment,
   longIntensityDT[, RunId := str_c(Condition, Replicate, sep = ".")]
   
   # Run LIMMA
+  print("Starting DE with limma...")
   resultsQuant <- limmaStatsFun(ID_type = "ProteinId",
                                    int_type = "log2NIntNorm",
                                    condition_col_name = "Condition",

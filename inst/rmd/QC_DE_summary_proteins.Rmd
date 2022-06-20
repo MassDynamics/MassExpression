@@ -1,5 +1,5 @@
 ---
-title: "Summary of differential expression results"
+title: ""
 output:
   html_document:
     theme: united
@@ -11,37 +11,6 @@ params:
   format: pdf
   output_figure: figures
 ---
-
-
-<style type="text/css">
-
-summary {
-  text-decoration: underline;
-  font-size: 16px;
-  color: grey;
-  cursor: pointer;
-  margin-bottom: 16px;
-}
-
-summary, summary:active {
-  border: none;
-}
-
-details span {
-  margin-top: 8px;
-  display: block;
-}
-
-#header .btn-group {
-  display: none;
-}
-
-.main-container {
-  max-width: 1400px !important;
-}
-</style>
-
---- 
 
 ```{r setup, include=FALSE}
 print(params)
@@ -63,10 +32,6 @@ design <- colData(IntensityExperiment)
 comparisonExperiments <- 
     listComparisonExperiments(CompleteIntensityExperiment)
 ```
-
-
-
-The table below reports the number of proteins (*Number of Proteins* column) considered for each pairwise comparison analysis (proteins with more than 50% missing values across samples are removed) and the number of DE proteins detected in each comparison (*Number DE Proteins* column). The overall total number of proteins included in the exeriment is `r nrow(rowData(CompleteIntensityExperiment))`.
 
 
 ```{r summary-de, eval=TRUE, warning=FALSE, echo=FALSE, error=FALSE, message=FALSE, results='asis'}

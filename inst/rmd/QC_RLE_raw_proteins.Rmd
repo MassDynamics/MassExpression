@@ -1,0 +1,43 @@
+---
+title: ""
+output:
+  html_document:
+    theme: united
+    toc: no
+    fig_caption: yes
+    lib_dir: qc_report_files
+params:
+  listInt: empty
+  format: pdf
+  output_figure: figures
+---
+
+
+```{r setup, include=FALSE}
+print(params)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, 
+                      fig.path = params$output_figure, dev = "svg")
+```
+
+
+```{r data-needed, include=FALSE, eval=TRUE}
+library(dplyr)
+library(stringr)
+library(MassExpression)
+library(plotly)
+
+CompleteIntensityExperiment <- params$listInt$CompleteIntensityExperiment
+IntensityExperiment <- params$listInt$IntensityExperiment
+design <- colData(IntensityExperiment)
+
+comparisonExperiments <- 
+    listComparisonExperiments(CompleteIntensityExperiment)
+```
+
+
+```{r rle-plots}
+p_raw <- plot_rle_boxplot(IntensityExperiment, 
+                    includeImputed = FALSE, plotRawRLE = TRUE)
+p_raw
+```
+  
