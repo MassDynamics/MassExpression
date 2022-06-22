@@ -4,7 +4,7 @@
 \alias{preparePlottingData}
 \title{Extract intensity and design from a SummarizedExperiment object}
 \usage{
-preparePlottingData(Experiment, log = FALSE)
+preparePlottingData(Experiment, assayName = "intensities", log = FALSE)
 }
 \arguments{
 \item{Experiment}{SummarizedExperiment object}

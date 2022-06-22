@@ -36,7 +36,7 @@ comparisonExperiments <-
 
 ```{r pca-imputed}
 ## PCA
-p=plot_pca_experiment(CompleteIntensityExperiment, format = params$format, title = NULL)
+p=plot_chosen_pca_experiment(CompleteIntensityExperiment, format = params$format, title = NULL)
 p[[1]]
 ```
 

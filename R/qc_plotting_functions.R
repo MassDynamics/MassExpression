@@ -30,7 +30,7 @@ preparePlottingData <- function(Experiment,  assayName="intensities", log=FALSE)
 #' @param Experiment SummarizedExperiment object.
 #' @param auto_select_features str. One of 'de' or empty string.
 
-#' @import SummarizedExperiment
+#' @importFrom SummarizedExperiment rowData
 
 select_features_for_pca <- function(Experiment,
                                 auto_select_features=NULL){
@@ -107,9 +107,11 @@ compute_pcas <- function(Experiment, assayName, log, ndim=2){
 #' @export plot_chosen_pca_experiment
 #' @details #' A protein is defined DE if the adjusted PValue of the t-test or ANOVA (with multiple groups)
 #' is less than 0.05. 
+#' 
 #' @import ggplot2 
 #' @importFrom uuid UUIDgenerate
 #' @importFrom stringr str_c
+
 
 plot_chosen_pca_experiment <- function(Experiment, 
                                 assayName="intensities",

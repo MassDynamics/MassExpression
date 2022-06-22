@@ -39,12 +39,18 @@ runGenericDiscovery <- function(experimentDesign, proteinIntensities,
                                 returnDecideTestColumn = FALSE, 
                                 conditionSeparator = " - "){
   
+  
+  # Sanitize invisible and Unicode characters for correct export
+  
+  
+  
   print("Starting generic discovery...")
-
+  
   listMetadata <- list(Species = species,
                        LabellingMethod = labellingMethod, 
                        NormalisationAppliedToAssay = normalisationMethod)
   
+ 
   # Create Data Rep
   IntensityExperiment <- createSummarizedExperiment(experimentDesign = experimentDesign, 
                                                        proteinIntensities = proteinIntensities,
