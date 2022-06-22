@@ -30,7 +30,10 @@ sanitize_strings_in_dataframe <- function(df){
 
 sanitize_strings <- function(any_string){
   # Substitute unicode with empty space
+  # \u00A0 represents no break?
   any_string <- gsub("\u00A0", " ", any_string)
+  # \xa0 represents a hard break space
+  any_string <- gsub("\xa0", " ", any_string)
   
   # Remove invisible characters
   chars <- strsplit(any_string, "")[[1]]
