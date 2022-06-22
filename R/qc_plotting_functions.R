@@ -9,12 +9,12 @@
 #' @importFrom dplyr as_tibble
 #' @importFrom SummarizedExperiment colData assay
 
-preparePlottingData <- function(Experiment, log=FALSE){
+preparePlottingData <- function(Experiment,  assayName="intensities", log=FALSE){
   if(length(assay(IntensityExperiment)) > 1){
     warnings("More than one essay is present in the SummarizedExperiment. 
              Only the first one will be used.")
   }
-  intensities <- assay(Experiment)
+  intensities <- assays(Experiment)[[assayName]]
   design <- as_tibble(colData(Experiment))
   
   if(log){
@@ -23,6 +23,164 @@ preparePlottingData <- function(Experiment, log=FALSE){
   
   list(intensities=intensities, design=design)
 } 
+
+
+#' Subset features to be used for PCA
+#' 
+#' @param Experiment SummarizedExperiment object.
+#' @param auto_select_features str. One of 'de' or empty string.
+
+#' @import SummarizedExperiment
+
+select_features_for_pca <- function(Experiment,
+                                auto_select_features=NULL){
+  
+  if(is.null(auto_select_features)){
+    print("All features are kept.")
+    return(Experiment)
+  }
+  
+  if(!(auto_select_features %in% c("de"))){
+    stop(paste0("Invalid `auto_select_features` argument:", auto_select_features))
+  }
+  
+  if(auto_select_features == "de"){
+    limmaStats <- rowData(Experiment)
+    if(!("adj.P.Val" %in% colnames(limmaStats))){
+      stop("No adjusted PVlaues in rowData of the Experiment provided.")
+    }
+    protDE <- limmaStats$ProteinId[limmaStats$adj.P.Val < 0.05]
+    Experiment <- Experiment[rownames(Experiment) %in% protDE, ]
+  }
+  
+  # TODO
+  # add select highly variable genes
+  # add provide vector of proteins
+  
+  return(Experiment)
+}
+
+#' Compute PCAs
+#' 
+#' @param Experiment SummarizedExperiment object
+#' @param assayName assay of intensities to use to compute PCs
+#' @param ndim number of dimensions kept in result 
+
+#' @importFrom uuid UUIDgenerate
+#' @import FactoMineR
+#' @import factoextra
+
+compute_pcas <- function(Experiment, assayName, log, ndim=2){
+  
+  # prepare data to compute PC
+  toCompute <- preparePlottingData(Experiment, assayName, log)
+  intensities <- toCompute$intensities
+  design <- toCompute$design
+  
+  rownames(intensities) <- UUIDgenerate(use.time = NA, n = nrow(intensities))
+  res.pca <- FactoMineR::PCA(t(intensities), graph = FALSE, ncp = ndim)
+  
+  eig.val <- factoextra::get_eigenvalue(res.pca)
+  eig.val <- data.table(dims = rownames(eig.val), eig.val)
+  
+  samples.pca <- factoextra::get_pca_ind(res.pca)
+  samples.coord <- as_tibble(samples.pca$coord)
+  samples.coord$SampleName = design$SampleName
+  
+  samples.coord <- merge(samples.coord, design)
+  
+  list(pcas = samples.coord, eigenval = eig.val)
+}  
+
+
+#' Plot principal components
+#' 
+#' @param Experiment SummarizedExperiment object
+#' @param assayName assay of intensities to use to compute PCs.
+#' @param dimPlot vector of size 2 specifying the dimensions to plot.  
+#' @param log logical. Whether data should be logged before plotting
+#' @param auto_select_features str. One of 'de' (differentially expressed features see Details), 
+#' 'hvf' (highly variable features). If not provided all features are kept.
+#' @param format 'pdf' or 'html'. Prepare image to be rendered for pdf or html Rmd output
+#' @param title str. title on plot
+
+#' @export plot_chosen_pca_experiment
+#' @details #' A protein is defined DE if the adjusted PValue of the t-test or ANOVA (with multiple groups)
+#' is less than 0.05. 
+#' @import ggplot2 
+#' @importFrom uuid UUIDgenerate
+#' @importFrom stringr str_c
+
+plot_chosen_pca_experiment <- function(Experiment, 
+                                assayName="intensities",
+                                dimPlot = c(1,2), 
+                                log=FALSE, 
+                                auto_select_features=NULL, 
+                                title = "PCA plot",
+                                format="html"){
+  
+  # Subset experiment with features required
+  Experiment <- select_features_for_pca(Experiment, auto_select_features = auto_select_features)
+  
+  if(nrow(Experiment)<=4){
+    warning("Not enough features to produce a PCA plot (less than 5).")
+    return(NULL)
+  }
+
+  # Calculate PCs
+  pcaToPlot <- compute_pcas(Experiment, assayName, log, ndim=max(dimPlot))
+  dim1 <- paste0("Dim.",dimPlot[1])
+  dim2 <- paste0("Dim.",dimPlot[2])
+  
+  samples.coord <- pcaToPlot$pcas[,c(dim1, dim2, "Condition", "Replicate")]
+  samples.coord <- samples.coord %>% tidyr::unite(plotSampleName, Condition, Replicate, 
+                                                  sep="_", remove=FALSE)
+  eig.val <- pcaToPlot$eigenval
+    
+  # Prepare plot
+  p <- ggplot(samples.coord, aes(x = get(dim1), y=get(dim2), colour=Condition, fill=Condition, label=Replicate)) +
+    stat_ellipse(geom = "polygon", alpha=0.1) +
+    geom_point(size = 3, alpha = 0.7) +
+    theme_minimal() +
+    scale_x_continuous(str_c("PCA",  dimPlot[1], " - ", eig.val[dims == dim1, round(variance.percent,1)], "%")) +
+    scale_y_continuous(str_c("PCA", dimPlot[2], " - ", eig.val[dims == dim2, round(variance.percent,1)], "%")) +
+    ggtitle(title)
+  
+  
+  if(format == "pdf"){
+    p <- p + ggrepel::geom_label_repel(aes(label = plotSampleName, fill = NULL),
+                                       box.padding   = 0.35, 
+                                       point.padding = 0.5,
+                                       segment.color = 'grey50',
+                                       show.legend = FALSE)
+  }else if(format == "html"){
+    p <- plotly::ggplotly(p) %>% plotly::config(displayModeBar = T, 
+                                                modeBarButtons = list(list('toImage')),
+                                                displaylogo = F)
+  }else{
+    stop(paste0("Format ", format," not available."))
+  }
+  
+  # Scree plot
+  num_dimensions = sum(eig.val$eigenvalue>0.01)-2
+  scree_plot <- ggplot(eig.val[1:num_dimensions], aes(x=reorder(dims, -`variance.percent`), y=`variance.percent`)) +
+    geom_bar(stat="identity", fill = "skyblue2") +
+    theme_minimal() +
+    # geom_text_repel(aes(label=(round(`variance.percent`,1))), direction = 'y') +
+    scale_x_discrete("PCA components") +
+    scale_y_continuous("% Variance") +
+    ggtitle("Scree plot")
+  
+  if (format == "html"){
+    scree_plot <- plotly::ggplotly(scree_plot) %>%  plotly::config(displayModeBar = T, 
+                                                                   modeBarButtons = list(list('toImage')),
+                                                                   displaylogo = F)
+  }
+  
+  list(p, scree_plot)
+  
+}
+
 
 
 #' Plot first 2 dimensions of PCA

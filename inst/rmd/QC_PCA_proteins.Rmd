@@ -39,3 +39,7 @@ comparisonExperiments <-
 p=plot_pca_experiment(CompleteIntensityExperiment, format = params$format, title = NULL)
 p[[1]]
 ```
+
+
+
+
