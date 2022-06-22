@@ -37,7 +37,6 @@ select_features_for_pca <- function(Experiment,
                                 auto_select_features=NULL){
   
   if(is.null(auto_select_features)){
-    print("All features are kept.")
     return(Experiment)
   }
   
@@ -113,7 +112,6 @@ compute_pcas <- function(Experiment, assayName, log, ndim=2){
 #' @importFrom uuid UUIDgenerate
 #' @importFrom stringr str_c
 
-
 plot_chosen_pca_experiment <- function(Experiment, 
                                 assayName="intensities",
                                 dimPlot = c(1,2), 
@@ -171,8 +169,7 @@ plot_chosen_pca_experiment <- function(Experiment,
     theme_minimal() +
     # geom_text_repel(aes(label=(round(`variance.percent`,1))), direction = 'y') +
     scale_x_discrete("PCA components") +
-    scale_y_continuous("% Variance") +
-    ggtitle("Scree plot")
+    scale_y_continuous("% Variance")
   
   if (format == "html"){
     scree_plot <- plotly::ggplotly(scree_plot) %>%  plotly::config(displayModeBar = T, 
@@ -272,8 +269,7 @@ plot_pca_experiment <- function(Experiment,
       theme_minimal() +
       # geom_text_repel(aes(label=(round(`variance.percent`,1))), direction = 'y') +
       scale_x_discrete("PCA components") +
-      scale_y_continuous("% Variance") +
-      ggtitle("Scree plot")
+      scale_y_continuous("% Variance")
     
     if (format == "html"){
       scree_plot <- plotly::ggplotly(scree_plot) %>%  plotly::config(displayModeBar = T, 
@@ -345,7 +341,7 @@ plot_mds_experiment <- function(Experiment, assayName="intensities", log=FALSE){
 #' 
 #' @export plot_replicate_missingness
 
-plot_replicate_missingness <- function(Experiment, assayName){
+plot_replicate_missingness <- function(Experiment, assayName="raw"){
   # prepare data for plotting
   prep_data <- preparePlottingData(Experiment, assayName = assayName)
   intensities <- prep_data[['intensities']]
@@ -432,7 +428,7 @@ plot_protein_counts_by_replicate <- function(Experiment){
 #' 
 #' @export plot_protein_missingness
 
-plot_protein_missingness <- function(Experiment, assayName){
+plot_protein_missingness <- function(Experiment, assayName="raw"){
   # prepare data for plotting
   intensities <- preparePlottingData(Experiment, assayName = assayName)[['intensities']]
   
@@ -777,7 +773,7 @@ plot_heatmap_missingness <- function(Experiment, complete=FALSE){
 #' At least 5 DE proteins are required to produce the correlation plot.  
 #' 
 
-plot_samples_correlation_matrix <- function(Experiment, assayName, onlyDEProteins=FALSE, title = "All proteins"){
+plot_samples_correlation_matrix <- function(Experiment, assayName="intensities", onlyDEProteins=FALSE, title = "All proteins"){
   
   # prepare data for plotting
   toPlot <- preparePlottingData(Experiment, assayName, log=FALSE)

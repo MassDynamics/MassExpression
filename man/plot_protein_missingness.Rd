@@ -4,7 +4,7 @@
 \alias{plot_protein_missingness}
 \title{Histogram of the distribution of missingness by protein}
 \usage{
-plot_protein_missingness(Experiment, assayName)
+plot_protein_missingness(Experiment, assayName = "raw")
 }
 \arguments{
 \item{Experiment}{SummarizedExperiment object}

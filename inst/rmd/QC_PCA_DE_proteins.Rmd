@@ -36,7 +36,14 @@ comparisonExperiments <-
 
 
 ```{r pca-imputed-de, results="asis"}
-p=plot_pca_experiment(CompleteIntensityExperiment, format = params$format, onlyDEProteins = TRUE)
+p=plot_chosen_pca_experiment(CompleteIntensityExperiment, format = "html", 
+                             auto_select_features = "de")
 
 if(is.null(p[[1]])) cat("#### Not enough differentially expressed proteins to produce a PCA plot.")
 ```
+
+
+```{r scree-plot}
+p[[2]]
+```
+

@@ -6,7 +6,7 @@
 \usage{
 plot_samples_correlation_matrix(
   Experiment,
-  assayName,
+  assayName = "intensities",
   onlyDEProteins = FALSE,
   title = "All proteins"
 )

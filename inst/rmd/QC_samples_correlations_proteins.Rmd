@@ -36,6 +36,6 @@ comparisonExperiments <-
 
 
 ```{r corr-samples}
-plot_samples_correlation_matrix(CompleteIntensityExperiment)
+plot_samples_correlation_matrix(CompleteIntensityExperiment, title=NULL)
 ```
 

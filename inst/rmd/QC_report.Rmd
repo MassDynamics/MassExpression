@@ -154,7 +154,7 @@ knitr::kable(n_proteins, row.names = FALSE, caption="Summary of differential exp
 
 ```{r pca-imputed}
 ## PCA
-p=plot_pca_experiment(CompleteIntensityExperiment, format = params$format)
+p=plot_chosen_pca_experiment(CompleteIntensityExperiment, format = params$format)
 p[[1]]
 ```
 
@@ -163,7 +163,9 @@ p[[2]]
 ```
 
 ```{r pca-imputed-de, results="asis"}
-p=plot_pca_experiment(CompleteIntensityExperiment, format = params$format, onlyDEProteins = TRUE)
+p=plot_chosen_pca_experiment(CompleteIntensityExperiment, 
+                             format = params$format, 
+                             auto_select_features = "de")
 
 if(is.null(p[[1]])) cat("#### Not enough differentially expressed proteins to produce a PCA plot.")
 ```

@@ -44,5 +44,5 @@ if(metadata(CompleteIntensityExperiment)$NormalisationAppliedToAssay != "None"){
 
 # Plot RLE of log2 raw intensity as well as RLE of normalised 
 p_raw <- plot_log_measurement_boxplot(IntensityExperiment)
-p_raw + ggtitle("log2 Raw Intensities") 
+p_raw
 ```

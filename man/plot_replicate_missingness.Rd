@@ -4,7 +4,7 @@
 \alias{plot_replicate_missingness}
 \title{Lollipop plot of missingness by intensity column}
 \usage{
-plot_replicate_missingness(Experiment, assayName)
+plot_replicate_missingness(Experiment, assayName = "raw")
 }
 \arguments{
 \item{Experiment}{SummarizedExperiment object}
