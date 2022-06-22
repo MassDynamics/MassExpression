@@ -6,12 +6,15 @@
 \usage{
 plot_samples_correlation_matrix(
   Experiment,
+  assayName,
   onlyDEProteins = FALSE,
   title = "All proteins"
 )
 }
 \arguments{
 \item{Experiment}{SummarizedExperiment object of imputed data.}
+
+\item{assayName}{name of assay to use}
 
 \item{onlyDEProteins}{logical. TRUE if only DE proteins should be considered.}
 }

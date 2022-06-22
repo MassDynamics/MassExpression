@@ -4,10 +4,12 @@
 \alias{plot_mds_experiment}
 \title{Plot first 2 dimensions of Multi-Dimensional Scaling plot}
 \usage{
-plot_mds_experiment(Experiment, log = FALSE)
+plot_mds_experiment(Experiment, assayName = "intensities", log = FALSE)
 }
 \arguments{
 \item{Experiment}{SummarizedExperiment object}
+
+\item{assayName}{name of assay to use}
 
 \item{log}{logical. Whether data should be logged before plotting}
 }

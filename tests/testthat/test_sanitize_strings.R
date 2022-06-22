@@ -73,9 +73,9 @@ exampleDesign2 <- data.frame(SampleName = c(1,2,3,4),
 
 
 # design 1
-print("Test design strings to sanitize")
-sanitized_dataframe <- sanitize_strings_in_dataframe(exampleBadDesign)
-test_sanitize_dataframe(current = sanitized_dataframe, expected = exampleGoodDesign)
+print("Test design with strings to sanitize")
+sanitized_dataframe <- sanitize_strings_in_dataframe(exampleBadDesign1)
+test_sanitize_dataframe(current = sanitized_dataframe, expected = exampleGoodDesign1)
 
 # design 2
 print("Test design with no strings to sanitize")

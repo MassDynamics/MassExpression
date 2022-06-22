@@ -9,6 +9,7 @@
 \usage{
 plot_pca_experiment(
   Experiment,
+  assayName = "intensities",
   format = "pdf",
   log = FALSE,
   onlyDEProteins = FALSE,
@@ -17,6 +18,8 @@ plot_pca_experiment(
 }
 \arguments{
 \item{Experiment}{SummarizedExperiment object}
+
+\item{assayName}{name of assay to use}
 
 \item{format}{'pdf' or 'html'. Prepare image to be rendered for pdf or html Rmd output}
 

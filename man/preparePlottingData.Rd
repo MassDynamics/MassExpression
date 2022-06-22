@@ -9,6 +9,8 @@ preparePlottingData(Experiment, assayName = "intensities", log = FALSE)
 \arguments{
 \item{Experiment}{SummarizedExperiment object}
 
+\item{assayName}{name of assay to use}
+
 \item{log}{logical. Whether data should be logged before plotting}
 }
 \description{

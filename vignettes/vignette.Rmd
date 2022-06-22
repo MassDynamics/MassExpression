@@ -126,7 +126,7 @@ knitr::kable(summary_de, row.names = FALSE, caption="Summary of differential exp
 
 ```{r pca-imputed}
 ## PCA
-p=plot_pca_experiment(CompleteIntensityExperiment, format = "html")
+p=plot_chosen_pca_experiment(CompleteIntensityExperiment, assayName = "intensities", format = "html")
 p[[1]]
 ```
 
@@ -135,7 +135,7 @@ p[[2]]
 ```
 
 ```{r pca-imputed-de}
-p=plot_pca_experiment(CompleteIntensityExperiment, format = "html", onlyDEProteins = TRUE)
+p=plot_chosen_pca_experiment(CompleteIntensityExperiment, assayName = "intensities", format = "html", auto_select_features = "de")
 p[[1]]
 ```
 
@@ -162,12 +162,12 @@ knitr::kable(cv_data, row.names = FALSE)
 
 
 ```{r corr-samples}
-plot_samples_correlation_matrix(CompleteIntensityExperiment)
+plot_samples_correlation_matrix(CompleteIntensityExperiment, assayName = "intensities")
 ```
 
 
 ```{r corr-samples-de}
-plot_samples_correlation_matrix(CompleteIntensityExperiment, onlyDEProteins = TRUE)
+plot_samples_correlation_matrix(CompleteIntensityExperiment,assayName = "intensities", onlyDEProteins = TRUE)
 ```
   
 # 3. Feature completedness {.tabset .tabset-fade .tabset-pills}
@@ -175,7 +175,7 @@ plot_samples_correlation_matrix(CompleteIntensityExperiment, onlyDEProteins = TR
 ## By sample
 
 ```{r sample-missingness}
-p <- plot_replicate_missingness(IntensityExperiment)
+p <- plot_replicate_missingness(IntensityExperiment, assayName = "raw")
 ggplotly(p, tooltip = c("y")) %>% plotly::config(displayModeBar = T, 
                                                   modeBarButtons = list(list('toImage')),
                                                   displaylogo = F)
@@ -185,7 +185,7 @@ ggplotly(p, tooltip = c("y")) %>% plotly::config(displayModeBar = T,
 ## By protein
 
 ```{r protein-missingness}
-p <- plot_protein_missingness(IntensityExperiment)
+p <- plot_protein_missingness(IntensityExperiment, assayName="raw")
 
 ggplotly(p, tooltip = c("y")) %>% plotly::config(displayModeBar = T, 
                                                   modeBarButtons = list(list('toImage')),

@@ -17,7 +17,7 @@ plot_chosen_pca_experiment(
 \arguments{
 \item{Experiment}{SummarizedExperiment object}
 
-\item{assayName}{assay of intensities to use to compute PCs.}
+\item{assayName}{name of assay to use}
 
 \item{dimPlot}{vector of size 2 specifying the dimensions to plot.}
 

@@ -4,13 +4,15 @@
 \alias{plot_density_distr}
 \title{Density distribution of intensity values}
 \usage{
-plot_density_distr(Experiment, log = FALSE)
+plot_density_distr(Experiment, assayname, log = FALSE)
 }
 \arguments{
 \item{Experiment}{SummarizedExperiment object}
 
 \item{log}{logical. If TRUE log2 transformation is applied to the intensity 
 before plotting}
+
+\item{assayName}{name of assay to use}
 }
 \description{
 Density distribution of intensity values

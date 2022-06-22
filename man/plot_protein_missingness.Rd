@@ -4,10 +4,12 @@
 \alias{plot_protein_missingness}
 \title{Histogram of the distribution of missingness by protein}
 \usage{
-plot_protein_missingness(Experiment)
+plot_protein_missingness(Experiment, assayName)
 }
 \arguments{
 \item{Experiment}{SummarizedExperiment object}
+
+\item{assayName}{name of assay to use}
 }
 \description{
 Histogram of the distribution of missingness by protein  where missingness is defined as 0 values.

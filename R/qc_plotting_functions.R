@@ -1,6 +1,7 @@
 #' Extract intensity and design from a SummarizedExperiment object
 #' 
 #' @param Experiment SummarizedExperiment object
+#' @param assayName name of assay to use
 #' @param log logical. Whether data should be logged before plotting
 #' 
 #' @export preparePlottingData
@@ -63,7 +64,7 @@ select_features_for_pca <- function(Experiment,
 #' Compute PCAs
 #' 
 #' @param Experiment SummarizedExperiment object
-#' @param assayName assay of intensities to use to compute PCs
+#' @param assayName name of assay to use
 #' @param ndim number of dimensions kept in result 
 
 #' @importFrom uuid UUIDgenerate
@@ -96,7 +97,7 @@ compute_pcas <- function(Experiment, assayName, log, ndim=2){
 #' Plot principal components
 #' 
 #' @param Experiment SummarizedExperiment object
-#' @param assayName assay of intensities to use to compute PCs.
+#' @param assayName name of assay to use
 #' @param dimPlot vector of size 2 specifying the dimensions to plot.  
 #' @param log logical. Whether data should be logged before plotting
 #' @param auto_select_features str. One of 'de' (differentially expressed features see Details), 
@@ -188,6 +189,7 @@ plot_chosen_pca_experiment <- function(Experiment,
 #' Plot first 2 dimensions of PCA
 #' 
 #' @param Experiment SummarizedExperiment object
+#' @param assayName name of assay to use
 #' @param format 'pdf' or 'html'. Prepare image to be rendered for pdf or html Rmd output
 #' @param log logical. Whether data should be logged before plotting
 #' @param onlyDEProteins logical. TRUE if only DE proteins should be considered. 
@@ -200,12 +202,13 @@ plot_chosen_pca_experiment <- function(Experiment,
 #' @importFrom uuid UUIDgenerate
 
 plot_pca_experiment <- function(Experiment, 
+                                assayName = "intensities",
                                 format="pdf", 
                                 log=FALSE, 
                                 onlyDEProteins=FALSE, 
                                 title = "PCA plot"){
   # prepare data for plotting
-  toPlot <- preparePlottingData(Experiment, log)
+  toPlot <- preparePlottingData(Experiment, assayName=assayName, log=log)
   intensities <- toPlot$intensities
   design <- toPlot$design
   
@@ -287,14 +290,15 @@ plot_pca_experiment <- function(Experiment,
 #' Plot first 2 dimensions of Multi-Dimensional Scaling plot
 #' 
 #' @param Experiment SummarizedExperiment object
+#' @param assayName name of assay to use
 #' @param log logical. Whether data should be logged before plotting
 #' 
 #' @export plot_mds_experiment
 
-plot_mds_experiment <- function(Experiment, log=FALSE){
+plot_mds_experiment <- function(Experiment, assayName="intensities", log=FALSE){
   
   # prepare data for plotting
-  toPlot <- preparePlottingData(Experiment, log)
+  toPlot <- preparePlottingData(Experiment, assayName = assayName, log=log)
   intensities <- toPlot$intensities
   design <- toPlot$design
   
@@ -337,12 +341,13 @@ plot_mds_experiment <- function(Experiment, log=FALSE){
 #' @description Lollipop plot of missingness by intensity column where missingness is defined as a value equal to 0 .
 #' 
 #' @param Experiment SummarizedExperiment object
+#' @param assayName name of assay to use
 #' 
 #' @export plot_replicate_missingness
 
-plot_replicate_missingness <- function(Experiment){
+plot_replicate_missingness <- function(Experiment, assayName){
   # prepare data for plotting
-  prep_data <- preparePlottingData(Experiment)
+  prep_data <- preparePlottingData(Experiment, assayName = assayName)
   intensities <- prep_data[['intensities']]
   design <- prep_data[['design']]
 
@@ -423,12 +428,13 @@ plot_protein_counts_by_replicate <- function(Experiment){
 #' @description Histogram of the distribution of missingness by protein  where missingness is defined as 0 values.
 #'
 #' @param Experiment SummarizedExperiment object
+#' @param assayName name of assay to use
 #' 
 #' @export plot_protein_missingness
 
-plot_protein_missingness <- function(Experiment){
+plot_protein_missingness <- function(Experiment, assayName){
   # prepare data for plotting
-  intensities <- preparePlottingData(Experiment)[['intensities']]
+  intensities <- preparePlottingData(Experiment, assayName = assayName)[['intensities']]
   
   num.samples <- dim(intensities)[2]
   missing.vector <- rowSums(0 == intensities)
@@ -605,13 +611,14 @@ plot_log_measurement_boxplot <- function(Experiment){
 #' Density distribution of intensity values
 #'
 #' @param Experiment SummarizedExperiment object
+#' @param assayName name of assay to use
 #' @param log logical. If TRUE log2 transformation is applied to the intensity 
 #' before plotting
 #' 
 #' @export plot_density_distr
-plot_density_distr <- function(Experiment, log=FALSE){
+plot_density_distr <- function(Experiment, assayname, log=FALSE){
   # prepare data for plotting
-  toPlot <- preparePlottingData(Experiment, log)
+  toPlot <- preparePlottingData(Experiment, assayName, log)
   intensities <- toPlot$intensities
   design <- toPlot$design
   
@@ -761,6 +768,7 @@ plot_heatmap_missingness <- function(Experiment, complete=FALSE){
 
 #' Correlation plot of samples using DE proteins
 #' @param Experiment SummarizedExperiment object of imputed data. 
+#' @param assayName name of assay to use
 #' @param onlyDEProteins logical. TRUE if only DE proteins should be considered. 
 #' @export plot_samples_correlation_matrix
 #' 
@@ -769,10 +777,10 @@ plot_heatmap_missingness <- function(Experiment, complete=FALSE){
 #' At least 5 DE proteins are required to produce the correlation plot.  
 #' 
 
-plot_samples_correlation_matrix <- function(Experiment, onlyDEProteins=FALSE, title = "All proteins"){
+plot_samples_correlation_matrix <- function(Experiment, assayName, onlyDEProteins=FALSE, title = "All proteins"){
   
   # prepare data for plotting
-  toPlot <- preparePlottingData(Experiment, log=FALSE)
+  toPlot <- preparePlottingData(Experiment, assayName, log=FALSE)
   intensities <- toPlot$intensities
   design <- as_tibble(toPlot$design) %>% tidyr::unite(plotSampleName, 
                                                       Condition, Replicate, 

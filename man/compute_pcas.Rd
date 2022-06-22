@@ -9,7 +9,7 @@ compute_pcas(Experiment, assayName, log, ndim = 2)
 \arguments{
 \item{Experiment}{SummarizedExperiment object}
 
-\item{assayName}{assay of intensities to use to compute PCs}
+\item{assayName}{name of assay to use}
 
 \item{ndim}{number of dimensions kept in result}
 }
