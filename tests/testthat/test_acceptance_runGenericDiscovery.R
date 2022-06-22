@@ -203,7 +203,9 @@ make_long_wide_df <- function(matrix_prot, new_int_col = "IntME", with_integers=
   return(long_int_me)
 }
 
-
+print("###########################")
+print("test with MaxQuant output")
+print("###########################")
 design <- mq_lfq_data$design
 intensities <- mq_lfq_data$intensities
 species <- mq_lfq_data$parameters[mq_lfq_data$parameters$X1 == "Species",2]
@@ -261,6 +263,10 @@ test_concordance_maxquant_output(current_diff_fc = current_diff_fc_maxquant,
 ###### INTEGERS
 ###########################################################
 ##### Tests using integer input for Condition and SampleName
+print("######################################################")
+print("Tests using integer input for Condition and SampleName")
+print("######################################################")
+
 design <- mq_lfq_data$design
 intensities <- mq_lfq_data$intensities
 

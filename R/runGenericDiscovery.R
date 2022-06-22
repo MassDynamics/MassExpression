@@ -40,9 +40,10 @@ runGenericDiscovery <- function(experimentDesign, proteinIntensities,
                                 conditionSeparator = " - "){
   
   
+  print("Sanitize import...")
   # Sanitize invisible and Unicode characters for correct export
-  
-  
+  experimentDesign <- sanitize_strings_in_dataframe(experimentDesign)
+  proteinIntensities <- sanitize_strings_in_dataframe(proteinIntensities)
   
   print("Starting generic discovery...")
   

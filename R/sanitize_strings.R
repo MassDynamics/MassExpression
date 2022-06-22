@@ -7,13 +7,15 @@
 
 sanitize_strings_in_dataframe <- function(df){
   characters_columns <- colnames(df)[sapply(df, class) == "character"]
-  df_subset <- df[, characters_columns]
-
-  sanitize_vector <- Vectorize(sanitize_strings, vectorize.args = "any_string")
+  df_subset <- df[, characters_columns, drop=FALSE]
   
-  df_subset_cleaned <- apply(df_subset, 2, sanitize_vector)
- 
-  df[, characters_columns] <- df_subset_cleaned
+  if(ncol(df_subset) > 0){
+    sanitize_vector <- Vectorize(sanitize_strings, vectorize.args = "any_string")
+    
+    df_subset_cleaned <- apply(df_subset, 2, sanitize_vector)
+   
+    df[, characters_columns] <- df_subset_cleaned
+  }
   
   return(df)
 } 
