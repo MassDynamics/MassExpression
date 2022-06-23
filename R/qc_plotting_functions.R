@@ -11,10 +11,7 @@
 #' @importFrom SummarizedExperiment colData assay
 
 preparePlottingData <- function(Experiment,  assayName="intensities", log=FALSE){
-  if(length(assay(IntensityExperiment)) > 1){
-    warnings("More than one essay is present in the SummarizedExperiment. 
-             Only the first one will be used.")
-  }
+
   intensities <- assays(Experiment)[[assayName]]
   design <- as_tibble(colData(Experiment))
   
