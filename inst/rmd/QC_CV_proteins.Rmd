@@ -8,7 +8,6 @@ output:
     lib_dir: qc_report_files
 params:
   listInt: empty
-  format: pdf
   output_figure: figures
 ---
 

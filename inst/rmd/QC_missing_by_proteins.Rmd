@@ -8,7 +8,6 @@ output:
     lib_dir: qc_report_files
 params:
   listInt: empty
-  format: pdf
   output_figure: figures
 ---
 
@@ -38,13 +37,10 @@ comparisonExperiments <-
 
 ```{r protein-missingness}
 p <- plot_protein_missingness(IntensityExperiment)
-if (params$format == "pdf"){
-  p
-} else {
-  ggplotly(p, tooltip = c("y")) %>% plotly::config(displayModeBar = T, 
+
+ggplotly(p, tooltip = c("y")) %>% plotly::config(displayModeBar = T, 
                                                   modeBarButtons = list(list('toImage')),
                                                   displaylogo = F)
-}
 ```
 
 
