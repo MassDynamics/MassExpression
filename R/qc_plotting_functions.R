@@ -99,7 +99,8 @@ compute_pcas <- function(Experiment, assayName, log, ndim=2){
 #' @param auto_select_features str. One of 'de' (differentially expressed features see Details), 
 #' 'hvf' (highly variable features). If not provided all features are kept.
 #' @param format 'pdf' or 'html'. Prepare image to be rendered for pdf or html Rmd output
-#' @param title str. title on plot
+#' @param title_pca str. title on PCA plot
+#' @param title_screeplot str. title on screeplot
 
 #' @export plot_chosen_pca_experiment
 #' @details #' A protein is defined DE if the adjusted PValue of the t-test or ANOVA (with multiple groups)
@@ -114,7 +115,8 @@ plot_chosen_pca_experiment <- function(Experiment,
                                 dimPlot = c(1,2), 
                                 log=FALSE, 
                                 auto_select_features=NULL, 
-                                title = "PCA plot",
+                                title_pca = "PCA plot",
+                                title_screeplot = "Scree plot",
                                 format="html"){
   
   # Subset experiment with features required
@@ -124,7 +126,14 @@ plot_chosen_pca_experiment <- function(Experiment,
     warning("Not enough features to produce a PCA plot (less than 5).")
     return(NULL)
   }
-
+  
+  if(!is.null(auto_select_features)){
+    if(auto_select_features == "de"){
+      nDE <- nrow(Experiment)
+      title_pca <- paste0("PCA plot using only N=",nDE," DE proteins.")
+    }
+  }
+  
   # Calculate PCs
   pcaToPlot <- compute_pcas(Experiment, assayName, log, ndim=max(dimPlot))
   dim1 <- paste0("Dim.",dimPlot[1])
@@ -136,13 +145,16 @@ plot_chosen_pca_experiment <- function(Experiment,
   eig.val <- pcaToPlot$eigenval
     
   # Prepare plot
-  p <- ggplot(samples.coord, aes(x = get(dim1), y=get(dim2), colour=Condition, fill=Condition, label=Replicate)) +
-    stat_ellipse(geom = "polygon", alpha=0.1) +
+  p <- ggplot(samples.coord, aes(x = get(dim1), y=get(dim2), colour=Condition, 
+                                 fill=Condition, 
+                                 label=Replicate)) +
     geom_point(size = 3, alpha = 0.7) +
+    stat_ellipse(geom = "polygon", alpha=0.1) +
     theme_minimal() +
     scale_x_continuous(str_c("PCA",  dimPlot[1], " - ", eig.val[dims == dim1, round(variance.percent,1)], "%")) +
     scale_y_continuous(str_c("PCA", dimPlot[2], " - ", eig.val[dims == dim2, round(variance.percent,1)], "%")) +
-    ggtitle(title)
+    ggtitle(title_pca) +
+    theme(plot.title = element_text(hjust = 0.5))
   
   
   if(format == "pdf"){
@@ -166,7 +178,9 @@ plot_chosen_pca_experiment <- function(Experiment,
     theme_minimal() +
     # geom_text_repel(aes(label=(round(`variance.percent`,1))), direction = 'y') +
     scale_x_discrete("PCA components") +
-    scale_y_continuous("% Variance")
+    scale_y_continuous("% Variance") +
+    ggtitle(title_screeplot) + 
+    theme(plot.title = element_text(hjust = 0.5))
   
   if (format == "html"){
     scree_plot <- plotly::ggplotly(scree_plot) %>%  plotly::config(displayModeBar = T, 
@@ -335,10 +349,11 @@ plot_mds_experiment <- function(Experiment, assayName="intensities", log=FALSE){
 #' 
 #' @param Experiment SummarizedExperiment object
 #' @param assayName name of assay to use
+#' @param title str. Plot title 
 #' 
 #' @export plot_replicate_missingness
 
-plot_replicate_missingness <- function(Experiment, assayName="raw"){
+plot_replicate_missingness <- function(Experiment, assayName="raw", title = "Missingness by samples using protein measurements"){
   # prepare data for plotting
   prep_data <- preparePlottingData(Experiment, assayName = assayName)
   intensities <- prep_data[['intensities']]
@@ -369,6 +384,8 @@ plot_replicate_missingness <- function(Experiment, assayName="raw"){
           axis.ticks.y = element_blank(),
           legend.position="bottom"
     ) +
+    ggtitle(title) +
+    theme(plot.title = element_text(hjust = 0.5)) + 
     guides(fill=guide_legend(nrow=2,byrow=TRUE))
   p
   
@@ -422,10 +439,12 @@ plot_protein_counts_by_replicate <- function(Experiment){
 #'
 #' @param Experiment SummarizedExperiment object
 #' @param assayName name of assay to use
+#' @param title str. Plot title
 #' 
 #' @export plot_protein_missingness
 
-plot_protein_missingness <- function(Experiment, assayName="raw"){
+plot_protein_missingness <- function(Experiment, assayName="raw", 
+                                     title = "Protein missingness"){
   # prepare data for plotting
   intensities <- preparePlottingData(Experiment, assayName = assayName)[['intensities']]
   
@@ -456,7 +475,8 @@ plot_protein_missingness <- function(Experiment, assayName="raw"){
     annotate('text', x = 0.3, y = 0.8*ymax, 
              label=str_c("Number of proteins with\n at least 30% available values: ", 
                          prot30perc, "\n",
-                         round(prot30perc/tot.features,2)*100, "% of the total proteins") )
+                         round(prot30perc/tot.features,2)*100, "% of the total proteins") ) +
+    ggtitle(title) + theme(plot.title = element_text(hjust = 0.5))
   
   p
   
@@ -475,13 +495,18 @@ plot_protein_missingness <- function(Experiment, assayName="raw"){
 #' @param includeImputed logical. Whether imputed values should be considered when computing the RLE values.
 #' @param plotRawRLE logical. If TRUE RLE using the raw log2 initial data is used. 
 #' Otherwise, normalised data are used.
+#' @param title str. Plot title
+#' @param format str. 'pdf' or 'html'
 #' 
 #' @export plot_rle_boxplot
 #' @importFrom tidyr pivot_longer
 #' @importFrom data.table data.table
 
 plot_rle_boxplot <- function(IntensityExperiment, CompleteIntensityExperiment, 
-                             includeImputed = FALSE, plotRawRLE = FALSE){
+                             includeImputed = FALSE, 
+                             plotRawRLE = FALSE, 
+                             title="RLE plot", 
+                             format = "html"){
   
   
   longRawDF <- SEToLongDT(IntensityExperiment)
@@ -534,9 +559,18 @@ plot_rle_boxplot <- function(IntensityExperiment, CompleteIntensityExperiment,
           axis.ticks.y = element_blank()) +
     scale_x_discrete("Sample names") +
     scale_y_continuous("RLE") +
-    geom_hline(yintercept = 0, linetype="dotted")
-
-  p
+    geom_hline(yintercept = 0, linetype="dotted") +
+    ggtitle(title) + theme(plot.title = element_text(hjust = 0.5)) +
+    coord_flip()
+  
+  
+  if(format =="html"){
+    plotly::ggplotly(p) %>% plotly::config(displayModeBar = T, 
+                                             modeBarButtons = list(list('toImage')),
+                                             displaylogo = F)
+  } else{
+    p
+  }
 
 }
 
@@ -569,12 +603,16 @@ makeRLEBoxplotInteractive <- function(fig){
 #' Boxplot of log expression values across samples. 
 #'
 #' @param Experiment SummarizedExperiment object of raw intensities (pre log-transformation)
+#' @param title str. Plot title
+#' @param format str. 'pdf' or 'html'
+#' 
 #' @export plot_log_measurement_boxplot
 #' @importFrom stringr str_detect
-#' 
 #' @details Zero values are treated as missing values and excluded. 
 
-plot_log_measurement_boxplot <- function(Experiment){ 
+plot_log_measurement_boxplot <- function(Experiment, 
+                                         title = "Intensities distribution", 
+                                         format = "html"){ 
   
   longIntensityDF <- as_tibble(SEToLongDT(Experiment))
   longIntensityDF <- longIntensityDF[longIntensityDF$Intensity > 0, ]
@@ -595,9 +633,17 @@ plot_log_measurement_boxplot <- function(Experiment){
     ) +
     geom_hline(yintercept = 0, linetype="dotted", colour="grey") +
     scale_x_discrete("Sample names") +
-    scale_y_continuous("Log2 Intensity")
+    scale_y_continuous("Log2 Intensity") +
+    ggtitle(title) + theme(plot.title = element_text(hjust = 0.5)) +
+    coord_flip()
   
-  p
+  if(format =="html"){
+    plotly::ggplotly(p) %>% plotly::config(displayModeBar = T, 
+                                           modeBarButtons = list(list('toImage')),
+                                           displaylogo = F)
+  } else{
+    p
+  }
 }
 
 
@@ -659,6 +705,7 @@ plot_imputed_vs_not <- function(CompleteIntensityExperiment, byCondition=FALSE,
     geom_density(alpha=0.4) +
     theme_minimal() +
     ggtitle(title) +
+    theme(plot.title = element_text(hjust = 0.5)) +
     labs(x = "Log2 Intensity")
   
   if(byCondition){
@@ -691,7 +738,9 @@ plot_condition_cv_distribution <- function(Experiment, title = "Protein Intensit
     geom_density(alpha=0.4) +
     theme_minimal() +
     scale_x_continuous("% CV", labels = scales::percent) +
-    ggtitle(title)
+    ggtitle(title) + 
+    theme(plot.title = element_text(hjust = 0.5))
+    
   
   list(p, as_tibble(cvdt))
   
@@ -770,7 +819,8 @@ plot_heatmap_missingness <- function(Experiment, complete=FALSE){
 #' At least 5 DE proteins are required to produce the correlation plot.  
 #' 
 
-plot_samples_correlation_matrix <- function(Experiment, assayName="intensities", onlyDEProteins=FALSE, title = "All proteins"){
+plot_samples_correlation_matrix <- function(Experiment, assayName="intensities",
+                                            onlyDEProteins=FALSE, title = "All proteins"){
   
   # prepare data for plotting
   toPlot <- preparePlottingData(Experiment, assayName, log=FALSE)
@@ -791,7 +841,7 @@ plot_samples_correlation_matrix <- function(Experiment, assayName="intensities",
     protDE <- limmaStats$ProteinId[limmaStats$adj.P.Val < 0.05]
     intensities <- intensities[rownames(intensities) %in% protDE, ]
     nDE <- nrow(intensities)
-    title <- paste0("Using only N=", nDE, " proteins")
+    title <- paste0("Using only N=", nDE, " DE proteins")
   }
   
   if(nrow(intensities) > 4){
@@ -807,7 +857,7 @@ plot_samples_correlation_matrix <- function(Experiment, assayName="intensities",
              tl.cex = 0.5, mar = c(0,0,1.5,0),
              tl.col = "black", order = "hclust")
   }else{
-    warning("Not enough DE proteins to produce a correlation plot.")
+    warning("Not enough DE proteins to produce a correlation plot. At least 4 are needed.")
     return(NULL)
   }
   

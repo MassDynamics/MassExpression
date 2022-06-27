@@ -4,12 +4,18 @@
 \alias{plot_replicate_missingness}
 \title{Lollipop plot of missingness by intensity column}
 \usage{
-plot_replicate_missingness(Experiment, assayName = "raw")
+plot_replicate_missingness(
+  Experiment,
+  assayName = "raw",
+  title = "Missingness by samples using protein measurements"
+)
 }
 \arguments{
 \item{Experiment}{SummarizedExperiment object}
 
 \item{assayName}{name of assay to use}
+
+\item{title}{str. Plot title}
 }
 \description{
 Lollipop plot of missingness by intensity column where missingness is defined as a value equal to 0 .

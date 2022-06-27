@@ -8,7 +8,8 @@ plot_rle_boxplot(
   IntensityExperiment,
   CompleteIntensityExperiment,
   includeImputed = FALSE,
-  plotRawRLE = FALSE
+  plotRawRLE = FALSE,
+  title = "RLE plot"
 )
 }
 \arguments{
@@ -21,6 +22,10 @@ plot_rle_boxplot(
 
 \item{plotRawRLE}{logical. If TRUE RLE using the raw log2 initial data is used. 
 Otherwise, normalised data are used.}
+
+\item{title}{str. Plot title}
+
+\item{format}{str. 'pdf' or 'html'}
 }
 \description{
 RLE values are computed using the data from the CompleteIntensityExperiment which contains 

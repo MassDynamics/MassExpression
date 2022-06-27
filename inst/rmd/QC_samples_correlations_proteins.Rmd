@@ -11,6 +11,32 @@ params:
   output_figure: figures
 ---
 
+<style type="text/css">
+  .container-fluid, .main-container {
+    max-width: inherit !important;
+    padding: 0 !important;
+  }
+</style>
+
+<script>
+const handleLoaded = function () {
+  const wrapperEl = document.querySelector('.js-plotly-plot');
+
+  if (!wrapperEl) {
+    return;
+  }
+
+  wrapperEl.style.width = '100%';
+  wrapperEl.style.height = '100%';
+  wrapperEl.style.marginBottom = '0';
+
+  window.dispatchEvent(new Event('resize'));
+};
+
+document.addEventListener('DOMContentLoaded', handleLoaded, false);
+</script>
+
+
 
 ```{r setup, include=FALSE}
 print(params)
@@ -35,6 +61,7 @@ comparisonExperiments <-
 
 
 ```{r corr-samples}
-plot_samples_correlation_matrix(CompleteIntensityExperiment, title=NULL)
+plot_samples_correlation_matrix(CompleteIntensityExperiment, 
+                                title="Samples correlations", onlyDEProteins = FALSE)
 ```
 

@@ -1,15 +1,37 @@
 ---
-title: ""
-output:
+output: 
   html_document:
-    theme: united
-    toc: no
     fig_caption: yes
     lib_dir: qc_report_files
 params:
   listInt: empty
   output_figure: figures
 ---
+
+<style type="text/css">
+  .container-fluid, .main-container {
+    max-width: inherit !important;
+    padding: 0 !important;
+  }
+</style>
+
+<script>
+const handleLoaded = function () {
+  const wrapperEl = document.querySelector('.js-plotly-plot');
+
+  if (!wrapperEl) {
+    return;
+  }
+
+  wrapperEl.style.width = '100%';
+  wrapperEl.style.height = '100%';
+  wrapperEl.style.marginBottom = '0';
+
+  window.dispatchEvent(new Event('resize'));
+};
+
+document.addEventListener('DOMContentLoaded', handleLoaded, false);
+</script>
 
 
 ```{r setup, include=FALSE}
@@ -33,16 +55,16 @@ comparisonExperiments <-
 ```
 
 
-
 ```{r pca-imputed-de, results="asis"}
 p=plot_chosen_pca_experiment(CompleteIntensityExperiment, format = "html", 
                              auto_select_features = "de")
 
-if(is.null(p[[1]])) cat("#### Not enough differentially expressed proteins to produce a PCA plot.")
+if(is.null(p[[1]])){
+  text <- "Not enough differentially expressed proteins to produce a PCA plot. At least 4 are required."
+}else{
+  p[[1]]
+}
 ```
 
 
-```{r scree-plot}
-p[[2]]
-```
-
+`r if(is.null(p[[1]])) text`

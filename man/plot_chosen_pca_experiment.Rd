@@ -10,7 +10,8 @@ plot_chosen_pca_experiment(
   dimPlot = c(1, 2),
   log = FALSE,
   auto_select_features = NULL,
-  title = "PCA plot",
+  title_pca = "PCA plot",
+  title_screeplot = "Scree plot",
   format = "html"
 )
 }
@@ -26,7 +27,9 @@ plot_chosen_pca_experiment(
 \item{auto_select_features}{str. One of 'de' (differentially expressed features see Details), 
 'hvf' (highly variable features). If not provided all features are kept.}
 
-\item{title}{str. title on plot}
+\item{title_pca}{str. title on PCA plot}
+
+\item{title_screeplot}{str. title on screeplot}
 
 \item{format}{'pdf' or 'html'. Prepare image to be rendered for pdf or html Rmd output}
 }

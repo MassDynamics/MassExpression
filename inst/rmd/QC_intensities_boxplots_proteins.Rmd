@@ -1,8 +1,6 @@
 ---
-title: ""
 output:
   html_document:
-    theme: united
     toc: no
     fig_caption: yes
     lib_dir: qc_report_files
@@ -10,6 +8,33 @@ params:
   listInt: empty
   output_figure: figures
 ---
+
+
+<style type="text/css">
+  .container-fluid, .main-container {
+    max-width: inherit !important;
+    padding: 0 !important;
+  }
+</style>
+
+<script>
+const handleLoaded = function () {
+  const wrapperEl = document.querySelector('.js-plotly-plot');
+
+  if (!wrapperEl) {
+    return;
+  }
+
+  wrapperEl.style.width = '100%';
+  wrapperEl.style.height = '100%';
+  wrapperEl.style.marginBottom = '0';
+
+  window.dispatchEvent(new Event('resize'));
+};
+
+document.addEventListener('DOMContentLoaded', handleLoaded, false);
+</script>
+
 
 ```{r setup, include=FALSE}
 print(params)
@@ -36,12 +61,9 @@ comparisonExperiments <-
 
 
 ```{r raw-boxplots}
-normalised <- FALSE
-if(metadata(CompleteIntensityExperiment)$NormalisationAppliedToAssay != "None"){
-  normalised <- TRUE
-}
-
 # Plot RLE of log2 raw intensity as well as RLE of normalised 
-p_raw <- plot_log_measurement_boxplot(IntensityExperiment)
+p_raw <- plot_log_measurement_boxplot(IntensityExperiment, 
+                                      title = "Distribution of log2(intensities)",
+                                      format = "html")
 p_raw
 ```
