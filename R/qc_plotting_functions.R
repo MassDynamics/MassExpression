@@ -560,8 +560,7 @@ plot_rle_boxplot <- function(IntensityExperiment, CompleteIntensityExperiment,
     scale_x_discrete("Sample names") +
     scale_y_continuous("RLE") +
     geom_hline(yintercept = 0, linetype="dotted") +
-    ggtitle(title) + theme(plot.title = element_text(hjust = 0.5)) +
-    coord_flip()
+    ggtitle(title) + theme(plot.title = element_text(hjust = 0.5))
   
   
   if(format =="html"){
@@ -634,8 +633,7 @@ plot_log_measurement_boxplot <- function(Experiment,
     geom_hline(yintercept = 0, linetype="dotted", colour="grey") +
     scale_x_discrete("Sample names") +
     scale_y_continuous("Log2 Intensity") +
-    ggtitle(title) + theme(plot.title = element_text(hjust = 0.5)) +
-    coord_flip()
+    ggtitle(title) + theme(plot.title = element_text(hjust = 0.5))
   
   if(format =="html"){
     plotly::ggplotly(p) %>% plotly::config(displayModeBar = T, 
@@ -677,10 +675,14 @@ plot_density_distr <- function(Experiment, assayname, log=FALSE){
 #'
 #' @param CompleteIntensityExperiment SummarizedExperiment object of the data used for the DE analysis with limma
 #' @param byCondition logical. TRUE to produce separate density distributions by Condition.
+#' @param title str. Plot title
+#' @param format str. 'pdf' or html'
+#' 
 #' @export plot_imputed_vs_not
 
 plot_imputed_vs_not <- function(CompleteIntensityExperiment, byCondition=FALSE,
-                                title = "Intensity (Imputed vs Actual)"){
+                                title = "Intensity (Imputed vs Actual)",
+                                format = "html"){
   
   assay1 <- as_tibble(assay(CompleteIntensityExperiment))
   assay1$ProteinId <- rownames(assay(CompleteIntensityExperiment))
@@ -706,13 +708,20 @@ plot_imputed_vs_not <- function(CompleteIntensityExperiment, byCondition=FALSE,
     theme_minimal() +
     ggtitle(title) +
     theme(plot.title = element_text(hjust = 0.5)) +
-    labs(x = "Log2 Intensity")
+    labs(x = "Log2 Intensity") +
+    ggtitle(title) + theme(plot.title = element_text(hjust = 0.5))
   
   if(byCondition){
     p <- p + facet_wrap(~Condition)
   }
   
-  p
+  if(format =="html"){
+    plotly::ggplotly(p) %>% plotly::config(displayModeBar = T, 
+                                           modeBarButtons = list(list('toImage')),
+                                           displaylogo = F)
+  } else{
+    p
+  }
   
 }
 

@@ -7,13 +7,18 @@
 plot_imputed_vs_not(
   CompleteIntensityExperiment,
   byCondition = FALSE,
-  title = "Intensity (Imputed vs Actual)"
+  title = "Intensity (Imputed vs Actual)",
+  format = "html"
 )
 }
 \arguments{
 \item{CompleteIntensityExperiment}{SummarizedExperiment object of the data used for the DE analysis with limma}
 
 \item{byCondition}{logical. TRUE to produce separate density distributions by Condition.}
+
+\item{title}{str. Plot title}
+
+\item{format}{str. 'pdf' or html'}
 }
 \description{
 Distribution of imputed versus non imputed values.

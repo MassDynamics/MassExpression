@@ -4,7 +4,11 @@
 \alias{plot_log_measurement_boxplot}
 \title{Boxplot of log expression values across samples.}
 \usage{
-plot_log_measurement_boxplot(Experiment, title = "Intensities distribution")
+plot_log_measurement_boxplot(
+  Experiment,
+  title = "Intensities distribution",
+  format = "html"
+)
 }
 \arguments{
 \item{Experiment}{SummarizedExperiment object of raw intensities (pre log-transformation)}

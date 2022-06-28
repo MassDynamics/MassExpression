@@ -167,8 +167,12 @@ p=plot_chosen_pca_experiment(CompleteIntensityExperiment,
                              format = params$format, 
                              auto_select_features = "de")
 
-if(is.null(p[[1]])) cat("#### Not enough differentially expressed proteins to produce a PCA plot.")
+if(is.null(p[[1]])){
+  text <- "Not enough differentially expressed proteins to produce a PCA plot."
+}
 ```
+
+`r if(is.null(p[[1]])) print(text)`
 
 ## B. Quantitative values CV distributions {.tabset .tabset-fade .tabset-pills}
 
@@ -233,8 +237,12 @@ plot_samples_correlation_matrix(CompleteIntensityExperiment)
 
 ```{r corr-samples-de, results='asis'}
 p=plot_samples_correlation_matrix(CompleteIntensityExperiment, onlyDEProteins = TRUE)
-if(is.null(p)) cat("#### Not enough differentially expressed proteins to produce a correlation plot.")
+if(is.null(p)){
+  text <- "Not enough differentially expressed proteins to produce a correlation plot."
+}
 ```
+  
+`r if(is.null(p)) print(text)`  
   
 # 3. Feature completedness {.tabset .tabset-fade .tabset-pills}
 
@@ -314,8 +322,10 @@ if(metadata(CompleteIntensityExperiment)$NormalisationAppliedToAssay != "None"){
 }
 
 # Plot RLE of log2 raw intensity as well as RLE of normalised 
-p_raw <- plot_log_measurement_boxplot(IntensityExperiment)
-p_raw + ggtitle("log2 Raw Intensities") 
+p_raw <- plot_log_measurement_boxplot(IntensityExperiment, 
+                                      format = params$format, 
+                                      title = "log2 Raw Intensities")
+p_raw 
 ```
 
 ### RLE (median centered protein intensities)
@@ -341,8 +351,11 @@ if(metadata(CompleteIntensityExperiment)$NormalisationAppliedToAssay != "None"){
 
 # Plot RLE of log2 raw intensity as well as RLE of normalised 
 p_raw <- plot_rle_boxplot(IntensityExperiment, CompleteIntensityExperiment, 
-                    includeImputed = FALSE, plotRawRLE = TRUE)
-p_raw + ggtitle("RLE of log2 Raw Intensities") 
+                    includeImputed = FALSE, 
+                    plotRawRLE = TRUE, 
+                    title = "RLE of log2 Raw Intensities", 
+                    format = params$format)
+p_raw
 ```
   
   
@@ -350,9 +363,10 @@ p_raw + ggtitle("RLE of log2 Raw Intensities")
 if(normalised){
   # Plot RLE of log2 raw intensity as well as RLE of normalised 
   p_norm <- plot_rle_boxplot(IntensityExperiment, CompleteIntensityExperiment, 
-                      includeImputed = FALSE, plotRawRLE = FALSE)
-  p_norm <- p_norm + ggtitle("RLE of Normalised log2 Intensities") 
-  
+                      includeImputed = FALSE, plotRawRLE = FALSE,
+                      title = "RLE of Normalised log2 Intensities", 
+                      format = params$format)
+
   p_norm
 }
 ```
@@ -369,5 +383,6 @@ if(normalised){
 
 
 ```{r compare-imputed}
-plot_imputed_vs_not(CompleteIntensityExperiment = CompleteIntensityExperiment)
+plot_imputed_vs_not(CompleteIntensityExperiment = CompleteIntensityExperiment, 
+                    format = params$format)
 ```

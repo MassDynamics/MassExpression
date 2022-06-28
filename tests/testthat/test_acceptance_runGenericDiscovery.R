@@ -1,4 +1,5 @@
 library(MassExpression)
+library(here)
 library(testthat)
 
 test_raw_output <- function(current, expected, tolerance=10**-5){
@@ -184,6 +185,24 @@ test_limma_output_integers <- function(current, expected, tolerance=10**-5){
   })
 }
 
+test_qc_reports_exist <- function(output_folder){
+  test_that("Test that the html QC report exists", {
+    expect_true(file.exists(file.path(output_folder, "QC_Report.html")))
+  })
+  
+  test_that("Test that the PDF QC report exists", {
+    expect_true(file.exists(file.path(output_folder, "pdf","QC_Report.pdf")))
+  })
+  
+  test_that("That that all separate QC reports exist", {
+    qc_names <- get_names_qc()
+    reports_exists <- sapply(qc_names, function(qc) file.exists(file.path(output_folder, paste0("QC_", qc, ".html"))))
+    if(min(reports_exists) != 1) print(reports_exists)
+    expect_true(min(reports_exists) == 1)
+  })
+  
+}
+
 ###########
 # Run tests
 ###########
@@ -218,6 +237,18 @@ listIntensityExperiments <- runGenericDiscovery(experimentDesign = design,
                                                 species = species, 
                                                 labellingMethod = labMethod)
 
+
+# QC reports
+print("Generate QC report")
+output_folder <- file.path(here(), "tests/data/HER2-test-output/")
+dir.create(output_folder, showWarnings = FALSE)
+generate_qc_report(listIntensityExperiments, output_folder = output_folder)
+generate_qc_report(listIntensityExperiments, output_folder = output_folder, format = "pdf")
+
+print("Generate separate QC reports")
+generate_separate_qc_reports(listIntensityExperiments, output_folder = output_folder)
+
+
 # Output to be checked
 currentCompleteIntensityExperiment <- listIntensityExperiments$CompleteIntensityExperiment
 currentIntensityExperiment <- listIntensityExperiments$IntensityExperiment
@@ -247,6 +278,11 @@ test_limma_output(current = currentCompleteIntensityExperiment,
 
 test_comparisons_output(complete_current = compare_me$Int,
                         comparison_current = compare_me$IntComp)
+
+test_qc_reports_exist(output_folder)
+
+#test_separate_qcs_exists(output_folder)
+
 
 ################################
 # Compare with output directly from maxquant workflow
@@ -325,4 +361,10 @@ test_concordance_maxquant_output(current_diff_fc = current_diff_fc_maxquant,
                                  expected_diff_fc = expected_diff_fc_maxquant, 
                                  current_diff_pval = current_diff_pval_maxquant, 
                                  expected_diff_pval = expected_diff_pval_maxquant)
+
+
+########################
+## QC report creation
+#######################
+
 

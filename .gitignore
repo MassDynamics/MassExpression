@@ -10,3 +10,4 @@ data-private
 dev/bench-enrichment/
 dev/
 renv/
+tests/data/HER2-test-output

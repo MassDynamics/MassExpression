@@ -9,7 +9,8 @@ plot_rle_boxplot(
   CompleteIntensityExperiment,
   includeImputed = FALSE,
   plotRawRLE = FALSE,
-  title = "RLE plot"
+  title = "RLE plot",
+  format = "html"
 )
 }
 \arguments{
