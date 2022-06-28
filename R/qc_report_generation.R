@@ -13,6 +13,7 @@ generate_qc_report <- function(listResults, output_folder, format="html"){
   if(format == 'html'){
     # Render and save QC report
     dir.create(output_folder, showWarnings = FALSE)
+    print(paste0("Creating QC reports here:", output_folder))
     
     qc_report <- system.file("rmd","QC_report.Rmd", package = "MassExpression")
     rmarkdown::render(qc_report,
@@ -59,6 +60,9 @@ generate_qc_report <- function(listResults, output_folder, format="html"){
 #'
 
 generate_separate_qc_reports <- function(listResults, output_folder){
+  
+  dir.create(output_folder, showWarnings = FALSE)
+  print(paste0("Creating separate QC reports here:", output_folder))
   
   # Render separate QCs
   qc_names <- get_names_qc()

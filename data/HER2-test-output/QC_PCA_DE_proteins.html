@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>QC_PCA_DE_proteins.knit</title>
+
+<script src="qc_report_files/header-attrs-2.14/header-attrs.js"></script>
+<script src="qc_report_files/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="qc_report_files/bootstrap-3.3.5/css/united.min.css" rel="stylesheet" />
+<script src="qc_report_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="qc_report_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="qc_report_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="qc_report_files/navigation-1.1/tabsets.js"></script>
+<link href="qc_report_files/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="qc_report_files/highlightjs-9.12.0/highlight.js"></script>
+<link href="qc_report_files/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="qc_report_files/pagedtable-1.1/js/pagedtable.js"></script>
+<script src="qc_report_files/htmlwidgets-1.5.4/htmlwidgets.js"></script>
+<script src="qc_report_files/plotly-binding-4.10.0/plotly.js"></script>
+<script src="qc_report_files/typedarray-0.1/typedarray.min.js"></script>
+<link href="qc_report_files/crosstalk-1.2.0/css/crosstalk.min.css" rel="stylesheet" />
+<script src="qc_report_files/crosstalk-1.2.0/js/crosstalk.min.js"></script>
+<link href="qc_report_files/plotly-htmlwidgets-css-2.5.1/plotly-htmlwidgets.css" rel="stylesheet" />
+<script src="qc_report_files/plotly-main-2.5.1/plotly-latest.min.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div id="header">
+
+
+
+
+</div>
+
+
+<style type="text/css">
+  .container-fluid, .main-container {
+    max-width: inherit !important;
+    padding: 0 !important;
+  }
+</style>
+<script>
+const handleLoaded = function () {
+  const wrapperEl = document.querySelector('.js-plotly-plot');
+
+  if (!wrapperEl) {
+    return;
+  }
+
+  wrapperEl.style.width = '100%';
+  wrapperEl.style.height = '100%';
+  wrapperEl.style.marginBottom = '0';
+
+  window.dispatchEvent(new Event('resize'));
+};
+
+document.addEventListener('DOMContentLoaded', handleLoaded, false);
+</script>
+<div id="htmlwidget-f19d6a9d8c582e71ede5" style="width:672px;height:480px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-f19d6a9d8c582e71ede5">{"x":{"data":[{"x":[-31.9363455302415,-30.4739962337143,-30.4122095259247],"y":[10.562160968172,-11.1553471678073,0.34714834817859],"text":["get(dim1): -31.93635<br />get(dim2):  10.5621610<br />Condition: AZD8931_resistant_SKBR3_AZDRc<br />Condition: AZD8931_resistant_SKBR3_AZDRc<br />Replicate: 1","get(dim1): -30.47400<br />get(dim2): -11.1553472<br />Condition: AZD8931_resistant_SKBR3_AZDRc<br />Condition: AZD8931_resistant_SKBR3_AZDRc<br />Replicate: 2","get(dim1): -30.41221<br />get(dim2):   0.3471483<br />Condition: AZD8931_resistant_SKBR3_AZDRc<br />Condition: AZD8931_resistant_SKBR3_AZDRc<br />Replicate: 3"],"type":"scatter","mode":"markers","marker":{"autocolorscale":false,"color":"rgba(248,118,109,1)","opacity":0.7,"size":11.3385826771654,"symbol":"circle","line":{"width":1.88976377952756,"color":"rgba(248,118,109,1)"}},"hoveron":"points","name":"AZD8931_resistant_SKBR3_AZDRc","legendgroup":"AZD8931_resistant_SKBR3_AZDRc","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[30.6776203753448,30.8232587749823,31.3216721395534],"y":[0.669926665548765,-1.30717498631343,0.883286172221395],"text":["get(dim1):  30.67762<br />get(dim2):   0.6699267<br />Condition: Parental_SKBR3<br />Condition: Parental_SKBR3<br />Replicate: 1","get(dim1):  30.82326<br />get(dim2):  -1.3071750<br />Condition: Parental_SKBR3<br />Condition: Parental_SKBR3<br />Replicate: 2","get(dim1):  31.32167<br />get(dim2):   0.8832862<br />Condition: Parental_SKBR3<br />Condition: Parental_SKBR3<br />Replicate: 3"],"type":"scatter","mode":"markers","marker":{"autocolorscale":false,"color":"rgba(0,191,196,1)","opacity":0.7,"size":11.3385826771654,"symbol":"circle","line":{"width":1.88976377952756,"color":"rgba(0,191,196,1)"}},"hoveron":"points","name":"Parental_SKBR3","legendgroup":"Parental_SKBR3","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[null,null],"y":[null,null],"text":"Condition: AZD8931_resistant_SKBR3_AZDRc<br />Condition: AZD8931_resistant_SKBR3_AZDRc","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"rgba(248,118,109,0.1)","dash":"solid"},"fill":"toself","fillcolor":"rgba(248,118,109,0.1)","hoveron":"fills","name":"AZD8931_resistant_SKBR3_AZDRc","legendgroup":"AZD8931_resistant_SKBR3_AZDRc","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[null,null],"y":[null,null],"text":"Condition: Parental_SKBR3<br />Condition: Parental_SKBR3","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"rgba(0,191,196,0.1)","dash":"solid"},"fill":"toself","fillcolor":"rgba(0,191,196,0.1)","hoveron":"fills","name":"Parental_SKBR3","legendgroup":"Parental_SKBR3","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null}],"layout":{"margin":{"t":43.7625570776256,"r":7.30593607305936,"b":40.1826484018265,"l":43.1050228310502},"font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187},"title":{"text":"PCA plot using only N=1078 DE proteins.","font":{"color":"rgba(0,0,0,1)","family":"","size":17.5342465753425},"x":0.5,"xref":"paper"},"xaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[-35.0992464137313,34.4845730230432],"tickmode":"array","ticktext":["-20","0","20"],"tickvals":[-20,0,20],"categoryorder":"array","categoryarray":["-20","0","20"],"nticks":null,"ticks":"","tickcolor":null,"ticklen":3.65296803652968,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0.66417600664176,"zeroline":false,"anchor":"y","title":{"text":"PCA1 - 88.8%","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"yaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[-12.2412225746063,11.648036374971],"tickmode":"array","ticktext":["-10","-5","0","5","10"],"tickvals":[-10,-5,0,5,10],"categoryorder":"array","categoryarray":["-10","-5","0","5","10"],"nticks":null,"ticks":"","tickcolor":null,"ticklen":3.65296803652968,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0.66417600664176,"zeroline":false,"anchor":"x","title":{"text":"PCA2 - 3.7%","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0,"x1":1,"y0":0,"y1":1}],"showlegend":true,"legend":{"bgcolor":null,"bordercolor":null,"borderwidth":0,"font":{"color":"rgba(0,0,0,1)","family":"","size":11.689497716895},"title":{"text":"Condition","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}}},"hovermode":"closest","barmode":"relative"},"config":{"doubleClick":"reset","modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false,"displayModeBar":true,"modeBarButtons":[["toImage"]],"displaylogo":false},"source":"A","attrs":{"fc2331d9e76f":{"x":{},"y":{},"colour":{},"fill":{},"label":{},"type":"scatter"},"fc2358e941fa":{"x":{},"y":{},"colour":{},"fill":{},"label":{}}},"cur_data":"fc2331d9e76f","visdat":{"fc2331d9e76f":["function (y) ","x"],"fc2358e941fa":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

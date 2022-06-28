@@ -240,7 +240,8 @@ listIntensityExperiments <- runGenericDiscovery(experimentDesign = design,
 
 # QC reports
 print("Generate QC report")
-output_folder <- file.path("../data/HER2-test-output/")
+output_folder <- file.path(here(), "data/HER2-test-output/")
+print(paste0("Running tests from here:", output_folder))
 dir.create(output_folder, showWarnings = FALSE)
 generate_qc_report(listIntensityExperiments, output_folder = output_folder)
 generate_qc_report(listIntensityExperiments, output_folder = output_folder, format = "pdf")
