@@ -239,15 +239,15 @@ listIntensityExperiments <- runGenericDiscovery(experimentDesign = design,
 
 
 # QC reports
-print("Generate QC report")
-output_folder <- file.path(here(), "data/HER2-test-output/")
-print(paste0("Running tests from here:", output_folder))
-dir.create(output_folder, showWarnings = FALSE)
-generate_qc_report(listIntensityExperiments, output_folder = ".")
-generate_qc_report(listIntensityExperiments, output_folder = ".", format = "pdf")
-
-print("Generate separate QC reports")
-generate_separate_qc_reports(listIntensityExperiments, output_folder = ".")
+# print("Generate QC report")
+# output_folder <- file.path(here(), "data/HER2-test-output/")
+# print(paste0("Running tests from here:", output_folder))
+# dir.create(output_folder, showWarnings = FALSE)
+# generate_qc_report(listIntensityExperiments, output_folder = ".")
+# generate_qc_report(listIntensityExperiments, output_folder = ".", format = "pdf")
+# 
+# print("Generate separate QC reports")
+# generate_separate_qc_reports(listIntensityExperiments, output_folder = ".")
 
 
 # Output to be checked
@@ -280,7 +280,7 @@ test_limma_output(current = currentCompleteIntensityExperiment,
 test_comparisons_output(complete_current = compare_me$Int,
                         comparison_current = compare_me$IntComp)
 
-test_qc_reports_exist(".")
+# test_qc_reports_exist(".")
 
 
 
