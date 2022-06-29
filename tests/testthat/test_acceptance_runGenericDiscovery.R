@@ -238,18 +238,18 @@ listIntensityExperiments <- runGenericDiscovery(experimentDesign = design,
                                                 labellingMethod = labMethod)
 
 
-# QC reports
-print("Generate QC report")
-output_folder <- file.path(here(), "data/HER2-test-output/")
-print(paste0("Running tests from here:", output_folder))
-dir.create(output_folder, recursive=TRUE)
-qc_report <- system.file("rmd","QC_report.Rmd", package = "MassExpression")
-print(qc_report)
-generate_qc_report(listIntensityExperiments, output_folder = output_folder)
-generate_qc_report(listIntensityExperiments, output_folder = output_folder, format = "pdf")
-# 
-print("Generate separate QC reports")
-generate_separate_qc_reports(listIntensityExperiments, output_folder = output_folder)
+# # QC reports
+# print("Generate QC report")
+# output_folder <- file.path(here(), "data/HER2-test-output/")
+# print(paste0("Running tests from here:", output_folder))
+# dir.create(output_folder, recursive=TRUE)
+# qc_report <- system.file("rmd","QC_report.Rmd", package = "MassExpression")
+# print(qc_report)
+# generate_qc_report(listIntensityExperiments, output_folder = output_folder)
+# generate_qc_report(listIntensityExperiments, output_folder = output_folder, format = "pdf")
+# # 
+# print("Generate separate QC reports")
+# generate_separate_qc_reports(listIntensityExperiments, output_folder = output_folder)
 
 
 # Output to be checked
