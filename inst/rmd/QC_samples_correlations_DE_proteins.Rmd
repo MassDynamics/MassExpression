@@ -60,7 +60,7 @@ comparisonExperiments <-
 ```
 
 
-```{r corr-samples}
+```{r corr-samples-de}
 plot_samples_correlation_matrix(CompleteIntensityExperiment, title="Samples correlations", onlyDEProteins=TRUE)
 ```
 

@@ -323,7 +323,7 @@ if(metadata(CompleteIntensityExperiment)$NormalisationAppliedToAssay != "None"){
 
 # Plot RLE of log2 raw intensity as well as RLE of normalised 
 p_raw <- plot_log_measurement_boxplot(IntensityExperiment, 
-                                      format = params$format, 
+                                      format = "pdf", 
                                       title = "log2 Raw Intensities")
 p_raw 
 ```
@@ -354,7 +354,7 @@ p_raw <- plot_rle_boxplot(IntensityExperiment, CompleteIntensityExperiment,
                     includeImputed = FALSE, 
                     plotRawRLE = TRUE, 
                     title = "RLE of log2 Raw Intensities", 
-                    format = params$format)
+                    format = "pdf")
 p_raw
 ```
   
@@ -365,7 +365,7 @@ if(normalised){
   p_norm <- plot_rle_boxplot(IntensityExperiment, CompleteIntensityExperiment, 
                       includeImputed = FALSE, plotRawRLE = FALSE,
                       title = "RLE of Normalised log2 Intensities", 
-                      format = params$format)
+                      format = "pdf")
 
   p_norm
 }
