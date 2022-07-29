@@ -9,8 +9,8 @@
 #' @importFrom tidyr pivot_longer
 #' @importFrom dplyr left_join as_tibble
 
-SEToLongDT <- function(IntensityExperiment){
-  wide <- as_tibble(assay(IntensityExperiment))
+SEToLongDT <- function(IntensityExperiment, assayName = "raw"){
+  wide <- as_tibble(assays(IntensityExperiment)[[assayName]])
   wide$ProteinId <- rowData(IntensityExperiment)$ProteinId
   long <- wide %>% pivot_longer(cols = all_of(colnames(assay(IntensityExperiment))), 
                                 names_to = "SampleName", 

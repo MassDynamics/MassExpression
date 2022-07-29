@@ -395,12 +395,17 @@ plot_replicate_missingness <- function(Experiment, assayName="raw", title = "Mis
 #' Lollipop plot of the number of proteins identified by replicate
 #' 
 #' @param Experiment SummarizedExperiment object
-#' @export plot_protein_counts_by_replicate
+#' @param assayName name of assay to use
+#' @param title str. Plot title 
+#' 
+#' @export plot_n_identified_proteins_by_replicate
 
 
-plot_protein_counts_by_replicate <- function(Experiment){
+plot_n_identified_proteins_by_replicate <- function(Experiment, 
+                                             assayName = "raw", 
+                                             title = "# Identified proteins by sample"){
   
-  longIntensityDF <- as_tibble(SEToLongDT(Experiment))
+  longIntensityDF <- as_tibble(SEToLongDT(Experiment, assayName = assayName))
   if(sum(str_detect(colnames(longIntensityDF), "NImputed")) != 0){
     imputedColNames <- str_detect(colnames(longIntensityDF), "NImputed")
     longIntensityDF$Imputed  <- rowSums(longIntensityDF[,imputedColNames]) > 0 
@@ -409,13 +414,17 @@ plot_protein_counts_by_replicate <- function(Experiment){
     longIntensityDF <- longIntensityDF[longIntensityDF$Intensity > 0, ]
   }
   
+  longIntensityDF$plotSampleName <- as.factor(paste(longIntensityDF$Condition, longIntensityDF$Replicate, sep = "_"))
   dt <- longIntensityDF %>% 
-    group_by(Condition, Replicate) %>%
-    summarise(N = n()) %>%
-    mutate(Replicate = forcats::fct_reorder(Replicate, as.numeric(as.factor(Condition))))
+    group_by(plotSampleName) %>%
+    summarise(N = n())
   
-  p <- ggplot(dt, aes(x = as.factor(Replicate), y = N, color = Condition, label=Replicate)) +
-    geom_segment( aes(x=as.factor(Replicate), xend=as.factor(Replicate), y=0, yend=N), 
+  dt <- dt %>% left_join(unique(longIntensityDF[,c("plotSampleName", "Condition")])) %>%
+    mutate(plotSampleName = reorder(plotSampleName, as.numeric(as.factor(Condition))))
+    
+  
+  p <- ggplot(dt, aes(x = plotSampleName, y = N, color = Condition, label=plotSampleName)) +
+    geom_segment( aes(x=plotSampleName, xend=plotSampleName, y=0, yend=N), 
                   color="light grey") +
     geom_point(size=2, alpha=0.9) +
     coord_flip() +
@@ -425,12 +434,88 @@ plot_protein_counts_by_replicate <- function(Experiment){
     theme(axis.text.x = element_text(angle = 90, vjust = 0.2),
           panel.grid.major.y = element_blank(),
           panel.border = element_blank(),
-          axis.ticks.y = element_blank()
-    )
+          axis.ticks.y = element_blank(), 
+          legend.position="bottom"
+    ) +
+    ggtitle(title) +
+    theme(plot.title = element_text(hjust = 0.5)) + 
+    guides(fill=guide_legend(nrow=2,byrow=TRUE))
+  
+  p
+  
   
   p
 }
 
+
+#' Lollipop plot of the number of proteins identified across all replicates of a condition
+#' 
+#' @param Experiment SummarizedExperiment object
+#' @param assayName name of assay to use
+#' @param condition_colname str. Name of grouping condition.
+#' @param title str. Plot title 
+#' 
+#' @export plot_consistent_proteins_by_replicate
+
+plot_consistent_proteins_by_replicate <- function(Experiment, 
+                                                    assayName = "raw", 
+                                                    condition_colname = "Condition", 
+                                                    title = "# Consistently identified proteins by condition"){
+  
+  longIntensityDF <- as_tibble(SEToLongDT(Experiment, assayName = assayName))
+  if(sum(str_detect(colnames(longIntensityDF), "NImputed")) != 0){
+    imputedColNames <- str_detect(colnames(longIntensityDF), "NImputed")
+    longIntensityDF$Imputed  <- rowSums(longIntensityDF[,imputedColNames]) > 0 
+    longIntensityDF <- longIntensityDF[!longIntensityDF$Imputed, ]
+  }else{
+    longIntensityDF <- longIntensityDF[longIntensityDF$Intensity > 0, ]
+  }
+  
+  # Replicates in each condition
+  replicateCond <- longIntensityDF %>% 
+    group_by(get(condition_colname)) %>%
+    summarise(NRepl = length(unique(Replicate)))
+  colnames(replicateCond)[1] <- condition_colname
+  
+  # Number of avail proteins in each conditions
+  NAvailCond <- longIntensityDF %>% 
+    group_by(get(condition_colname), ProteinId) %>%
+    summarise(NAvail = n())
+  colnames(NAvailCond)[1] <- condition_colname
+  
+  # Complete proteins in condition
+  NAvailCond <- NAvailCond %>% 
+    left_join(replicate_in_cond) %>%
+    filter(NAvail == NRepl)
+  
+  dt <- NAvailCond %>% 
+    group_by(get(condition_colname)) %>%
+    summarise(N = n())
+  colnames(dt)[1] <- condition_colname
+  
+  p <- ggplot(dt, aes(x = .data[[condition_colname]], 
+                      y = N, 
+                      color = .data[[condition_colname]], 
+                      label = .data[[condition_colname]])) +
+    geom_segment( aes(x=.data[[condition_colname]], xend=.data[[condition_colname]], y=0, yend=N), 
+                  color="light grey") +
+    geom_point(size=2, alpha=0.9) +
+    coord_flip() +
+    theme_minimal() +
+    scale_x_discrete(condition_colname) +
+    scale_y_continuous("# Consistently identified proteins in condition") +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.2),
+          panel.grid.major.y = element_blank(),
+          panel.border = element_blank(),
+          axis.ticks.y = element_blank(), 
+          legend.position="bottom"
+    ) +
+    ggtitle(title) +
+    theme(plot.title = element_text(hjust = 0.5)) + 
+    guides(fill=guide_legend(nrow=2,byrow=TRUE))
+  
+  p
+}
 
 
 

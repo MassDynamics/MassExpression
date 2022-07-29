@@ -1,0 +1,64 @@
+---
+output:
+  html_document:
+    toc: no
+    fig_caption: yes
+    lib_dir: qc_report_files
+params:
+  listInt: empty
+  output_figure: figures
+---
+
+<style type="text/css">
+  .container-fluid, .main-container {
+    max-width: inherit !important;
+    padding: 0 !important;
+  }
+</style>
+
+<script>
+const handleLoaded = function () {
+  const wrapperEl = document.querySelector('.js-plotly-plot');
+
+  if (!wrapperEl) {
+    return;
+  }
+
+  wrapperEl.style.width = '100%';
+  wrapperEl.style.height = '100%';
+  wrapperEl.style.marginBottom = '0';
+
+  window.dispatchEvent(new Event('resize'));
+};
+
+document.addEventListener('DOMContentLoaded', handleLoaded, false);
+</script>
+
+
+```{r setup, include=FALSE}
+print(params)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, 
+                      fig.path = params$output_figure, dev = "svg")
+```
+
+
+```{r data-needed, include=FALSE, eval=TRUE}
+library(dplyr)
+library(stringr)
+library(MassExpression)
+library(plotly)
+
+IntensityExperiment <- params$listInt$IntensityExperiment
+```
+
+
+
+```{r protein-identified-by-replicate}
+p <- plot_n_identified_proteins_by_replicate(IntensityExperiment)
+
+ggplotly(p, tooltip = c("y")) %>% plotly::config(displayModeBar = T, 
+                                                  modeBarButtons = list(list('toImage')),
+                                                  displaylogo = F)
+```
+
+

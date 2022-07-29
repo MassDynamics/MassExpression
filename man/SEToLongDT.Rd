@@ -5,7 +5,7 @@
 \title{This function converts the assay data in a protein intensity to a long data.table object with 
 intensities for each protein Id and intensity column}
 \usage{
-SEToLongDT(IntensityExperiment)
+SEToLongDT(IntensityExperiment, assayName = "raw")
 }
 \arguments{
 \item{IntensityExperiment}{Output from createSummarizedExperiment}
