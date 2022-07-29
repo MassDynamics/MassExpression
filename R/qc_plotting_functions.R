@@ -398,6 +398,11 @@ plot_replicate_missingness <- function(Experiment, assayName="raw", title = "Mis
 #' @param assayName name of assay to use
 #' @param title str. Plot title 
 #' 
+#' @import dplyr
+#' @import tidyr
+#' @import tibble
+#' @import ggplot2
+
 #' @export plot_n_identified_proteins_by_replicate
 
 
@@ -442,9 +447,6 @@ plot_n_identified_proteins_by_replicate <- function(Experiment,
     guides(fill=guide_legend(nrow=2,byrow=TRUE))
   
   p
-  
-  
-  p
 }
 
 
@@ -485,8 +487,8 @@ plot_consistent_proteins_by_replicate <- function(Experiment,
   
   # Complete proteins in condition
   NAvailCond <- NAvailCond %>% 
-    left_join(replicate_in_cond) %>%
-    filter(NAvail == NRepl)
+    left_join(replicateCond)
+  NAvailCond <- NAvailCond[NAvailCond$NAvail == NAvailCond$NRepl,]
   
   dt <- NAvailCond %>% 
     group_by(get(condition_colname)) %>%
@@ -518,6 +520,51 @@ plot_consistent_proteins_by_replicate <- function(Experiment,
 }
 
 
+
+#' Heatmap showing pattern of missingness
+#' 
+#' @param Experiment SummarizedExperiment object
+#' @param assayName name of assay to use
+#' @param condition_colname str. Name of grouping condition.
+#' @param title str. Plot title 
+#' 
+#' @description Columns (samples) have been clustered based on pattern of missingness. 
+#' 
+#' @import ComplexHeatmap
+#' @import SummarizedExperiment
+#' 
+#' @export plot_missingness_heatmap
+
+plot_missingness_heatmap <- function(Experiment, 
+                                     assayName = "raw", 
+                                     condition_colname = "Condition", 
+                                     title = "Missingness pattern"){
+  
+  y = t(apply(assays(Experiment)[[assayName]], 1, function(x) ifelse(x == 0, 1, 0)))
+  batch <- colData(Experiment)[, condition_colname]
+  
+  ha_column <- HeatmapAnnotation(Condition = batch)
+  
+  hm <- Heatmap(y,
+                column_title = title,
+                name = "Intensity",
+                col = c("#8FBC8F", "#FFEFDB"),
+                show_row_names = FALSE,
+                show_column_names = FALSE,
+                cluster_rows = TRUE,
+                cluster_columns = TRUE,
+                show_column_dend = FALSE,
+                show_row_dend = FALSE,
+                top_annotation = ha_column,
+                row_names_gp =  grid::gpar(fontsize = 7),
+                column_names_gp = grid::gpar(fontsize = 8),
+                heatmap_legend_param = list(#direction = "horizontal",
+                  heatmap_legend_side = "bottom",
+                  labels = c("observed","missing"),
+                  legend_width = unit(6, "cm")),
+  )
+  hm <- draw(hm, heatmap_legend_side = "left")
+}
 
 #' Histogram of the distribution of missingness by protein 
 #' @description Histogram of the distribution of missingness by protein  where missingness is defined as 0 values.
@@ -869,34 +916,6 @@ plot_ma <- function(comparison.statistics){
     ggtitle(comparison.statistics$comparison[1]) +
     geom_hline(yintercept=0)
   p
-}
-
-
-#' Heatmap of the binary intensity matrix of missing values 
-#' @param Experiment SummarizedExperiment object of raw data. 
-#' Intensities values equal to 0 are considered as missing values.
-#' @param complete logical. TRUE to use all the matrix of intensities. 
-#' FALSE to include only features with at least one missing value across samples.   
-#' @export plot_heatmap_missingness
-#' @import pheatmap
-
-plot_heatmap_missingness <- function(Experiment, complete=FALSE){
-  data <- assay(Experiment)
-  if(!complete){
-    data <- data[rowSums(data==0) > 0,]
-  }
-  mt_binary <- ifelse(data != 0,1,0)
-  design <- colData(Experiment)[c("SampleName", "Condition")]
-  column_annotation <- data.frame(SampleName = colnames(mt_binary)) %>% 
-    left_join(as_tibble(design)) 
-  rownames(column_annotation) <- column_annotation$SampleName
-  column_annotation$SampleName <- NULL
-  colour_cells <- grDevices::colorRampPalette(c("#e0f3db", "#43a2ca"))(2)
-  rownames(mt_binary) <- NULL
-  return(pheatmap(mt_binary, color = colour_cells, 
-                  annotation_col = column_annotation, fontsize = 8, 
-                  show_colnames=TRUE, legend_labels = c("0","1"), legend_breaks = 0:1))
-  
 }
 
 

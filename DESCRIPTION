@@ -1,7 +1,7 @@
 Package: MassExpression
 Type: Package
 Title: MassExpression
-Version: 0.0.110
+Version: 0.0.111
 Author: Anna Quaglieri
      <anna@massdynamics.com> and Joseph
      Bloom <joseph@massdynamics.com>
@@ -26,7 +26,6 @@ Imports:
   ggplot2 (>= 3.3.5),
   forcats (>= 0.5.1),
   ggrepel (>= 0.9.1),
-  pheatmap (>= 1.0.12),
   grDevices,
   Hmisc (>= 4.5-0),
   corrplot (>= 0.89),
@@ -41,7 +40,8 @@ Imports:
   stringi (>= 1.7.3),
   uuid (>= 1.0-3), 
   parallel (>= 4.1.0),
-  here (>= 1.0.1)
+  here (>= 1.0.1),
+  ComplexHeatmap (>= 2.8.0)
 RoxygenNote: 7.2.1
 Suggests: 
     testthat (>= 3.0.0)
