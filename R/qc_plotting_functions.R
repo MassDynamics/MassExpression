@@ -540,6 +540,13 @@ plot_missingness_heatmap <- function(Experiment,
                                      condition_colname = "Condition", 
                                      title = "Missingness pattern"){
   
+  if (dim(Experiment)[1] > 10000) {
+    set.seed(255)
+    random_sample <- sample(1:dim(Experiment)[1], 10000)
+    Experiment <- Experiment[random_sample, ]
+  }
+  
+  
   y = t(apply(assays(Experiment)[[assayName]], 1, function(x) ifelse(x == 0, 1, 0)))
   batch <- colData(Experiment)[, condition_colname]
   
