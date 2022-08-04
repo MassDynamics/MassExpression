@@ -532,7 +532,6 @@ plot_consistent_proteins_by_replicate <- function(Experiment,
 #' 
 #' @import ComplexHeatmap
 #' @import SummarizedExperiment
-#' @importFrom msImpute selectFeatures
 #' 
 #' @export plot_missingness_heatmap
 
@@ -541,11 +540,15 @@ plot_missingness_heatmap <- function(Experiment,
                                      condition_colname = "Condition", 
                                      title = "Missingness pattern"){
   
+  condition <- colData(Experiment)[, condition_colname]
+  
+  if (dim(Experiment)[1] > 10000) {
+    set.seed(255)
+    random_sample <- sample(1:dim(Experiment)[1], 10000)
+    Experiment <- Experiment[random_sample, ]
+  }
+  
   y <- assays(Experiment)[[assayName]]
-  condition <- colData(assays(Experiment)[, condition_colname])
-  hdp <- selectFeatures(y, method = "ebm", group = condition)
-  y <- y[hdp$msImpute_feature, ]
-
   y_missing = t(apply(y, 1, function(x) ifelse(x == 0, 1, 0)))
   
   ha_column <- HeatmapAnnotation(Condition = condition)
