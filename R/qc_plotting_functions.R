@@ -532,6 +532,7 @@ plot_consistent_proteins_by_replicate <- function(Experiment,
 #' 
 #' @import ComplexHeatmap
 #' @import SummarizedExperiment
+#' @importFrom msImpute selectFeatures
 #' 
 #' @export plot_missingness_heatmap
 
@@ -540,12 +541,16 @@ plot_missingness_heatmap <- function(Experiment,
                                      condition_colname = "Condition", 
                                      title = "Missingness pattern"){
   
-  y = t(apply(assays(Experiment)[[assayName]], 1, function(x) ifelse(x == 0, 1, 0)))
-  batch <- colData(Experiment)[, condition_colname]
+  y <- assays(Experiment)[[assayName]]
+  condition <- colData(assays(Experiment)[, condition_colname])
+  hdp <- selectFeatures(y, method = "ebm", group = condition)
+  y <- y[hdp$msImpute_feature, ]
   
-  ha_column <- HeatmapAnnotation(Condition = batch)
+  y_missing = t(apply(y, 1, function(x) ifelse(x == 0, 1, 0)))
   
-  hm <- Heatmap(y,
+  ha_column <- HeatmapAnnotation(Condition = condition)
+  
+  hm <- Heatmap(y_missing,
                 column_title = title,
                 name = "Intensity",
                 col = c("#8FBC8F", "#FFEFDB"),
@@ -560,7 +565,7 @@ plot_missingness_heatmap <- function(Experiment,
                 column_names_gp = grid::gpar(fontsize = 8),
                 heatmap_legend_param = list(#direction = "horizontal",
                   heatmap_legend_side = "bottom",
-                  labels = c("observed","missing"),
+                  labels = c("missing","observed"),
                   legend_width = unit(6, "cm")),
   )
   hm <- draw(hm, heatmap_legend_side = "left")
