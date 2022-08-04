@@ -545,7 +545,7 @@ plot_missingness_heatmap <- function(Experiment,
   condition <- colData(assays(Experiment)[, condition_colname])
   hdp <- selectFeatures(y, method = "ebm", group = condition)
   y <- y[hdp$msImpute_feature, ]
-  
+
   y_missing = t(apply(y, 1, function(x) ifelse(x == 0, 1, 0)))
   
   ha_column <- HeatmapAnnotation(Condition = condition)
