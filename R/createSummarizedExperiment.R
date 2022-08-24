@@ -116,7 +116,7 @@ detectDesignType <- function(experimentDesign, techReplCol, subjectCol){
   
   if(hasConditionOnly(experimentDesign)){
     cond1Name <- getConditionName(experimentDesign)
-    cond1Levels <- unique(experimentDesign[, cond1Name])
+    cond1Levels <- unique(experimentDesign[, cond1Name, drop=TRUE])
     repCondName <- cond1Name
     cond2Levels <- NULL
     
@@ -126,8 +126,8 @@ detectDesignType <- function(experimentDesign, techReplCol, subjectCol){
     cond2Name <- condNames[!(condNames %in% "Condition")]
     repCondName <- cond2Name
     
-    cond1Levels <- unique(experimentDesign[, cond1Name])
-    cond2Levels <- unique(experimentDesign[, cond2Name])
+    cond1Levels <- unique(experimentDesign[, cond1Name, drop=TRUE])
+    cond2Levels <- unique(experimentDesign[, cond2Name, drop=TRUE])
   } else {
     stop("Experiment design not supported. Check details for allowed column names.")
   }
@@ -192,12 +192,12 @@ addTechRepl <- function(experimentDesign, techReplCol, subjectCol, cond1Name, co
   if(!(techReplCol %in% colnames(experimentDesign))){
     # Technical replicates
     if(is.null(cond2Name)){
-      experimentDesign[,techReplCol] <- paste0(experimentDesign[,subjectCol],"-", 
-                                               experimentDesign[,cond1Name])
+      experimentDesign[,techReplCol] <- paste0(experimentDesign[,subjectCol, drop=TRUE],"-", 
+                                               experimentDesign[,cond1Name, drop=TRUE])
     } else {
-      experimentDesign[,techReplCol] <- paste0(experimentDesign[,subjectCol],"-", 
-                                               experimentDesign[,cond1Name], "-", 
-                                               experimentDesign[,cond2Name])
+      experimentDesign[,techReplCol] <- paste0(experimentDesign[,subjectCol, drop=TRUE],"-", 
+                                               experimentDesign[,cond1Name, drop=TRUE], "-", 
+                                               experimentDesign[,cond2Name, drop=TRUE])
     }
   }
   

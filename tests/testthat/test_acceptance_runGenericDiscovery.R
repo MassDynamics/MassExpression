@@ -337,9 +337,9 @@ compare_me <- currentComparisonExperiments_longdf %>% left_join(currentCompleteI
 
 load("../data/mq_lfq_output_integers.RData")
 
+
 test_raw_output(current = currentIntensityExperiment, 
                 expected = expectedIntensityExperiment)
-
 
 test_complete_output(current = currentCompleteIntensityExperiment, 
                      expected = expectedCompleteIntensityExperiment)
