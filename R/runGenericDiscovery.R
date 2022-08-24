@@ -40,29 +40,27 @@ runGenericDiscovery <- function(experimentDesign, proteinIntensities,
                                 conditionSeparator = " - "){
   
   
-  print("Sanitize import...")
-  # Sanitize invisible and Unicode characters for correct export
-  experimentDesign <- sanitize_strings_in_dataframe(experimentDesign)
-  proteinIntensities <- sanitize_strings_in_dataframe(proteinIntensities)
-  
-  print("Starting generic discovery...")
-  
-  listMetadata <- list(Species = species,
-                       LabellingMethod = labellingMethod, 
-                       NormalisationAppliedToAssay = normalisationMethod)
-  
- 
+  print("IMPORT DATA")
   # Create Data Rep
-  IntensityExperiment <- createSummarizedExperiment(experimentDesign = experimentDesign, 
-                                                       proteinIntensities = proteinIntensities,
-                                                       listMetadata = listMetadata)
-
-  # Get Binary Statistic Comparisons and complete experiment containinig imputed Protein Intensity
-  results <- runLimmaPipeline(IntensityExperiment,
-                              normalisationMethod=normalisationMethod, 
-                              fitSeparateModels=fitSeparateModels,
-                              returnDecideTestColumn=returnDecideTestColumn, 
-                              conditionSeparator = conditionSeparator)
+  IntensityExperiment <- importData(experimentDesign = experimentDesign,
+                                    proteinIntensities = proteinIntensities,
+                                    normalisationMethod=normalisationMethod, 
+                                    species = species, 
+                                    labellingMethod)
+  
+  metadataExperiment <- metadata(IntensityExperiment)
+  if(metadataExperiment$experimentType$conditionOnly){
+    # Get Binary Statistic Comparisons and complete experiment containinig imputed Protein Intensity
+    results <- runLimmaPipeline(IntensityExperiment,
+                                normalisationMethod=normalisationMethod, 
+                                fitSeparateModels=fitSeparateModels,
+                                returnDecideTestColumn=returnDecideTestColumn, 
+                                conditionSeparator = conditionSeparator)
+    
+  } else {
+    print("Limma model for two conditions not implemented yet.")
+    results <- IntensityExperiment
+  }
 
   print("Workflow completed.")
 

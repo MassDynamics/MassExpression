@@ -4,7 +4,13 @@
 \alias{createSummarizedExperiment}
 \title{This function creates a summarized experiment object from a protein intensity table and experiment design.}
 \usage{
-createSummarizedExperiment(experimentDesign, proteinIntensities, listMetadata)
+createSummarizedExperiment(
+  experimentDesign,
+  proteinIntensities,
+  listMetadata,
+  subjectCol = "Subject",
+  techReplCol = "TechRepl"
+)
 }
 \arguments{
 \item{experimentDesign}{data.frame. Experiment design provided in input by the user. Required columsn are: `SampleName` and `Condition`.}

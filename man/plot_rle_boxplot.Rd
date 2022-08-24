@@ -6,7 +6,7 @@
 \usage{
 plot_rle_boxplot(
   IntensityExperiment,
-  CompleteIntensityExperiment,
+  CompleteIntensityExperiment = NULL,
   includeImputed = FALSE,
   plotRawRLE = FALSE,
   title = "RLE plot",

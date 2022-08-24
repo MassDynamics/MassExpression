@@ -54,6 +54,7 @@ limmaStatsFun <- function(ID_type,
   isPresent <- filterDT[repPC >= 0.5, unique(ID)]
   funDT <- funDT[ID %in% isPresent]
   
+ 
   # Create wide matrix of counts
   fun.formula <- as.formula(str_c("ID ~ ", run_id_col_name))
   int_matrix <-
@@ -78,6 +79,7 @@ limmaStatsFun <- function(ID_type,
   rownames(imputed_matrix) <- imp_mat_rawnames
   isZ <- imputed_matrix == 1
   
+
   # Create sample information dataframe
   sample_dt <- as.data.frame(unique(funDT[, .(
     run_id = get(run_id_col_name),
@@ -98,7 +100,7 @@ limmaStatsFun <- function(ID_type,
     phenoData = AnnotatedDataFrame(sample_dt),
     featureData = AnnotatedDataFrame(feature_dt)
   )
-  
+
   # DE model
   design.mat <- model.matrix(~ 0 + condition,
                              data = pData(eset))
@@ -130,6 +132,7 @@ limmaStatsFun <- function(ID_type,
   fit2 <- contrasts.fit(fit, contrasts = contrast.matrix)
   fit2 <- eBayes(fit2, robust = TRUE, trend = TRUE)
   
+
   stats <-
     topTable(fit2,
              number = nrow(fit2),
@@ -148,7 +151,7 @@ limmaStatsFun <- function(ID_type,
                                           returnDecideTestColumn=returnDecideTestColumn, 
                                           conditionSeparator=conditionSeparator)
   
-  sep_models_stats <- fitSeparateModels(stats=stats, eset=eset, 
+  sep_models_stats <- fitSeparateModels(statsANOVA=stats, eset=eset, 
                                          pairwise.comp=pairwise.comp,
                                          funDT=funDT, 
                                          filterDT=filterDT,

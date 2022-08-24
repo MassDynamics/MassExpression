@@ -35,7 +35,7 @@ runLimmaPipeline <- function(IntensityExperiment,
                          id_type = "ProteinId", 
                          int_type = "log2NIntNorm",
                          f_imputeStDev = 0.3,
-                         f_imputePosition= 1.8)
+                         f_imputePosition = 1.8)
 
   
   # RunId will be unique to a row wheraes replicate may not

@@ -537,7 +537,8 @@ plot_consistent_proteins_by_replicate <- function(Experiment,
 
 plot_missingness_heatmap <- function(Experiment, 
                                      assayName = "raw", 
-                                     condition_colname = "Condition", 
+                                     condition_colname = "Condition",
+                                     colour_type_condition = "discrete",
                                      title = "Missingness pattern"){
   
   condition <- colData(Experiment)[, condition_colname]
@@ -569,7 +570,7 @@ plot_missingness_heatmap <- function(Experiment,
                 heatmap_legend_param = list(#direction = "horizontal",
                   heatmap_legend_side = "bottom",
                   labels = c("missing","observed"),
-                  legend_width = unit(6, "cm")),
+                  legend_width = unit(6, "cm"))
   )
   hm <- draw(hm, heatmap_legend_side = "left")
 }
@@ -642,14 +643,14 @@ plot_protein_missingness <- function(Experiment, assayName="raw",
 #' @importFrom tidyr pivot_longer
 #' @importFrom data.table data.table
 
-plot_rle_boxplot <- function(IntensityExperiment, CompleteIntensityExperiment, 
+plot_rle_boxplot <- function(IntensityExperiment, CompleteIntensityExperiment=NULL, 
                              includeImputed = FALSE, 
                              plotRawRLE = FALSE, 
                              title="RLE plot", 
                              format = "html"){
   
   
-  longRawDF <- SEToLongDT(IntensityExperiment)
+  longRawDF <- SEToLongDT(IntensityExperiment, "raw")
   longRawDF$Imputed <- longRawDF$Intensity == 0
   longRawDF <- longRawDF[,c("ProteinId","Imputed","SampleName","Intensity")]
   setnames(longRawDF, "Intensity","rawIntensity")
@@ -663,7 +664,7 @@ plot_rle_boxplot <- function(IntensityExperiment, CompleteIntensityExperiment,
     
   }else{
     # the intensity plotted are the ones present in the assay experiment
-    longIntensityDF <- SEToLongDT(CompleteIntensityExperiment)
+    longIntensityDF <- SEToLongDT(CompleteIntensityExperiment, "intensities")
     longIntensityDF <- as_tibble(longIntensityDF) %>% 
       left_join(as_tibble(longRawDF))
     longIntensityDF <- data.table(longIntensityDF[!longIntensityDF$Imputed,

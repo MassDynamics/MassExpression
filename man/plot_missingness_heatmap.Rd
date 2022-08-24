@@ -8,6 +8,7 @@ plot_missingness_heatmap(
   Experiment,
   assayName = "raw",
   condition_colname = "Condition",
+  colour_type_condition = "discrete",
   title = "Missingness pattern"
 )
 }
