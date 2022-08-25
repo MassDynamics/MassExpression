@@ -17,26 +17,10 @@ runLimmaPipeline <- function(IntensityExperiment,
                              fitSeparateModels, 
                              returnDecideTestColumn, 
                              conditionSeparator){
-  
-  print("Starting pre-processing")
 
-  longIntensityDT <- initialiseLongIntensityDT(IntensityExperiment)
-  # Create valid condition names
-  encodedCondition <- condition_name_encoder(dt = longIntensityDT, condNames = "Condition")
-  longIntensityDT <- encodedCondition$dt
-  conditionsDict <- encodedCondition$conditionsDict$Condition
-
-  # Create Median Normalized Measurements in each Condition/Replicate
-  longIntensityDT <- normaliseIntensity(longIntensityDT=longIntensityDT,
-                                        normalisationMethod=normalisationMethod)
-
-  # Imputation
-  longIntensityDT <- imputeLFQ(longIntensityDT, 
-                         id_type = "ProteinId", 
-                         int_type = "log2NIntNorm",
-                         f_imputeStDev = 0.3,
-                         f_imputePosition = 1.8)
-
+  preProcessedData <- preProcess(IntensityExperiment, normalisationMethod)
+  longIntensityDT <- preProcessedData$longIntensityDT
+  conditionsDict <- preProcessedData$conditionsDict$Condition
   
   # RunId will be unique to a row wheraes replicate may not
   #TODO why I cannot just use SampleName as the runId? 

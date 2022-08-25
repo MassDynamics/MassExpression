@@ -39,4 +39,6 @@ preProcess <- function(IntensityExperiment,
                                f_imputeStDev = 0.3,
                                f_imputePosition = 1.8)
   
+  list(longIntensityDT = longIntensityDT, conditionsDict = conditionsDict)
+  
 }
