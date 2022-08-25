@@ -4,11 +4,7 @@
 \alias{detectDesignType}
 \title{Detect the design type}
 \usage{
-detectDesignType(
-  experimentDesign,
-  techReplCol = "TechRepl",
-  subjectCol = "Subject"
-)
+detectDesignType(experimentDesign, techReplCol, subjectCol)
 }
 \arguments{
 \item{experimentDesign}{data.frame. Experiment design provided in input by the user.}

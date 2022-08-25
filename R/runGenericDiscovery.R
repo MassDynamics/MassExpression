@@ -49,13 +49,26 @@ runGenericDiscovery <- function(experimentDesign, proteinIntensities,
                                     labellingMethod)
   
   metadataExperiment <- metadata(IntensityExperiment)
+  
+  print("PRE-PROCESS DATA")
+  preProcessedData <- preProcess(IntensityExperiment=IntensityExperiment,
+                                 metadataInfo=metadataExperiment,
+                                 normalisationMethod=normalisationMethod)
+  longIntensityDT <- preProcessedData$longIntensityDT
+  conditionsDict <- preProcessedData$conditionsDict
+  
   if(metadataExperiment$experimentType$conditionOnly){
-    # Get Binary Statistic Comparisons and complete experiment containinig imputed Protein Intensity
-    results <- runLimmaPipeline(IntensityExperiment,
-                                normalisationMethod=normalisationMethod, 
+    resultsLimma <- runLimmaPipeline(longIntensityDT=longIntensityDT,
+                                conditionsDict=conditionsDict$Condition,
                                 fitSeparateModels=fitSeparateModels,
                                 returnDecideTestColumn=returnDecideTestColumn, 
                                 conditionSeparator = conditionSeparator)
+    
+    print("Creating output summarized experiment...")
+    results <- createResults(IntensityExperiment,
+                             limmaStats=resultsLimma$limmaStats,
+                             longIntensityDT = resultsLimma$decodedLongIntensityDT,
+                             conditionComparisonMapping = resultsLimma$conditionComparisonMapping) 
     
   } else {
     print("Limma model for two conditions not implemented yet.")

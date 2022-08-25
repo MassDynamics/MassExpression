@@ -11,13 +11,12 @@
 
 
 preProcess <- function(IntensityExperiment, 
+                       metadataInfo,
                        normalisationMethod){
   
   ## TODO add checks for metadata 
   
-  print("Starting pre-processing")
-  metadataInfo <- metadata(IntensityExperiment)
-  
+  print("Starting pre-processing...")
   longIntensityDT <- initialiseLongIntensityDT(IntensityExperiment)
   
   print("Encode conditions to create safe names for processing")
@@ -39,6 +38,7 @@ preProcess <- function(IntensityExperiment,
                                f_imputeStDev = 0.3,
                                f_imputePosition = 1.8)
   
+  ##TODO return in SummarisedExperiment shape not just long format as well
   list(longIntensityDT = longIntensityDT, conditionsDict = conditionsDict)
   
 }

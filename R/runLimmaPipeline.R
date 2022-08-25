@@ -1,7 +1,7 @@
 #' This function orchestrates imputation, normalization and the binary limma statistics accross all experimental comparisons
 #' 
-#' @param IntensityExperiment Output from createSummarizedExperiment
-#' @param normalisationMethod logical. Whether to perform median normalisation by condition. 
+#' @param longIntensityDT Output from `preProcess`
+#' @param conditionsDict Condtion dictionary.
 #' @param fitSeparateModels logical. TRUE to fit separate limma models for each pairwise comparisons 
 #' (e.g. filtering and `lmFit` are run separately by comparison).
 #' @param returnDecideTestColumn logical. If TRUE the row data of the `CompleteIntensityExperiment` will contain the output from 
@@ -12,16 +12,12 @@
 #' @import data.table
 #' @importFrom stringr str_c
 
-runLimmaPipeline <- function(IntensityExperiment, 
-                             normalisationMethod, 
+runLimmaPipeline <- function(longIntensityDT, 
+                             conditionsDict,
                              fitSeparateModels, 
                              returnDecideTestColumn, 
                              conditionSeparator){
 
-  preProcessedData <- preProcess(IntensityExperiment, normalisationMethod)
-  longIntensityDT <- preProcessedData$longIntensityDT
-  conditionsDict <- preProcessedData$conditionsDict$Condition
-  
   # RunId will be unique to a row wheraes replicate may not
   #TODO why I cannot just use SampleName as the runId? 
   longIntensityDT[, RunId := str_c(Condition, Replicate, sep = ".")]
@@ -51,19 +47,11 @@ runLimmaPipeline <- function(IntensityExperiment,
   longIntensityDT <- condition_name_decode_intensity_data(dt=longIntensityDT, dict=conditionsDict)
   stats <- condition_name_decode_limma_table(dt=stats, dict=conditionsDict)
 
-  print("Limma analysis completed. Creating output summarized experiment...")
+  print("Limma analysis completed.")
   
-  # SummarizedExperiment which contains the complete essay with imputed data and statistics
-  # about the number of proteins imputed in each condition 
-  CompleteIntensityExperiment <- createCompleteIntensityExperiment(IntensityExperiment,
-                                                                   limmaStats=stats,
-                                                                   normalisationAppliedToAssay = normalisationMethod,
-                                                                   longIntensityDT = longIntensityDT,
-                                                                   conditionComparisonMapping = conditionComparisonMapping)
-
-  list(IntensityExperiment=IntensityExperiment,
-       CompleteIntensityExperiment=CompleteIntensityExperiment, 
-       longIntensityDT=longIntensityDT)
+  list(limmaStats=stats,
+       decodedLongIntensityDT = longIntensityDT,
+       conditionComparisonMapping=conditionComparisonMapping)
 }
 
 

@@ -2,7 +2,6 @@
 #' the number of replicates and number of imputed values in each condition of interest
 #' @param IntensityExperiment output from `createSummarizedExperiment`
 #' @param limmaStats Statistic table from limma output
-#' @param normalisationAppliedToAssay one of 'None' or 'Median'
 #' @param longIntensityDT Long format table with raw and imputed intensities. Each row is a feature (protein/peptide).
 #' @param conditionComparisonMapping a dataframe matching different limma statistics comparison strings to up and down conditions
 
@@ -11,8 +10,7 @@
 #' @importFrom SummarizedExperiment rowData
 
 createCompleteIntensityExperiment <- function(IntensityExperiment,
-                                              limmaStats, 
-                                              normalisationAppliedToAssay,
+                                              limmaStats,
                                               longIntensityDT, 
                                               conditionComparisonMapping){
   
@@ -48,7 +46,6 @@ createCompleteIntensityExperiment <- function(IntensityExperiment,
   # 2. Create Create metadata
   #########
   metadataComplete <- metadata(IntensityExperiment)
-  metadataComplete$NormalisationAppliedToAssay <- normalisationAppliedToAssay
   
   #########
   # 3. Join limma stats, imputed and replicate counts

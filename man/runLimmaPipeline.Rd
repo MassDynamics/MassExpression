@@ -5,17 +5,17 @@
 \title{This function orchestrates imputation, normalization and the binary limma statistics accross all experimental comparisons}
 \usage{
 runLimmaPipeline(
-  IntensityExperiment,
-  normalisationMethod,
+  longIntensityDT,
+  conditionsDict,
   fitSeparateModels,
   returnDecideTestColumn,
   conditionSeparator
 )
 }
 \arguments{
-\item{IntensityExperiment}{Output from createSummarizedExperiment}
+\item{longIntensityDT}{Output from `preProcess`}
 
-\item{normalisationMethod}{logical. Whether to perform median normalisation by condition.}
+\item{conditionsDict}{Condtion dictionary.}
 
 \item{fitSeparateModels}{logical. TRUE to fit separate limma models for each pairwise comparisons 
 (e.g. filtering and `lmFit` are run separately by comparison).}

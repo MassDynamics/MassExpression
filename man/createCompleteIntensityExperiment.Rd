@@ -8,7 +8,6 @@ the number of replicates and number of imputed values in each condition of inter
 createCompleteIntensityExperiment(
   IntensityExperiment,
   limmaStats,
-  normalisationAppliedToAssay,
   longIntensityDT,
   conditionComparisonMapping
 )
@@ -17,8 +16,6 @@ createCompleteIntensityExperiment(
 \item{IntensityExperiment}{output from `createSummarizedExperiment`}
 
 \item{limmaStats}{Statistic table from limma output}
-
-\item{normalisationAppliedToAssay}{one of 'None' or 'Median'}
 
 \item{longIntensityDT}{Long format table with raw and imputed intensities. Each row is a feature (protein/peptide).}
 
