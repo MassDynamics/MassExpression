@@ -6,11 +6,20 @@
 preProcess <- function(IntensityExperiment, 
                        normalisationMethod){
   
+  ## TODO add checks for metadata 
+  
   print("Starting pre-processing")
+  metadataInfo <- metadata(IntensityExperiment)
+  
   longIntensityDT <- initialiseLongIntensityDT(IntensityExperiment)
   
   # Create valid condition names
-  encodedCondition <- condition_name_encoder(dt = longIntensityDT)
+  if(metadataInfo$experimentType$conditionOnly){
+    condName <- metadataInfo$experimentType$condition1Name
+    encodedCondition <- condition_name_encoder(dt = longIntensityDT, condName = condName)
+  } else if(metadataInfo$experimentType$conditionTimeOrDose){
+    
+  }
   longIntensityDT <- encodedCondition$dt
   conditionsDict <- encodedCondition$conditionsDict
   

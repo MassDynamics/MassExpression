@@ -57,15 +57,10 @@ createSummarizedExperiment <- function(experimentDesign,
   
   # Add Replicate column
   if(is.null(expType$condition2Name)){
-    # prepare colData with Replicate column 
-    experimentDesign = tibble::as_tibble(experimentDesign) %>% 
-      group_by(Condition) %>% 
-      mutate(Replicate = row_number())
+    experimentDesign = as.data.table(experimentDesign)[,Replicate:=1:.N, by = c("Condition")]
   }else{
     cond2Name <- expType$condition2Name
-    experimentDesign = tibble::as_tibble(experimentDesign) %>% 
-      group_by(Condition, get(cond2Name)) %>% 
-      mutate(Replicate = row_number())
+    experimentDesign = as.data.table(experimentDesign)[,Replicate:=1:.N, by = c("Condition", cond2Name)]
   }
   
   # metadata 
@@ -113,12 +108,13 @@ detectDesignType <- function(experimentDesign, techReplCol, subjectCol){
   
   expType <- NULL
   cond2Name <- NULL
+  cond2Levels <- NULL
+  conditionTimeOrDose = FALSE
   
   if(hasConditionOnly(experimentDesign)){
     cond1Name <- getConditionName(experimentDesign)
     cond1Levels <- unique(experimentDesign[, cond1Name, drop=TRUE])
     repCondName <- cond1Name
-    cond2Levels <- NULL
     
   } else if (hasConditionWithTimeDose(experimentDesign)) {
     condNames <- getConditionName(experimentDesign)
@@ -126,6 +122,7 @@ detectDesignType <- function(experimentDesign, techReplCol, subjectCol){
     cond2Name <- condNames[!(condNames %in% "Condition")]
     repCondName <- cond2Name
     
+    conditionTimeOrDose = TRUE
     cond1Levels <- unique(experimentDesign[, cond1Name, drop=TRUE])
     cond2Levels <- unique(experimentDesign[, cond2Name, drop=TRUE])
   } else {
@@ -169,10 +166,11 @@ detectDesignType <- function(experimentDesign, techReplCol, subjectCol){
                                          cond2Name = cond2Name)
   if(!enoughRepl){
     warning("The experiment might not have enough biological replicates within the given conditions 
-            to fir stable linear models.")
+            to fit stable linear models.")
   }
   
   expType <- list(conditionOnly = hasConditionOnly(experimentDesign), 
+                  conditionTimeOrDose = conditionTimeOrDose,
                   condition1Name = cond1Name,
                   condition1Levels = cond1Levels,
                   condition2Name = cond2Name,
@@ -186,8 +184,13 @@ detectDesignType <- function(experimentDesign, techReplCol, subjectCol){
 
 #' Add technical replicate information to design
 #' @keywords internal
+#' @noRd
 
-addTechRepl <- function(experimentDesign, techReplCol, subjectCol, cond1Name, cond2Name = NULL){
+addTechRepl <- function(experimentDesign, 
+                        techReplCol, 
+                        subjectCol, 
+                        cond1Name, 
+                        cond2Name = NULL){
   
   if(!(techReplCol %in% colnames(experimentDesign))){
     # Technical replicates
@@ -200,12 +203,14 @@ addTechRepl <- function(experimentDesign, techReplCol, subjectCol, cond1Name, co
                                                experimentDesign[,cond2Name, drop=TRUE])
     }
   }
+  experimentDesign[,techReplCol] <- as.numeric(as.factor(experimentDesign[,techReplCol, drop=TRUE]))
   
   return(experimentDesign)
 }
 
 #' Check for repeated measurements in design
 #' @keywords internal
+#' @noRd
 
 hasRepMeas <- function(experimentDesign,
                        subjectCol = "Subject",
@@ -226,6 +231,7 @@ hasRepMeas <- function(experimentDesign,
 
 #' Check for enough replicates given the design
 #' @keywords internal
+#' @noRd
 
 hasEnoughNumberReplPerGroup <- function(experimentDesign, cond1Name, cond2Name = NULL){
   if(is.null(cond2Name)){
@@ -240,6 +246,7 @@ hasEnoughNumberReplPerGroup <- function(experimentDesign, cond1Name, cond2Name =
 
 #' Check for enough levels in conditions in the experiment design
 #' @keywords internal
+#' @noRd
 
 hasEnoughLevelsInConditions <- function(experimentDesign, condName){
   len_levels_condition <- length(names(table(experimentDesign[,condName])))
@@ -248,6 +255,7 @@ hasEnoughLevelsInConditions <- function(experimentDesign, condName){
 
 #' Check for only one condition in experiment design
 #' @keywords internal
+#' @noRd
 
 hasConditionOnly <- function(inputDesign){
   colnamesInputDesign <- colnames(inputDesign)
@@ -256,6 +264,7 @@ hasConditionOnly <- function(inputDesign){
 
 #' Check for only one condition + time/dose in experiment design
 #' @keywords internal
+#' @noRd
 
 hasConditionWithTimeDose <- function(inputDesign){
   colnamesInputDesign <- colnames(inputDesign)
@@ -266,6 +275,7 @@ hasConditionWithTimeDose <- function(inputDesign){
 
 #' Extract condition names from experiment design
 #' @keywords internal
+#' @noRd
 
 getConditionName <- function(inputDesign){
   colnamesInputDesign <- colnames(inputDesign)
