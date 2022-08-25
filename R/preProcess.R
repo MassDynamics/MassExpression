@@ -1,3 +1,10 @@
+#' Prepare initial data for statistical modeling
+#' @description In this steps condition are encoded to safe strings; intensities are normalised when required and missing
+#' values imputed by MNAR
+#' 
+#' @param IntensityExperiment SummarizedExperiment object as returned by `importData`
+#' @param normalisationMethod str. One of 'None' or 'Median'
+#' 
 #' @export
 #' 
 #' @importFrom stringr str_c
@@ -13,13 +20,11 @@ preProcess <- function(IntensityExperiment,
   
   longIntensityDT <- initialiseLongIntensityDT(IntensityExperiment)
   
-  # Create valid condition names
-  if(metadataInfo$experimentType$conditionOnly){
-    condName <- metadataInfo$experimentType$condition1Name
-    encodedCondition <- condition_name_encoder(dt = longIntensityDT, condName = condName)
-  } else if(metadataInfo$experimentType$conditionTimeOrDose){
-    
-  }
+  print("Encode conditions to create safe names for processing")
+  conditionNames <- c(metadataInfo$experimentType$condition1Name, 
+                      metadataInfo$experimentType$condition2Name)
+  encodedCondition <- condition_name_encoder(dt = longIntensityDT, condNames = conditionNames)
+  
   longIntensityDT <- encodedCondition$dt
   conditionsDict <- encodedCondition$conditionsDict
   
@@ -34,7 +39,4 @@ preProcess <- function(IntensityExperiment,
                                f_imputeStDev = 0.3,
                                f_imputePosition = 1.8)
   
-  
-  # RunId will be unique to a row wheraes replicate may not
-  longIntensityDT[, RunId := str_c(Condition, Replicate, sep = ".")]
 }

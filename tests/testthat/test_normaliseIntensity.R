@@ -44,6 +44,7 @@ longIntensityDT <- data.table(ProteinId = c("P1","P2","P3","P4",
                                           0L, 1L, 0L, 0L, 
                                           1L, 0L, 0L, 0L, 
                                           0L, 1L, 0L, 0L))
+longIntensityDT$SampleName <- paste(longIntensityDT$Condition, longIntensityDT$Replicate, sep = "-")
 
 # we could have log2 which wrae = 1if the raw intensity was 1 - but not worrying about that
 median_conditionA_R1 <- median(c(1,4.3,3.9)) 
