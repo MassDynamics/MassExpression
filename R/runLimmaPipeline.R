@@ -1,6 +1,9 @@
 #' This function orchestrates imputation, normalization and the binary limma statistics accross all experimental comparisons
 #' 
 #' @param longIntensityDT Output from `preProcess`
+#' @param metadataExperiment Output from `preProcess`
+#' @param comparisonType Type of model / pairwise comparison. One of, "all", "oneVSall", "custom", "spline". 
+#' Default to "all"  
 #' @param conditionsDict Condtion dictionary.
 #' @param fitSeparateModels logical. TRUE to fit separate limma models for each pairwise comparisons 
 #' (e.g. filtering and `lmFit` are run separately by comparison).
@@ -12,49 +15,82 @@
 #' @import data.table
 #' @importFrom stringr str_c
 
+# one condition
+
 runLimmaPipeline <- function(longIntensityDT, 
+                             metadataExperiment,
+                             comparisonType = "all",
+                             orderConditions = NULL, 
+                             baselineCondition = NULL, 
+                             customComparisons = NULL, 
                              conditionsDict,
                              fitSeparateModels, 
                              returnDecideTestColumn, 
-                             conditionSeparator){
+                             conditionSeparator
+                             ){
 
   # RunId will be unique to a row wheraes replicate may not
   #TODO why I cannot just use SampleName as the runId? 
+  # ok with one condition
   longIntensityDT[, RunId := str_c(Condition, Replicate, sep = ".")]
   
-  # Run LIMMA
-  print("Starting DE with limma...")
-  resultsQuant <- limmaStatsFun(ID_type = "ProteinId",
-                                   int_type = "log2NIntNorm",
-                                   condition_col_name = "Condition",
-                                   run_id_col_name = "RunId",
-                                   rep_col_name = "Replicate",
-                                   funDT = longIntensityDT,
-                                returnDecideTestColumn=returnDecideTestColumn, 
-                                conditionSeparator=conditionSeparator)
+  if(comparisonType %in% c("all", "oneVSall", "custom")){
+    condName <- metadataExperiment$experimentType$condition1Name
+    condLevels <- metadataExperiment$experimentType$condition1Levels
+    print(paste0("Create pairwise comparisons for condition: ",condName))
   
-  if(fitSeparateModels){
-    stats <- resultsQuant[["statsSepModels"]]
-  }else{
-    stats <- resultsQuant[['statsOneModel']] 
+    pairwiseComp <- createPairwiseComparisons(comparisonType = comparisonType, 
+                                              condLevels = condLevels, 
+                                              conditionsDict = conditionsDict[[condName]],
+                                              orderConditions = orderConditions,
+                                              baselineInpuLevel = baselineCondition,
+                                              customComparisons = customComparisons)
+
+    
+    print("Starting DE with limma...")
+    
+  ID_type = "ProteinId"
+  int_type = "log2NIntNorm"
+  condition_col_name = "Condition"
+  run_id_col_name = "RunId"
+  rep_col_name = "Replicate"
+  funDT = longIntensityDT
+  pairwise.comp = pairwiseComp
+  returnDecideTestColumn=returnDecideTestColumn 
+  conditionSeparator=conditionSeparator
+    
+    resultsQuant <- limmaPairwiseComparisons(ID_type = "ProteinId",
+                                     int_type = "log2NIntNorm",
+                                     condition_col_name = "Condition",
+                                     run_id_col_name = "RunId",
+                                     rep_col_name = "Replicate",
+                                     funDT = longIntensityDT,
+                                     pairwise.comp = pairwiseComp,
+                                  returnDecideTestColumn=returnDecideTestColumn, 
+                                  conditionSeparator=conditionSeparator)
+    
+    if(fitSeparateModels){
+      stats <- resultsQuant[["statsSepModels"]]
+    }else{
+      stats <- resultsQuant[['statsOneModel']] 
+    }
+   
+    conditionComparisonMapping <- resultsQuant[["conditionComparisonMapping"]]
+    
+    conditionComparisonMapping <- condition_name_decode_comparison_mapping(dt = conditionComparisonMapping, 
+                                                                           dict=conditionsDict, 
+                                                                           conditionSeparator=conditionSeparator)
+    longIntensityDT <- condition_name_decode_intensity_data(dt=longIntensityDT, dict=conditionsDict)
+    stats <- condition_name_decode_limma_table(dt=stats, dict=conditionsDict)
+  
+    print("Limma analysis completed.")
+    
+    list(limmaStats=stats,
+         decodedLongIntensityDT = longIntensityDT,
+         conditionComparisonMapping=conditionComparisonMapping)
+    
+  } else {
+    print("Spline or other models not yet implemented")
+    return(NULL)
   }
- 
-  conditionComparisonMapping <- resultsQuant[["conditionComparisonMapping"]]
-  
-  conditionComparisonMapping <- condition_name_decode_comparison_mapping(dt = conditionComparisonMapping, 
-                                                                         dict=conditionsDict, 
-                                                                         conditionSeparator=conditionSeparator)
-  longIntensityDT <- condition_name_decode_intensity_data(dt=longIntensityDT, dict=conditionsDict)
-  stats <- condition_name_decode_limma_table(dt=stats, dict=conditionsDict)
-
-  print("Limma analysis completed.")
-  
-  list(limmaStats=stats,
-       decodedLongIntensityDT = longIntensityDT,
-       conditionComparisonMapping=conditionComparisonMapping)
 }
-
-
-
-
-

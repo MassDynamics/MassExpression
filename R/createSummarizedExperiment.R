@@ -135,7 +135,6 @@ detectDesignType <- function(experimentDesign, techReplCol, subjectCol){
                                   subjectCol = subjectCol, 
                                   cond1Name = cond1Name, 
                                   cond2Name = cond2Name)
-  print(experimentDesign)
   techRepl <- sum(table(experimentDesign[,techReplCol]) > 1) > 0
   
   # check subject for repeated measurements

@@ -6,6 +6,11 @@
 \usage{
 runLimmaPipeline(
   longIntensityDT,
+  metadataExperiment,
+  comparisonType = "all",
+  orderConditions = NULL,
+  baselineCondition = NULL,
+  customComparisons = NULL,
   conditionsDict,
   fitSeparateModels,
   returnDecideTestColumn,
@@ -14,6 +19,11 @@ runLimmaPipeline(
 }
 \arguments{
 \item{longIntensityDT}{Output from `preProcess`}
+
+\item{metadataExperiment}{Output from `preProcess`}
+
+\item{comparisonType}{Type of model / pairwise comparison. One of, "all", "oneVSall", "custom", "spline". 
+Default to "all"}
 
 \item{conditionsDict}{Condtion dictionary.}
 

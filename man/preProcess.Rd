@@ -4,12 +4,10 @@
 \alias{preProcess}
 \title{Prepare initial data for statistical modeling}
 \usage{
-preProcess(IntensityExperiment, metadataInfo, normalisationMethod)
+preProcess(IntensityExperiment)
 }
 \arguments{
 \item{IntensityExperiment}{SummarizedExperiment object as returned by `importData`}
-
-\item{normalisationMethod}{str. One of 'None' or 'Median'}
 }
 \description{
 In this steps condition are encoded to safe strings; intensities are normalised when required and missing

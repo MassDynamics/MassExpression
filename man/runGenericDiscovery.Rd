@@ -10,6 +10,10 @@ runGenericDiscovery(
   normalisationMethod = "None",
   species,
   labellingMethod,
+  comparisonType = "all",
+  orderConditions = NULL,
+  baselineCondition = NULL,
+  customComparisons = NULL,
   fitSeparateModels = TRUE,
   returnDecideTestColumn = FALSE,
   conditionSeparator = " - "

@@ -32,9 +32,16 @@
 
 #' @export
 
+# chosenComparisons <- data.frame(left = c("T1", "T2"), right = c("T0", "T3"))
+
 runGenericDiscovery <- function(experimentDesign, proteinIntensities, 
                                 normalisationMethod="None", species, 
                                 labellingMethod, 
+                                comparisonType = "all", 
+                                orderConditions = NULL, #list
+                                baselineCondition = NULL, # list
+                                customComparisons = NULL, #data.frame with left/right levels
+                                
                                 fitSeparateModels = TRUE,
                                 returnDecideTestColumn = FALSE, 
                                 conditionSeparator = " - "){
@@ -44,25 +51,35 @@ runGenericDiscovery <- function(experimentDesign, proteinIntensities,
   # Create Data Rep
   IntensityExperiment <- importData(experimentDesign = experimentDesign,
                                     proteinIntensities = proteinIntensities,
-                                    normalisationMethod=normalisationMethod, 
+                                    normalisationMethod = normalisationMethod, 
                                     species = species, 
-                                    labellingMethod)
+                                    labellingMethod = labellingMethod)
+  # now the data can be used for plotting and qc
   
   metadataExperiment <- metadata(IntensityExperiment)
   
   print("PRE-PROCESS DATA")
-  preProcessedData <- preProcess(IntensityExperiment=IntensityExperiment,
-                                 metadataInfo=metadataExperiment,
-                                 normalisationMethod=normalisationMethod)
+  preProcessedData <- preProcess(IntensityExperiment=IntensityExperiment)
   longIntensityDT <- preProcessedData$longIntensityDT
   conditionsDict <- preProcessedData$conditionsDict
   
+  print("Codition safe encoding dictionary")
+  print(conditionsDict)
+  
+  # could create output for plotting after norm
+  ## TODO: normaliseIntensity using SampleName instead of Cond+ repl could cause issues with strange characters?
+  
   if(metadataExperiment$experimentType$conditionOnly){
     resultsLimma <- runLimmaPipeline(longIntensityDT=longIntensityDT,
-                                conditionsDict=conditionsDict$Condition,
-                                fitSeparateModels=fitSeparateModels,
-                                returnDecideTestColumn=returnDecideTestColumn, 
-                                conditionSeparator = conditionSeparator)
+                                     metadataExperiment = metadataExperiment,
+                                     comparisonType = comparisonType,
+                                     orderConditions = orderConditions, 
+                                     baselineCondition = baselineCondition, 
+                                     customComparisons = customComparisons,
+                                     conditionsDict = conditionsDict$Condition,
+                                     fitSeparateModels = fitSeparateModels,
+                                     returnDecideTestColumn = returnDecideTestColumn,
+                                     conditionSeparator = conditionSeparator)
     
     print("Creating output summarized experiment...")
     results <- createResults(IntensityExperiment,

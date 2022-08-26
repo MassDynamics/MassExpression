@@ -6,7 +6,7 @@
 \usage{
 createResults(
   IntensityExperiment,
-  limmaStats = stats,
+  limmaStats,
   longIntensityDT = longIntensityDT,
   conditionComparisonMapping = conditionComparisonMapping
 )

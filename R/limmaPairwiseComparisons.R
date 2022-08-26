@@ -12,38 +12,24 @@
 #' `limma::decideTests`. 
 #' @param conditionSeparator string. String used to separate up and down condition in output. 
 
-#' @export limmaStatsFun
+#' @export limmaPairwiseComparisons
 #' @import limma
-#' @import foreach
 #' @import Biobase 
 #' @importFrom stringr str_order str_c str_sort
 #' @importFrom data.table rbindlist dcast.data.table as.data.table
 
-limmaStatsFun <- function(ID_type,
-                            int_type,
-                            condition_col_name,
-                            run_id_col_name,
-                            rep_col_name,
-                            funDT,
-                            returnDecideTestColumn,
-                          conditionSeparator, 
-                            pairwise.comp = NULL,
-                            all.comparisons = TRUE) {
-  
-  
-  # Create all possible pairwise comparisons using Condition
-  if (all.comparisons) {
-     comination_mat <- combn(x = funDT[, unique(get(condition_col_name))], 2)
-    pairwise.comp <- foreach (i = 1:ncol(comination_mat), .packages="foreach") %do% {
-      return(data.table(
-        left = comination_mat[1,i],
-        right = comination_mat[2,i]
-      ))
-    }
-    pairwise.comp <- rbindlist(pairwise.comp)
-  }
+limmaPairwiseComparisons <- function(condition_col_name,
+                                     funDT,
+                                     ID_type,
+                                      int_type,
+                                      run_id_col_name,
+                                      rep_col_name,
+                                      returnDecideTestColumn,
+                                    conditionSeparator, 
+                                      pairwise.comp) {
   
   # Reorder/create new protein id column for simplicity 
+  # numeric = TRUE uses number as numbers and doesn't treat them as strings
   funDT <- funDT[str_order(get(run_id_col_name), numeric = T)]
   funDT[, ID := str_c(get(ID_type))]
   

@@ -3,19 +3,18 @@
 #' values imputed by MNAR
 #' 
 #' @param IntensityExperiment SummarizedExperiment object as returned by `importData`
-#' @param normalisationMethod str. One of 'None' or 'Median'
 #' 
 #' @export
 #' 
 #' @importFrom stringr str_c
 
 
-preProcess <- function(IntensityExperiment, 
-                       metadataInfo,
-                       normalisationMethod){
+preProcess <- function(IntensityExperiment){
   
-  ## TODO add checks for metadata 
-  
+
+  ## TODO add checks for correct metadata structure and its presence  
+  metadataInfo <- metadata(IntensityExperiment)
+    
   print("Starting pre-processing...")
   longIntensityDT <- initialiseLongIntensityDT(IntensityExperiment)
   

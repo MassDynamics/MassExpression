@@ -77,3 +77,51 @@ condition_name_decode_comparison_mapping <- function(dt, dict, conditionSeparato
   dt_copy[, comparison.string := paste(up.condition, down.condition, sep=conditionSeparator)]
   return(dt_copy)
 }
+
+
+#' Encode vector of conditions levels based on dictionary encoded levels
+
+#' @keywords internal
+#' @noRd
+
+encodeConditionComparisonsVec <- function(allCondLevels, condToEncode, conditionsDict){
+  condDictVec <- conditionsDict$safe
+  names(condDictVec) <- conditionsDict$original
+  
+  if(!is.null(condToEncode)){
+    stopifnot(sum(condToEncode %in% allCondLevels) == length(condToEncode))
+    orderedConditionsEncode <- condDictVec[condToEncode]
+  } else {
+    orderedConditionsEncode <- NULL
+  }
+  
+  return(orderedConditionsEncode)
+}
+
+#' Encode matrix of custom comparisons based on dictionary of encoded levels
+
+#' @keywords internal
+#' @noRd
+
+encodeCustomComparisonsDF <- function(allCondLevels, 
+                                      DFToEncode = data.frame(), 
+                                      conditionsDict = list()){
+  condDictVec <- conditionsDict$safe
+  names(condDictVec) <- conditionsDict$original
+  
+  if(!is.null(DFToEncode)){
+    leftLevels <- DFToEncode$left
+    stopifnot(sum(leftLevels %in% allCondLevels) == length(leftLevels))
+    
+    rightLevels <- DFToEncode$right
+    stopifnot(sum(rightLevels %in% allCondLevels) == length(rightLevels))
+    
+    leftLevelsEncode <- condDictVec[leftLevels]
+    rightLevelsEncode <- condDictVec[rightLevels]
+    DFEncode <- data.frame(left = leftLevelsEncode, right = rightLevelsEncode) 
+  } else {
+    DFEncode <- NULL
+  }
+  
+  return(DFEncode)
+}
