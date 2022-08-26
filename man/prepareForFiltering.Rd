@@ -4,14 +4,14 @@
 \alias{prepareForFiltering}
 \title{Filter protein IDs that are not present in at least one experiment}
 \usage{
-prepareForFiltering(funDT, condition_col_name, run_id_col_name)
+prepareForFiltering(longIntensityDT, conditionColname, runIdColname)
 }
 \arguments{
-\item{funDT}{data.table}
+\item{longIntensityDT}{data.table}
 
-\item{condition_col_name}{name of column indicating the condition of interest}
+\item{conditionColname}{name of column indicating the condition of interest}
 
-\item{run_id_col_name}{name of column indicating the protein id}
+\item{runIdColname}{name of column indicating the protein id}
 }
 \value{
 `list`: filtered data.table and list of proteins

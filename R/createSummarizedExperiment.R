@@ -202,7 +202,8 @@ addTechRepl <- function(experimentDesign,
                                                experimentDesign[,cond2Name, drop=TRUE])
     }
   }
-  experimentDesign[,techReplCol] <- as.numeric(as.factor(experimentDesign[,techReplCol, drop=TRUE]))
+  experimentDesign[,techReplCol] <- as.numeric(as.factor(experimentDesign[,techReplCol, 
+                                                                          drop=TRUE]))
   
   return(experimentDesign)
 }

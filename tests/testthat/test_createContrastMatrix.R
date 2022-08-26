@@ -18,8 +18,8 @@ test_create_all_pairwise_comparisons <- function(current, expected){
 twoLevels <- c("A", "B")
 fourLevels <- c("A", "B", "C", "D")
 
-expectedTwolevels <- data.frame(left = "A", right = "B")
-expectedFourlevels <- data.frame(left = c("A","A","A","B","B","C"), 
+expectedTwolevels <- data.table(left = "A", right = "B")
+expectedFourlevels <- data.table(left = c("A","A","A","B","B","C"), 
                                 right = c("B","C","D", "C", "D", "D"))
 
 currentTwoLevels <- createAllPairwiseComparisons(twoLevels)

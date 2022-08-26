@@ -6,36 +6,36 @@
 using the condition provided}
 \usage{
 limmaPairwiseComparisons(
-  condition_col_name,
-  funDT,
-  ID_type,
-  int_type,
-  run_id_col_name,
-  rep_col_name,
+  conditionColname,
+  longIntensityDT,
+  featureIdType,
+  intensityType,
+  runIdColname,
+  repColname,
   returnDecideTestColumn,
   conditionSeparator,
-  pairwise.comp
+  pairwiseComparisons
 )
 }
 \arguments{
-\item{condition_col_name}{str. Column name for the condition of interest, e.g. `Condition`. Used to build all pairwise comparisons.}
+\item{conditionColname}{str. Column name for the condition of interest, e.g. `Condition`. Used to build all pairwise comparisons.}
 
-\item{funDT}{data.table. long table containing intensities for all proteins and samples.}
+\item{longIntensityDT}{data.table. long table containing intensities for all proteins and samples.}
 
-\item{ID_type}{str. Column name of feature ID, e.g. `ProteinId`}
+\item{featureIdType}{str. Column name of feature ID, e.g. `ProteinId`}
 
-\item{int_type}{str. Column name containing intensities to use for the differential expression analysis, e.g. `log2NIntNorm`}
+\item{intensityType}{str. Column name containing intensities to use for the differential expression analysis, e.g. `log2NIntNorm`}
 
-\item{run_id_col_name}{str. Column name for the unique identifier of condition and replicate, e.g. `RunId`}
+\item{runIdColname}{str. Column name for the unique identifier of condition and replicate, e.g. `RunId`}
 
-\item{rep_col_name}{str. Replicate column name. e.g. `Replicate`}
+\item{repColname}{str. Replicate column name. e.g. `Replicate`}
 
 \item{returnDecideTestColumn}{logical. If TRUE the row data of the `CompleteIntensityExperiment` will contain the output from 
 `limma::decideTests`.}
 
 \item{conditionSeparator}{string. String used to separate up and down condition in output.}
 
-\item{pairwise.comp}{chr. XX In the future this will allow the possibility of including only some pairwise comparisons of interest.}
+\item{pairwiseComparisons}{chr. XX In the future this will allow the possibility of including only some pairwise comparisons of interest.}
 
 \item{all.comparisons}{logical. TRUE to run differential expression analysis for all pairwise comparisons.}
 }

@@ -1,12 +1,12 @@
 #' This function performs the differential expression analysis with limma including all pairwise comparisons 
 #' using the condition provided
-#' @param ID_type str. Column name of feature ID, e.g. `ProteinId`
-#' @param int_type str. Column name containing intensities to use for the differential expression analysis, e.g. `log2NIntNorm`
-#' @param condition_col_name str. Column name for the condition of interest, e.g. `Condition`. Used to build all pairwise comparisons.  
-#' @param run_id_col_name str. Column name for the unique identifier of condition and replicate, e.g. `RunId`
-#' @param rep_col_name str. Replicate column name. e.g. `Replicate`
-#' @param funDT data.table. long table containing intensities for all proteins and samples. 
-#' @param pairwise.comp chr. XX In the future this will allow the possibility of including only some pairwise comparisons of interest. 
+#' @param featureIdType str. Column name of feature ID, e.g. `ProteinId`
+#' @param intensityType str. Column name containing intensities to use for the differential expression analysis, e.g. `log2NIntNorm`
+#' @param conditionColname str. Column name for the condition of interest, e.g. `Condition`. Used to build all pairwise comparisons.  
+#' @param runIdColname str. Column name for the unique identifier of condition and replicate, e.g. `RunId`
+#' @param repColname str. Replicate column name. e.g. `Replicate`
+#' @param longIntensityDT data.table. long table containing intensities for all proteins and samples. 
+#' @param pairwiseComparisons chr. XX In the future this will allow the possibility of including only some pairwise comparisons of interest. 
 #' @param all.comparisons logical. TRUE to run differential expression analysis for all pairwise comparisons.  
 #' @param returnDecideTestColumn logical. If TRUE the row data of the `CompleteIntensityExperiment` will contain the output from 
 #' `limma::decideTests`. 
@@ -18,157 +18,116 @@
 #' @importFrom stringr str_order str_c str_sort
 #' @importFrom data.table rbindlist dcast.data.table as.data.table
 
-limmaPairwiseComparisons <- function(condition_col_name,
-                                     funDT,
-                                     ID_type,
-                                      int_type,
-                                      run_id_col_name,
-                                      rep_col_name,
+limmaPairwiseComparisons <- function(conditionColname,
+                                     longIntensityDT,
+                                     featureIdType,
+                                      intensityType,
+                                      runIdColname,
+                                      repColname,
                                       returnDecideTestColumn,
                                     conditionSeparator, 
-                                      pairwise.comp) {
+                                      pairwiseComparisons) {
   
   # Reorder/create new protein id column for simplicity 
   # numeric = TRUE uses number as numbers and doesn't treat them as strings
-  funDT <- funDT[str_order(get(run_id_col_name), numeric = T)]
-  funDT[, ID := str_c(get(ID_type))]
+  longIntensityDT <- longIntensityDT[str_order(get(runIdColname), numeric = T)]
+  longIntensityDT[, ID := str_c(get(featureIdType))]
   
-  # Filter protein
-  filterDT <- prepareForFiltering(funDT=funDT, 
-                             condition_col_name=condition_col_name, 
-                             run_id_col_name=run_id_col_name)
+  print("Identify features with more than 50% missing values per condition.")
+  # Tag for filtering 
+  filterDT <- prepareForFiltering(longIntensityDT=longIntensityDT, 
+                             conditionColname=conditionColname, 
+                             runIdColname=runIdColname)
   isPresent <- filterDT[repPC >= 0.5, unique(ID)]
-  funDT <- funDT[ID %in% isPresent]
+  longIntensityDT <- longIntensityDT[ID %in% isPresent]
   
- 
-  # Create wide matrix of counts
-  fun.formula <- as.formula(str_c("ID ~ ", run_id_col_name))
-  int_matrix <-
-    dcast.data.table(funDT, fun.formula, value.var = int_type)
-  int_matrix <- int_matrix[str_order(ID, numeric = T)]
-  intrawnames <- int_matrix[, ID]
-  intcolnames <- colnames(int_matrix[, 2:ncol(int_matrix)])
-  intcolnames <- str_sort(intcolnames, numeric = TRUE)
-  
-  int_matrix <- as.matrix(int_matrix[, intcolnames, with = FALSE])
-  rownames(int_matrix) <- intrawnames
+  print("Create wide matrix of intensities")
+  # From wide to long matrix of counts
+  intensitiesMatrix <- MassExpression:::pivotDTLongToWide(longIntensityDT, 
+                                         idCol = "ID",
+                                         colNamesFrom = runIdColname, 
+                                         fillValuesFrom = intensityType)
   
   ### Imputed value mask matrix ------
-  imputed_matrix <-
-    dcast.data.table(funDT, fun.formula, value.var = "Imputed")
-  imputed_matrix <- imputed_matrix[str_order(ID, numeric = T)]
-  imp_mat_rawnames <- imputed_matrix[, ID]
-  imp_mat_colnames <- colnames(imputed_matrix[, 2:ncol(imputed_matrix)])
-  imp_mat_colnames <- str_sort(imp_mat_colnames, numeric = TRUE)
-  
-  imputed_matrix <- as.matrix(imputed_matrix[, imp_mat_colnames, with = FALSE])
-  rownames(imputed_matrix) <- imp_mat_rawnames
-  isZ <- imputed_matrix == 1
-  
+  imputedMatrix <- MassExpression:::pivotDTLongToWide(longIntensityDT, 
+                                    idCol = "ID",
+                                    colNamesFrom = runIdColname, 
+                                    fillValuesFrom = "Imputed")
 
-  # Create sample information dataframe
-  sample_dt <- as.data.frame(unique(funDT[, .(
-    run_id = get(run_id_col_name),
-    condition = get(condition_col_name),
-    Replicate = get(rep_col_name)
-  )]))
-  #sample_dt$condition <- make.names(sample_dt$condition)
-  rownames(sample_dt) <- sample_dt$run_id
   
-  # Create features information dataframe
-  feature_dt <- data.frame(ID = rownames(int_matrix), otherinfo = NA)
-  
-  rownames(feature_dt) <- feature_dt$ID
-  
-  # Create ExpressionSet object
-  eset <- ExpressionSet(
-    assayData = int_matrix,
-    phenoData = AnnotatedDataFrame(sample_dt),
-    featureData = AnnotatedDataFrame(feature_dt)
-  )
+  print("Create ExpressionSet object")
+  eset <- MassExpression:::createExpressionSetFromLongDT(longIntensityDT = longIntensityDT,
+                                        intensitiesMatrix = intensitiesMatrix)
 
-  # DE model
-  design.mat <- model.matrix(~ 0 + condition,
+
+  print("Create design and contrasts matrices")
+  designMat <- model.matrix(~ 0 + Condition,
                              data = pData(eset))
-  myContrasts = NULL
   
-  for (irow in 1:pairwise.comp[, .N]) {
-    left <- pairwise.comp[irow, left]
-    right <- pairwise.comp[irow, right]
-    
-    newContrast <- str_c("condition",left, conditionSeparator, "condition",right)
-    myContrasts = c(myContrasts, newContrast)
-  }
-  
+  contrastMatrix <- MassExpression:::createContrastsMatrix(pairwiseComp = pairwiseComparisons, 
+                                       designMat = designMat, 
+                                       conditionSeparator = conditionSeparator)
   
   conditionComparisonMapping <- assembleComparisonConditionMapping(
-    pairwise.comp, 
+    pairwiseComparisons, 
     seperator = conditionSeparator
-    )
+  )
   
-  
-  contrast.matrix <- eval(as.call(c(
-    as.symbol("makeContrasts"),
-    as.list(myContrasts),
-    levels = list(design.mat)
-  )))
-  
-  # Fit linear models
-  fit <- lmFit(eset, design.mat)
-  fit2 <- contrasts.fit(fit, contrasts = contrast.matrix)
+  print("Fit linear models")
+  fit <- lmFit(eset, designMat)
+  fit2 <- contrasts.fit(fit, contrasts = contrastMatrix)
   fit2 <- eBayes(fit2, robust = TRUE, trend = TRUE)
   
-
-  stats <-
+  statsANOVA <-
     topTable(fit2,
              number = nrow(fit2),
              sort.by = "none"
     )
-  stats <- as.data.table(stats)
+  statsANOVA <- as.data.table(statsANOVA)
   
-  stat_select <- ifelse(ncol(contrast.matrix) == 1, "t", "F")
-  stats <- stats[, .(ID, AveExpr, get(stat_select), adj.P.Val)]
-  colnames(stats) <- c("ID", "AveExpr", stat_select, "adj.P.Val")
+  stat_select <- ifelse(ncol(contrastMatrix) == 1, "t", "F")
+  statsANOVA <- statsANOVA[, .(ID, AveExpr, get(stat_select), adj.P.Val)]
+  colnames(statsANOVA) <- c("ID", "AveExpr", stat_select, "adj.P.Val")
   
-  one_model_stats <- extractOneModelStats(fitObject=fit2, 
-                                           statsANOVA=stats,
-                                           pairwiseComp=pairwise.comp,
-                                           myContrasts=myContrasts,
+  print("extractOneModelStats")
+  resultsOneModel <- MassExpression:::extractOneModelStats(fitObject=fit2, 
+                                           statsANOVA=statsANOVA,
+                                           pairwiseComparisons=pairwiseComparisons,
                                           returnDecideTestColumn=returnDecideTestColumn, 
                                           conditionSeparator=conditionSeparator)
-  
-  sep_models_stats <- fitSeparateModels(statsANOVA=stats, eset=eset, 
-                                         pairwise.comp=pairwise.comp,
-                                         funDT=funDT, 
+  print("fitSeparateModels")
+  resultsSeparateModels <- fitSeparateModels(statsANOVA=statsANOVA, eset=eset, 
+                                         pairwiseComparisons=pairwiseComparisons,
+                                         longIntensityDT=longIntensityDT, 
                                          filterDT=filterDT,
-                                         condition_col_name=condition_col_name, 
-                                         run_id_col_name=run_id_col_name, 
+                                         conditionColname=conditionColname, 
+                                         runIdColname=runIdColname, 
                                         returnDecideTestColumn=returnDecideTestColumn, 
                                         conditionSeparator=conditionSeparator)
 
-
-
-  setnames(one_model_stats, "ID", ID_type)
-  setnames(sep_models_stats, "ID", ID_type)
+  setnames(resultsOneModel, "ID", featureIdType)
+  setnames(resultsSeparateModels, "ID", featureIdType)
   
-  return(list(statsSepModels=sep_models_stats, 
+  return(list(statsSepModels=resultsSeparateModels, 
               eset = eset, 
               conditionComparisonMapping = conditionComparisonMapping, 
-              statsOneModel=one_model_stats))
+              statsOneModel=resultsOneModel))
 }
 
 
 
 #' @keywords internal
 #' @noRd
-extractOneModelStats <- function(fitObject, statsANOVA, pairwiseComp, 
-                                 myContrasts, returnDecideTestColumn, 
+extractOneModelStats <- function(fitObject, 
+                                 statsANOVA, 
+                                 pairwiseComparisons,
+                                 returnDecideTestColumn, 
                                  conditionSeparator){
   stats <- statsANOVA
-  for (ipair in 1:pairwiseComp[, .N]) {
-    left <- pairwiseComp[ipair, left]
-    right <- pairwiseComp[ipair, right]
-    myContrasts = str_c("condition",left, conditionSeparator, "condition",right)
+  for (ipair in 1:pairwiseComparisons[,.N]) {
+    left <- pairwiseComparisons[ipair, left]
+    right <- pairwiseComparisons[ipair, right]
+    myContrasts = str_c("Condition",left, conditionSeparator, "Condition",right)
     s_dt <-
       as.data.table(topTable(
         fitObject,
@@ -178,7 +137,7 @@ extractOneModelStats <- function(fitObject, statsANOVA, pairwiseComp,
         coef = myContrasts
       ))
     s_dt <- s_dt[, .(ID, logFC, CI.L, CI.R, P.Value, adj.P.Val)]
-    comparison <- str_replace_all(myContrasts, "condition", "")
+    comparison <- str_replace_all(myContrasts, "Condition", "")
     colnames(s_dt)[colnames(s_dt) != "ID"] <-
       str_c(colnames(s_dt)[colnames(s_dt) != "ID"], comparison, sep = " ")
     stats <- merge(stats, s_dt, by = "ID", all = T)
@@ -201,39 +160,36 @@ extractOneModelStats <- function(fitObject, statsANOVA, pairwiseComp,
 #' Fit separate models one for each parwise comparison
 #' @keywords internal
 #' @noRd
-fitSeparateModels <- function(statsANOVA, eset, pairwise.comp, funDT, 
-                              filterDT, condition_col_name, run_id_col_name, 
+fitSeparateModels <- function(statsANOVA, eset, pairwiseComparisons, longIntensityDT, 
+                              filterDT, conditionColname, runIdColname, 
                               returnDecideTestColumn, conditionSeparator){
   stats <- statsANOVA
   #### single pairwise comparisons
-  for (ipair in 1:pairwise.comp[, .N]) {
-    subsecting <- funDT[get(condition_col_name) %in% pairwise.comp[ipair, c(left, right)], unique(get(run_id_col_name))]
+  for (ipair in 1:pairwiseComparisons[,.N]) {
+    subsecting <- longIntensityDT[get(conditionColname) %in% pairwiseComparisons[ipair, c(left, right)], unique(get(runIdColname))]
     
     # Filter for IDs that are not present in at least one experiment in pairwise manner
-    isPresent <- filterDT[get(condition_col_name) %in% pairwise.comp[ipair, c(left, right)] & repPC >= 0.5, unique(ID)]
+    isPresent <- filterDT[get(conditionColname) %in% pairwiseComparisons[ipair, c(left, right)] & repPC >= 0.5, unique(ID)]
     
     if (length(isPresent) > 0) {
       eset_pair <- eset[rownames(eset) %in% isPresent, colnames(eset) %in% subsecting]
       
-      
-      
-      design.mat <- model.matrix(~ 0 + condition,
+      design.mat <- model.matrix(~ 0 + Condition,
                                  data = pData(eset_pair))
       
-      
       myContrasts = NULL
-      left <- pairwise.comp[ipair, left]
-      right <- pairwise.comp[ipair, right]
+      left <- pairwiseComparisons[ipair, left]
+      right <- pairwiseComparisons[ipair, right]
       myContrasts = c(myContrasts,
-                      str_c("condition",left, conditionSeparator, "condition",right))
-      contrast.matrix <- eval(as.call(c(
+                      str_c("Condition",left, conditionSeparator, "Condition",right))
+      contrastMatrix <- eval(as.call(c(
         as.symbol("makeContrasts"),
         as.list(myContrasts),
         levels = list(design.mat)
       )))
       
       fit <- lmFit(eset_pair, design.mat)
-      fit2 <- contrasts.fit(fit, contrasts = contrast.matrix)
+      fit2 <- contrasts.fit(fit, contrasts = contrastMatrix)
       fit2 <- eBayes(fit2, robust = TRUE, trend = TRUE)
       
       s_dt <-
@@ -246,7 +202,7 @@ fitSeparateModels <- function(statsANOVA, eset, pairwise.comp, funDT,
         ))
       s_dt <- s_dt[, .(ID, logFC, CI.L, CI.R, P.Value, adj.P.Val)]
       
-      comparison <- str_replace_all(myContrasts, "condition", "")
+      comparison <- str_replace_all(myContrasts, "Condition", "")
       colnames(s_dt)[colnames(s_dt) != "ID"] <-
         str_c(colnames(s_dt)[colnames(s_dt) != "ID"], comparison, sep = " ")
       stats <- merge(stats, s_dt, by = "ID", all = T)
@@ -280,3 +236,54 @@ assembleComparisonConditionMapping <- function(conditionComparisonMapping, seper
   
   return(conditionComparisonMapping)
 }
+
+
+
+#' Pivot long data table from long to wide format
+
+#' @noRd
+#' @keywords internal
+pivotDTLongToWide <- function(longDT, idCol, colNamesFrom, fillValuesFrom){
+  castingFormula <- as.formula(str_c(idCol, " ~ ", colNamesFrom))
+  wideDT <-
+    dcast.data.table(longDT, castingFormula, value.var = fillValuesFrom)
+  wideDT <- wideDT[str_order(get(idCol), numeric = T)]
+  featureNames <- wideDT[, get(idCol)]
+  runNames <- colnames(wideDT[, 2:ncol(wideDT)])
+  runNames <- str_sort(runNames, numeric = TRUE)
+  
+  wideMatrix <- as.matrix(wideDT[, runNames, with = FALSE])
+  rownames(wideMatrix) <- featureNames
+  return(wideMatrix)
+}
+
+#' Extract colData given the longIntensityDT 
+
+#' @noRd
+#' @keywords internal
+#' @importFrom Biobase ExpressionSet AnnotatedDataFrame
+#' 
+
+createExpressionSetFromLongDT <- function(longIntensityDT, intensitiesMatrix){
+  allColumns <- colnames(longIntensityDT)
+  colnamesInputDesign <- allColumns[allColumns %in% c("SampleName", "Condition", 
+                                                      "Time", "Dose", "Subject", 
+                                                      "TechRepl","RunId", "Replicate")]
+  extractedColData <- as.data.frame(unique(longIntensityDT[,..colnamesInputDesign]))
+  rownames(extractedColData) <- extractedColData$RunId
+  
+  # Create features information dataframe
+  featureDF <- data.frame(ID = rownames(intensitiesMatrix), otherinfo = NA)
+  rownames(featureDF) <- featureDF$ID
+  
+  # Create ExpressionSet object
+  eset <- ExpressionSet(
+    assayData = intensitiesMatrix,
+    phenoData = AnnotatedDataFrame(extractedColData),
+    featureData = AnnotatedDataFrame(featureDF)
+  )
+  
+  return(eset)
+}
+
+

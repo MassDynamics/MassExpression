@@ -27,6 +27,7 @@ preProcess <- function(IntensityExperiment){
   conditionsDict <- encodedCondition$conditionsDict
   
   # Create Median Normalized Measurements in each Condition/Replicate
+  normalisationMethod <- metadataInfo$inputMetadata$NormalisationAppliedToAssay
   longIntensityDT <- normaliseIntensity(longIntensityDT=longIntensityDT,
                                         normalisationMethod=normalisationMethod)
   

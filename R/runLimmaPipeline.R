@@ -41,31 +41,31 @@ runLimmaPipeline <- function(longIntensityDT,
   
     pairwiseComp <- createPairwiseComparisons(comparisonType = comparisonType, 
                                               condLevels = condLevels, 
-                                              conditionsDict = conditionsDict[[condName]],
-                                              orderConditions = orderConditions,
-                                              baselineInpuLevel = baselineCondition,
-                                              customComparisons = customComparisons)
+                                              conditionsDict = conditionsDict,
+                                              orderCondition = orderConditions[[condName]],
+                                              baselineInpuLevel = baselineCondition[[condName]],
+                                              customComparisonsCond = customComparisons[[condName]])
 
     
     print("Starting DE with limma...")
     
-  ID_type = "ProteinId"
-  int_type = "log2NIntNorm"
-  condition_col_name = "Condition"
-  run_id_col_name = "RunId"
-  rep_col_name = "Replicate"
-  funDT = longIntensityDT
-  pairwise.comp = pairwiseComp
-  returnDecideTestColumn=returnDecideTestColumn 
-  conditionSeparator=conditionSeparator
-    
-    resultsQuant <- limmaPairwiseComparisons(ID_type = "ProteinId",
-                                     int_type = "log2NIntNorm",
-                                     condition_col_name = "Condition",
-                                     run_id_col_name = "RunId",
-                                     rep_col_name = "Replicate",
-                                     funDT = longIntensityDT,
-                                     pairwise.comp = pairwiseComp,
+  # featureIdType = "ProteinId"
+  # intensityType = "log2NIntNorm"
+  # conditionColname = "Condition"
+  # runIdColname = "RunId"
+  # repColname = "Replicate"
+  # longIntensityDT = longIntensityDT
+  # pairwiseComparisons = pairwiseComp
+  # returnDecideTestColumn=returnDecideTestColumn
+  # conditionSeparator=conditionSeparator
+  #   
+    resultsQuant <- limmaPairwiseComparisons(featureIdType = "ProteinId",
+                                     intensityType = "log2NIntNorm",
+                                     conditionColname = "Condition",
+                                     runIdColname = "RunId",
+                                     repColname = "Replicate",
+                                     longIntensityDT = longIntensityDT,
+                                     pairwiseComparisons = pairwiseComp,
                                   returnDecideTestColumn=returnDecideTestColumn, 
                                   conditionSeparator=conditionSeparator)
     

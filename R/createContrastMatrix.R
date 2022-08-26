@@ -14,9 +14,9 @@
 createPairwiseComparisons <- function(comparisonType = "all",
                                       condLevels, 
                                       conditionsDict, 
-                                      orderConditions = NULL,
+                                      orderCondition = NULL,
                                       baselineInpuLevel = NULL,
-                                      customComparisons = NULL){
+                                      customComparisonsCond = NULL){
   
   
   print("Encode vector of condition levels")
@@ -25,13 +25,11 @@ createPairwiseComparisons <- function(comparisonType = "all",
                                                     conditionsDict = conditionsDict)
   
   print("Encode vector of ordered condition levels provided in input")
-  orderCondition <- orderConditions[[condName]]
   orderConditionEncode <- encodeConditionComparisonsVec(allCondLevels = condLevels, 
                                                         condToEncode = orderCondition, 
                                                         conditionsDict = conditionsDict)
   
   print("Encode baseline condition level provided in input")
-  baselineInpuLevel <- baselineCondition[[condName]]
   if(!is.null(baselineInpuLevel) & length(baselineInpuLevel) > 1){
     warning(paste0("baselineInpuLevel contains more than one level: ", 
                    paste(baselineInpuLevel, collapse = ","),
@@ -42,7 +40,6 @@ createPairwiseComparisons <- function(comparisonType = "all",
                                                            condToEncode = baselineInpuLevel, 
                                                            conditionsDict = conditionsDict)
   
-  customComparisonsCond <- customComparisons[[condName]]
   customComparisonsCondEncode <- encodeCustomComparisonsDF(allCondLevels = condLevels, 
                                                            DFToEncode = customComparisonsCond, 
                                                            conditionsDict = conditionsDict)
@@ -100,23 +97,25 @@ createOneVsBaselineFromInput <- function(contrastLevels,
 
 #' @keywords internal
 #' @noRd
+#' @import data.table
 
 createAllPairwiseComparisons <- function(contrastLevels){
   cominationMat <- combn(x = contrastLevels, 2)
   pairwiseComp <- data.frame(t(cominationMat))
   colnames(pairwiseComp) <- c("left", "right")
-  return(pairwiseComp)
+  return(as.data.table(pairwiseComp))
 }
 
 #' Create one vs all pairwise comparisons
 
 #' @keywords internal
 #' @noRd
+#' @import data.table
 
 createOneVsAllPairwiseComparisons <- function(contrastLevels, baselineLevel){
   otherLevels <- contrastLevels[contrastLevels != baselineLevel]
   pairwiseComp <- data.frame(left = otherLevels, right = baselineLevel)
-  return(pairwiseComp)
+  return(as.data.table(pairwiseComp))
 }
 
 
@@ -124,6 +123,7 @@ createOneVsAllPairwiseComparisons <- function(contrastLevels, baselineLevel){
 
 #' @keywords internal
 #' @noRd
+#' @import data.table
 
 createOneVsOnePairwiseComparisons <- function(contrastLevels, chosenComparisons){
   if(is.null(chosenComparisons)){
@@ -143,18 +143,41 @@ createOneVsOnePairwiseComparisons <- function(contrastLevels, chosenComparisons)
                  paste(rightLevels[!(rightLevels %in% contrastLevels)], collapse = ",")))
   }
   
-  return(chosenComparisons)
+  return(as.data.table(chosenComparisons))
   
 }
+
+
 
 #' Create contrast matrix with all pairwise comparisons
 
 #' @keywords internal
 #' @noRd
 
-createAllPairwiseContrastsMatrix <- function(contrastLevels, conditionSeparator = "-"){
+createContrastsMatrix <- function(pairwiseComp, designMat, conditionSeparator = "-"){
+  
+  myContrasts <- apply(pairwiseComp, 1, function(x){
+    paste0("Condition",x[1], conditionSeparator, "Condition",x[2])
+    })
+  
+  contrastMatrix <- eval(as.call(c(
+    as.symbol("makeContrasts"),
+    as.list(myContrasts),
+    levels = list(designMat)
+  )))
+  return(contrastMatrix)   
+}
 
-  pairwiseComp <- createAllPairwiseComparisons(contrastLevels)
+
+
+##### DELETE maybe
+
+#' Create contrast matrix with all pairwise comparisons
+
+#' @keywords internal
+#' @noRd
+
+createAllPairwiseContrastsMatrix <- function(pairwiseComp, conditionSeparator = "-"){
   
   myContrasts <- apply(pairwiseComp, 1, function(x) paste0(x[1], conditionSeparator, x[2]))
   
@@ -171,7 +194,7 @@ createAllPairwiseContrastsMatrix <- function(contrastLevels, conditionSeparator 
 #' @keywords internal
 #' @noRd
 
-createOneVsAllContrastMatrix <- function(contrastLevels, baselineLevel){
+createOneVsAllContrastMatrix <- function(pairwiseComp, baselineLevel){
   
   if(!(baselineLevel %in% contrastLevels)){
     stop("baselineLevel is not part of the contrast levels")
