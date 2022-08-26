@@ -20,6 +20,7 @@
 
 limmaPairwiseComparisons <- function(conditionColname,
                                      longIntensityDT,
+                                     metadataExperiment,
                                      featureIdType,
                                       intensityType,
                                       runIdColname,
@@ -74,23 +75,16 @@ limmaPairwiseComparisons <- function(conditionColname,
   )
   
   print("Fit linear models")
-  fit <- lmFit(eset, designMat)
-  fit2 <- contrasts.fit(fit, contrasts = contrastMatrix)
-  fit2 <- eBayes(fit2, robust = TRUE, trend = TRUE)
+  modelFit <- fitLinearModelLimma(eset = eset, 
+                                  designMat = designMat, 
+                                  contrastMatrix = contrastMatrix, 
+                                  metadataExperiment = metadataExperiment)
   
-  statsANOVA <-
-    topTable(fit2,
-             number = nrow(fit2),
-             sort.by = "none"
-    )
-  statsANOVA <- as.data.table(statsANOVA)
-  
-  stat_select <- ifelse(ncol(contrastMatrix) == 1, "t", "F")
-  statsANOVA <- statsANOVA[, .(ID, AveExpr, get(stat_select), adj.P.Val)]
-  colnames(statsANOVA) <- c("ID", "AveExpr", stat_select, "adj.P.Val")
-  
+  fitObject <- modelFit$fitObject
+  statsANOVA <- modelFit$statsANOVA
+
   print("extractOneModelStats")
-  resultsOneModel <- MassExpression:::extractOneModelStats(fitObject=fit2, 
+  resultsOneModel <- MassExpression:::extractOneModelStats(fitObject=fitObject, 
                                            statsANOVA=statsANOVA,
                                            pairwiseComparisons=pairwiseComparisons,
                                           returnDecideTestColumn=returnDecideTestColumn, 
@@ -237,6 +231,55 @@ assembleComparisonConditionMapping <- function(conditionComparisonMapping, seper
   return(conditionComparisonMapping)
 }
 
+
+
+#' Fit linear models using limma
+
+#' @export fitLinearModelLimma
+#' 
+fitLinearModelLimma <- function(eset, designMat, contrastMatrix, metadataExperiment){
+  
+  repMeas <- metadataExperiment$experimentType$hasRepMeas
+  techRepl <- metadataExperiment$experimentType$hasTechRepl
+  
+  consCorr <- NULL
+  if(repMeas){
+    repl <- pData(eset)$Subject
+    corfit <- duplicateCorrelation(eset, block = repl)
+    consCorr <- ifelse(corfit$consensus < 0, consCorr, corfit$consensus)
+    print(paste0("Consensus correlation of repeated subject measures:", consCorr))
+  } else if (techRepl){
+    repl <- pData(eset)$TechRepl
+    corfit <- duplicateCorrelation(eset, block = repl)
+    consCorr <- ifelse(corfit$consensus < 0, consCorr, corfit$consensus)
+    print(paste0("Consensus correlation of technical replicates:", consCorr))
+  } else {
+    print("No repeated measurements or technical replicates in experiment.")
+  }
+  
+  if(!is.null(consCorr)){
+    fit <- lmFit(eset, designMat, block = repl, cor = consCorr)
+  }else{
+    fit <- lmFit(eset, designMat)  
+  }
+  
+  fit2 <- contrasts.fit(fit, contrasts = contrastMatrix)
+  fit2 <- eBayes(fit2, robust = TRUE, trend = TRUE)
+  
+  statsANOVA <-
+    topTable(fit2,
+             number = nrow(fit2),
+             sort.by = "none"
+    )
+  statsANOVA <- as.data.table(statsANOVA)
+  
+  stat_select <- ifelse(ncol(contrastMatrix) == 1, "t", "F")
+  statsANOVA <- statsANOVA[, .(ID, AveExpr, get(stat_select), adj.P.Val)]
+  colnames(statsANOVA) <- c("ID", "AveExpr", stat_select, "adj.P.Val")
+  
+  list(fitObject = fit2, statsANOVA = statsANOVA)
+  
+}
 
 
 #' Pivot long data table from long to wide format

@@ -65,6 +65,7 @@ runLimmaPipeline <- function(longIntensityDT,
                                      runIdColname = "RunId",
                                      repColname = "Replicate",
                                      longIntensityDT = longIntensityDT,
+                                     metadataExperiment = metadataExperiment,
                                      pairwiseComparisons = pairwiseComp,
                                   returnDecideTestColumn=returnDecideTestColumn, 
                                   conditionSeparator=conditionSeparator)
