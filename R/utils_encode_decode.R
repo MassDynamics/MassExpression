@@ -89,7 +89,10 @@ encodeConditionComparisonsVec <- function(allCondLevels, condToEncode, condition
   names(condDictVec) <- conditionsDict$original
   
   if(!is.null(condToEncode)){
-    stopifnot(sum(condToEncode %in% allCondLevels) == length(condToEncode))
+    if(sum(condToEncode %in% allCondLevels) != length(condToEncode)){
+      stop(paste0("Some levels in orderConditionsList/baselineConditionList are missing from the design. 
+           Missing levels: ", condToEncode[!(condToEncode %in% allCondLevels)]))
+    }
     orderedConditionsEncode <- condDictVec[condToEncode]
   } else {
     orderedConditionsEncode <- NULL
@@ -111,10 +114,16 @@ encodeCustomComparisonsDF <- function(allCondLevels,
   
   if(!is.null(DFToEncode)){
     leftLevels <- DFToEncode$left
-    stopifnot(sum(leftLevels %in% allCondLevels) == length(leftLevels))
+    if(sum(leftLevels %in% allCondLevels) != length(leftLevels)){
+      stop(paste0("Some leftLevels in customComparisonsList are missing from the design. 
+           Missing levels: ", leftLevels[!(leftLevels %in% allCondLevels)]))
+    }
     
     rightLevels <- DFToEncode$right
-    stopifnot(sum(rightLevels %in% allCondLevels) == length(rightLevels))
+    if(sum(rightLevels %in% allCondLevels) != length(rightLevels)){
+      stop(paste0("Some rightLevels in customComparisonsList are missing from the design. 
+           Missing levels: ", rightLevels[!(rightLevels %in% allCondLevels)]))
+    }
     
     leftLevelsEncode <- condDictVec[leftLevels]
     rightLevelsEncode <- condDictVec[rightLevels]

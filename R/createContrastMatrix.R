@@ -33,7 +33,7 @@ createPairwiseComparisons <- function(comparisonType = "all",
   if(!is.null(baselineInpuLevel) & length(baselineInpuLevel) > 1){
     warning(paste0("baselineInpuLevel contains more than one level: ", 
                    paste(baselineInpuLevel, collapse = ","),
-                   "Only the first one will be considered for modeling."))
+                   ". Only the first one will be considered for modeling."))
     baselineInpuLevel <- baselineInpuLevel[1]
   }
   baselineInpuLevelEncode <- encodeConditionComparisonsVec(allCondLevels = condLevels, 
@@ -127,7 +127,7 @@ createOneVsAllPairwiseComparisons <- function(contrastLevels, baselineLevel){
 
 createOneVsOnePairwiseComparisons <- function(contrastLevels, chosenComparisons){
   if(is.null(chosenComparisons)){
-    stop("No comparisons of choice provided.")
+    stop("No comparisons of choice provided. See ?runGenericDiscovery argument customComparisonsList.")
   }
   
   leftLevels <- chosenComparisons$left

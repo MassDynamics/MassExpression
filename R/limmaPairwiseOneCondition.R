@@ -12,19 +12,21 @@
 #' `limma::decideTests`. 
 #' @param conditionSeparator string. String used to separate up and down condition in output. 
 
-#' @export limmaPairwiseComparisons
+#' @export limmaPairwiseOneCondition
 #' @import limma
 #' @import Biobase 
 #' @importFrom stringr str_order str_c str_sort
 #' @importFrom data.table rbindlist dcast.data.table as.data.table
 
-limmaPairwiseComparisons <- function(conditionColname,
+limmaPairwiseOneCondition <- function(conditionColname,
                                      longIntensityDT,
                                      metadataExperiment,
+                                     useImputed,
                                      featureIdType,
                                       intensityType,
                                       runIdColname,
                                       repColname,
+                                     fitSeparateModels,
                                       returnDecideTestColumn,
                                     conditionSeparator, 
                                       pairwiseComparisons) {
@@ -42,23 +44,27 @@ limmaPairwiseComparisons <- function(conditionColname,
   isPresent <- filterDT[repPC >= 0.5, unique(ID)]
   longIntensityDT <- longIntensityDT[ID %in% isPresent]
   
-  print("Create wide matrix of intensities")
+  print("Create wide matrix of intensities/imputed")
   # From wide to long matrix of counts
   intensitiesMatrix <- MassExpression:::pivotDTLongToWide(longIntensityDT, 
                                          idCol = "ID",
                                          colNamesFrom = runIdColname, 
                                          fillValuesFrom = intensityType)
   
-  ### Imputed value mask matrix ------
   imputedMatrix <- MassExpression:::pivotDTLongToWide(longIntensityDT, 
-                                    idCol = "ID",
-                                    colNamesFrom = runIdColname, 
-                                    fillValuesFrom = "Imputed")
-
+                                                          idCol = "ID",
+                                                          colNamesFrom = runIdColname, 
+                                                          fillValuesFrom = "Imputed")
   
-  print("Create ExpressionSet object")
+  if(!useImputed){
+    intensitiesMatrix[imputedMatrix == 1] <- NA
+  }
+  
+  # TODO: add limma with NAs
+  
+  print("Create ExpressionSet object for limma")
   eset <- MassExpression:::createExpressionSetFromLongDT(longIntensityDT = longIntensityDT,
-                                        intensitiesMatrix = intensitiesMatrix)
+                                          intensitiesMatrix = intensitiesMatrix)
 
 
   print("Create design and contrasts matrices")
@@ -83,29 +89,30 @@ limmaPairwiseComparisons <- function(conditionColname,
   fitObject <- modelFit$fitObject
   statsANOVA <- modelFit$statsANOVA
 
-  print("extractOneModelStats")
-  resultsOneModel <- MassExpression:::extractOneModelStats(fitObject=fitObject, 
-                                           statsANOVA=statsANOVA,
-                                           pairwiseComparisons=pairwiseComparisons,
-                                          returnDecideTestColumn=returnDecideTestColumn, 
-                                          conditionSeparator=conditionSeparator)
-  print("fitSeparateModels")
-  resultsSeparateModels <- fitSeparateModels(statsANOVA=statsANOVA, eset=eset, 
-                                         pairwiseComparisons=pairwiseComparisons,
-                                         longIntensityDT=longIntensityDT, 
-                                         filterDT=filterDT,
-                                         conditionColname=conditionColname, 
-                                         runIdColname=runIdColname, 
-                                        returnDecideTestColumn=returnDecideTestColumn, 
-                                        conditionSeparator=conditionSeparator)
+  if(fitSeparateModels){
+    print("fitSeparateModels")
+    resultsModel <- fitSeparateModels(statsANOVA=statsANOVA, eset=eset, 
+                                      pairwiseComparisons=pairwiseComparisons,
+                                      longIntensityDT=longIntensityDT, 
+                                      filterDT=filterDT,
+                                      conditionColname=conditionColname, 
+                                      runIdColname=runIdColname, 
+                                      returnDecideTestColumn=returnDecideTestColumn, 
+                                      conditionSeparator=conditionSeparator)
+  } else { 
+    print("extractOneModelStats")
+    resultsModel <- MassExpression:::extractOneModelStats(fitObject=fitObject, 
+                                             statsANOVA=statsANOVA,
+                                             pairwiseComparisons=pairwiseComparisons,
+                                            returnDecideTestColumn=returnDecideTestColumn, 
+                                            conditionSeparator=conditionSeparator)
+  }
 
-  setnames(resultsOneModel, "ID", featureIdType)
-  setnames(resultsSeparateModels, "ID", featureIdType)
+  setnames(resultsModel, "ID", featureIdType)
   
-  return(list(statsSepModels=resultsSeparateModels, 
-              eset = eset, 
-              conditionComparisonMapping = conditionComparisonMapping, 
-              statsOneModel=resultsOneModel))
+  return(list(resultsModel=resultsModel, 
+              eset = eset,
+              conditionComparisonMapping = conditionComparisonMapping))
 }
 
 
@@ -281,25 +288,6 @@ fitLinearModelLimma <- function(eset, designMat, contrastMatrix, metadataExperim
   
 }
 
-
-#' Pivot long data table from long to wide format
-
-#' @noRd
-#' @keywords internal
-pivotDTLongToWide <- function(longDT, idCol, colNamesFrom, fillValuesFrom){
-  castingFormula <- as.formula(str_c(idCol, " ~ ", colNamesFrom))
-  wideDT <-
-    dcast.data.table(longDT, castingFormula, value.var = fillValuesFrom)
-  wideDT <- wideDT[str_order(get(idCol), numeric = T)]
-  featureNames <- wideDT[, get(idCol)]
-  runNames <- colnames(wideDT[, 2:ncol(wideDT)])
-  runNames <- str_sort(runNames, numeric = TRUE)
-  
-  wideMatrix <- as.matrix(wideDT[, runNames, with = FALSE])
-  rownames(wideMatrix) <- featureNames
-  return(wideMatrix)
-}
-
 #' Extract colData given the longIntensityDT 
 
 #' @noRd
@@ -328,5 +316,3 @@ createExpressionSetFromLongDT <- function(longIntensityDT, intensitiesMatrix){
   
   return(eset)
 }
-
-

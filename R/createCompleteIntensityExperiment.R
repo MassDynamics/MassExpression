@@ -18,29 +18,23 @@ createCompleteIntensityExperiment <- function(IntensityExperiment,
   # 1. Create intensity matrix and mask of imputed data
   #########
   
-  # replace Intensity with missing values to normalized log scale with imputed values
-  wideIntensityDT <- longIntensityDT %>% tidyr::pivot_wider(id_cols = "ProteinId", 
-                                                     names_from = "SampleName", 
-                                                     values_from = "log2NIntNorm") %>%
-    mutate(ProteinId = forcats::fct_reorder(ProteinId, rownames(IntensityExperiment)))
-  
-  # Mask of imputed data
-  wideImputedDT <- longIntensityDT %>% tidyr::pivot_wider(id_cols = "ProteinId", 
-                                                            names_from = "SampleName", 
-                                                            values_from = "Imputed")%>%
-    mutate(ProteinId = forcats::fct_reorder(ProteinId, rownames(IntensityExperiment)))
-  
-  intensityMatrixWide <- wideIntensityDT %>% dplyr::select(-ProteinId)
-  intensityMatrixWide <- as.matrix(intensityMatrixWide)
-  rownames(intensityMatrixWide) <- wideIntensityDT$ProteinId
-  
-  imputedMatrixWide <- wideImputedDT %>% dplyr::select(-ProteinId)
-  imputedMatrixWide <- as.matrix(imputedMatrixWide)
-  rownames(imputedMatrixWide) <- wideImputedDT$ProteinId
+  # # From wide to long matrix of counts
+  intensityMatrixWide <- MassExpression:::pivotDTLongToWide(longIntensityDT,
+                                                          idCol = "ProteinId",
+                                                          colNamesFrom = "SampleName",
+                                                          fillValuesFrom = "log2NIntNorm")
+  intensityMatrixWide <- intensityMatrixWide[match(rownames(IntensityExperiment), rownames(intensityMatrixWide)),]
 
+  ### Imputed value mask matrix ------
+  imputedMatrixWide <- MassExpression:::pivotDTLongToWide(longIntensityDT,
+                                                      idCol = "ProteinId",
+                                                      colNamesFrom = "SampleName",
+                                                      fillValuesFrom = "Imputed")
+  imputedMatrixWide <- imputedMatrixWide[match(rownames(IntensityExperiment), rownames(imputedMatrixWide)),]
+  
   # Order coldata
   intensityMatrixWide <- intensityMatrixWide[, colnames(IntensityExperiment)]
-  imputedMatrixWide <- imputedMatrixWide[,colnames(IntensityExperiment)]
+  imputedMatrixWide <- imputedMatrixWide[, colnames(IntensityExperiment)]
   
   #########
   # 2. Create Create metadata
@@ -62,7 +56,7 @@ createCompleteIntensityExperiment <- function(IntensityExperiment,
   # 4. Create final summaized experiment
   #########
   # Validate data for summarised experiments
-  .validateInputCompleteExperiment(rowDataComplete, IntensityExperiment, intensityMatrixWide, imputedMatrixWide)
+  MassExpression:::.validateInputCompleteExperiment(rowDataComplete, IntensityExperiment, intensityMatrixWide, imputedMatrixWide)
   
   CompleteIntensityExperiment <- SummarizedExperiment(assays = SimpleList(intensities = intensityMatrixWide, 
                                                                           imputedMask = imputedMatrixWide),

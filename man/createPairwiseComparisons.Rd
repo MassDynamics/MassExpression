@@ -8,20 +8,20 @@ createPairwiseComparisons(
   comparisonType = "all",
   condLevels,
   conditionsDict,
-  orderConditions = NULL,
+  orderCondition = NULL,
   baselineInpuLevel = NULL,
-  customComparisons = NULL
+  customComparisonsCond = NULL
 )
 }
 \arguments{
 \item{comparisonType}{Type of model / pairwise comparison. One of, "all", "oneVSall", "custom", "spline". 
 Default to "all"}
 
+\item{orderCondition}{vector of ordered condition levels}
+
 \item{baselineInpuLevel}{vector of baseline level}
 
 \item{contrastLevels}{vector with all condition levels to be considered for building contrasts}
-
-\item{orderCondition}{vector of ordered condition levels}
 
 \item{chosenComparisons}{data.frame of chosen comparisons}
 }

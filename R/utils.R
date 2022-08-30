@@ -24,7 +24,9 @@ SEToLongDT <- function(IntensityExperiment, assayName = "raw"){
 
 #' This function performs the log2 conversion for intensities larger than 0 and initialise the imputed column.
 #' @param IntensityExperiment Output from createSummarizedExperiment
-#' @export initialiseLongIntensityDT
+
+#' @noRd
+#' @keywords internal
 
 initialiseLongIntensityDT <- function(IntensityExperiment){
   protInt <- SEToLongDT(IntensityExperiment)
@@ -37,6 +39,25 @@ initialiseLongIntensityDT <- function(IntensityExperiment){
   as.data.table(protInt) 
 }
 
+
+#' Pivot long data table from long to wide format
+
+#' @noRd
+#' @keywords internal
+#' 
+pivotDTLongToWide <- function(longDT, idCol, colNamesFrom, fillValuesFrom){
+  castingFormula <- as.formula(str_c(idCol, " ~ ", colNamesFrom))
+  wideDT <-
+    dcast.data.table(longDT, castingFormula, value.var = fillValuesFrom)
+  wideDT <- wideDT[str_order(get(idCol), numeric = T)]
+  featureNames <- wideDT[, get(idCol)]
+  runNames <- colnames(wideDT[, 2:ncol(wideDT)])
+  runNames <- str_sort(runNames, numeric = TRUE)
+  
+  wideMatrix <- as.matrix(wideDT[, runNames, with = FALSE])
+  rownames(wideMatrix) <- featureNames
+  return(wideMatrix)
+}
 
 #' Count the number of imputed features by condition and write to wide table
 #' @param intensityDF Long format table with raw and imputed intensities. Each row is a feature (protein/peptide).  

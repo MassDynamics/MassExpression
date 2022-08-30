@@ -19,10 +19,11 @@
 
 runLimmaPipeline <- function(longIntensityDT, 
                              metadataExperiment,
+                             useImputed, 
                              comparisonType = "all",
-                             orderConditions = NULL, 
-                             baselineCondition = NULL, 
-                             customComparisons = NULL, 
+                             orderConditionsList = NULL, 
+                             baselineConditionList = NULL, 
+                             customComparisonsList = NULL, 
                              conditionsDict,
                              fitSeparateModels, 
                              returnDecideTestColumn, 
@@ -38,13 +39,15 @@ runLimmaPipeline <- function(longIntensityDT,
     condName <- metadataExperiment$experimentType$condition1Name
     condLevels <- metadataExperiment$experimentType$condition1Levels
     print(paste0("Create pairwise comparisons for condition: ",condName))
-  
+    
+    
+    
     pairwiseComp <- createPairwiseComparisons(comparisonType = comparisonType, 
                                               condLevels = condLevels, 
                                               conditionsDict = conditionsDict,
-                                              orderCondition = orderConditions[[condName]],
-                                              baselineInpuLevel = baselineCondition[[condName]],
-                                              customComparisonsCond = customComparisons[[condName]])
+                                              orderCondition = orderConditionsList[[condName]],
+                                              baselineInpuLevel = baselineConditionList[[condName]],
+                                              customComparisonsCond = customComparisonsList[[condName]])
 
     
     print("Starting DE with limma...")
@@ -59,30 +62,29 @@ runLimmaPipeline <- function(longIntensityDT,
   # returnDecideTestColumn=returnDecideTestColumn
   # conditionSeparator=conditionSeparator
   #   
-    resultsQuant <- limmaPairwiseComparisons(featureIdType = "ProteinId",
+    resultsQuant <- limmaPairwiseOneCondition(featureIdType = "ProteinId",
                                      intensityType = "log2NIntNorm",
                                      conditionColname = "Condition",
                                      runIdColname = "RunId",
                                      repColname = "Replicate",
+                                     useImputed = useImputed,
                                      longIntensityDT = longIntensityDT,
                                      metadataExperiment = metadataExperiment,
+                                     fitSeparateModels = fitSeparateModels,
                                      pairwiseComparisons = pairwiseComp,
                                   returnDecideTestColumn=returnDecideTestColumn, 
                                   conditionSeparator=conditionSeparator)
     
-    if(fitSeparateModels){
-      stats <- resultsQuant[["statsSepModels"]]
-    }else{
-      stats <- resultsQuant[['statsOneModel']] 
-    }
-   
+    stats <- resultsQuant[["resultsModel"]]
     conditionComparisonMapping <- resultsQuant[["conditionComparisonMapping"]]
     
-    conditionComparisonMapping <- condition_name_decode_comparison_mapping(dt = conditionComparisonMapping, 
+    print("Decode conditions")
+    conditionComparisonMapping <- MassExpression:::condition_name_decode_comparison_mapping(dt = conditionComparisonMapping, 
                                                                            dict=conditionsDict, 
                                                                            conditionSeparator=conditionSeparator)
-    longIntensityDT <- condition_name_decode_intensity_data(dt=longIntensityDT, dict=conditionsDict)
-    stats <- condition_name_decode_limma_table(dt=stats, dict=conditionsDict)
+    longIntensityDT <- MassExpression:::condition_name_decode_intensity_data(dt=longIntensityDT, 
+                                                                             dict=conditionsDict)
+    stats <- MassExpression:::condition_name_decode_limma_table(dt=stats, dict=conditionsDict)
   
     print("Limma analysis completed.")
     

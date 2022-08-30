@@ -5,6 +5,17 @@
 #' @param normalisationMethod Normalisation method. One of "None" or "Median". 
 #' @param species Species. One of 'Human', 'Mouse', 'Yeast', 'Other'
 #' @param labellingMethod One of 'LFQ' or 'TMT'
+#' @param useImputed logical. If TRUE, imputed values are used in the linear models with limma; 
+#' otherwise NAs are kept. 
+#' @param comparisonType Type of model / pairwise comparison. One of, "all", "oneVSall", "custom", "spline". 
+#' Default to "all"  
+#' @param orderConditionsList list. Each entry of the list provides the ordering of the relative condition. 
+#' E.g. list(Condition = c("2h", "4h", "6h)), in this case "2h" is considered the first level of the condition. 
+#' @param baselineConditionList list. Each entry of the list provides the baseline of the relative condition.
+#' list(Condition = c("2h")). This is used to perform the `oneVsall` comparison type. If `NULL`, either the first 
+#' entry of `orderConditions` is used or an automatic detection is performed (imperfect solution). 
+#' @param customComparisonsList list of data.frames. When `comparisonType` is `custom` this field is required 
+#' to establish the custom levels to compare for each condition.
 #' @param fitSeparateModels logical. TRUE to fit separate limma models for each pairwise comparisons 
 #' (e.g. filtering and `lmFit` are run separately by comparison).
 #' @param returnDecideTestColumn logical. If TRUE the row data of the `CompleteIntensityExperiment` will contain the output from 
@@ -15,6 +26,12 @@
 #' containing the raw intensities and  `CompleteIntensityExperiment` including 
 #' imputed intensities and the results of the limma DE analysis. 
 #' 
+
+#' @details Options for `comparisonType` arguments. If `comparisonType = "all"`, `orderConditionsList`/`baselineConditionList` 
+#' and `customComparisonsList` are not considered. If `comparisonType = "custom"` then `customComparisonsList` is required. 
+#' If `comparisonType = "oneVSall"`, `orderConditionsList`/`baselineConditionList` can be provided to establish the order 
+#' of the comparisons. If they are provided, one level of the condition is automatically selected based on automatic ordering
+#' selection. 
 
 #' @examples 
 #' design <- fragpipe_data$design
@@ -37,10 +54,11 @@
 runGenericDiscovery <- function(experimentDesign, proteinIntensities, 
                                 normalisationMethod="None", species, 
                                 labellingMethod, 
+                                useImputed = TRUE,
                                 comparisonType = "all", 
-                                orderConditions = NULL, #list
-                                baselineCondition = NULL, # list
-                                customComparisons = NULL, #data.frame with left/right levels
+                                orderConditionsList = NULL, #list
+                                baselineConditionList = NULL, # list
+                                customComparisonsList = NULL, #data.frame with left/right levels
                                 
                                 fitSeparateModels = TRUE,
                                 returnDecideTestColumn = FALSE, 
@@ -59,6 +77,7 @@ runGenericDiscovery <- function(experimentDesign, proteinIntensities,
   metadataExperiment <- metadata(IntensityExperiment)
   
   print("PRE-PROCESS DATA")
+  #TODO: return summarised experiment instead of long
   preProcessedData <- preProcess(IntensityExperiment=IntensityExperiment)
   longIntensityDT <- preProcessedData$longIntensityDT
   conditionsDict <- preProcessedData$conditionsDict
@@ -72,10 +91,11 @@ runGenericDiscovery <- function(experimentDesign, proteinIntensities,
   if(metadataExperiment$experimentType$conditionOnly){
     resultsLimma <- runLimmaPipeline(longIntensityDT=longIntensityDT,
                                      metadataExperiment = metadataExperiment,
+                                     useImputed = useImputed,
                                      comparisonType = comparisonType,
-                                     orderConditions = orderConditions, 
-                                     baselineCondition = baselineCondition, 
-                                     customComparisons = customComparisons,
+                                     orderConditionsList = orderConditionsList, 
+                                     baselineConditionList = baselineConditionList, 
+                                     customComparisonsList = customComparisonsList,
                                      conditionsDict = conditionsDict$Condition,
                                      fitSeparateModels = fitSeparateModels,
                                      returnDecideTestColumn = returnDecideTestColumn,
