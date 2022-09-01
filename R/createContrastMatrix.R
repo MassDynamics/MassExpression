@@ -97,7 +97,7 @@ createOneVsBaselineFromInput <- function(contrastLevels,
 
 #' @keywords internal
 #' @noRd
-#' @import data.table
+#' @importFrom data.table as.data.table
 
 createAllPairwiseComparisons <- function(contrastLevels){
   cominationMat <- combn(x = contrastLevels, 2)
@@ -110,7 +110,7 @@ createAllPairwiseComparisons <- function(contrastLevels){
 
 #' @keywords internal
 #' @noRd
-#' @import data.table
+#' @importFrom data.table as.data.table
 
 createOneVsAllPairwiseComparisons <- function(contrastLevels, baselineLevel){
   otherLevels <- contrastLevels[contrastLevels != baselineLevel]
@@ -123,7 +123,7 @@ createOneVsAllPairwiseComparisons <- function(contrastLevels, baselineLevel){
 
 #' @keywords internal
 #' @noRd
-#' @import data.table
+#' @importFrom data.table as.data.table
 
 createOneVsOnePairwiseComparisons <- function(contrastLevels, chosenComparisons){
   if(is.null(chosenComparisons)){
@@ -153,6 +153,8 @@ createOneVsOnePairwiseComparisons <- function(contrastLevels, chosenComparisons)
 
 #' @keywords internal
 #' @noRd
+#' 
+#' @import limma 
 
 createContrastsMatrix <- function(pairwiseComp, designMat, conditionSeparator = "-"){
   
@@ -167,70 +169,3 @@ createContrastsMatrix <- function(pairwiseComp, designMat, conditionSeparator = 
   )))
   return(contrastMatrix)   
 }
-
-
-
-##### DELETE maybe
-
-#' Create contrast matrix with all pairwise comparisons
-
-#' @keywords internal
-#' @noRd
-
-createAllPairwiseContrastsMatrix <- function(pairwiseComp, conditionSeparator = "-"){
-  
-  myContrasts <- apply(pairwiseComp, 1, function(x) paste0(x[1], conditionSeparator, x[2]))
-  
-  contrast.matrix <- eval(as.call(c(
-    as.symbol("makeContrasts"),
-    as.list(myContrasts),
-    levels = list(contrastLevels)
-  )))
-  return(contrast.matrix)   
-}
-
-#' Create contrast matrix with all vs one pairwise comparison
-
-#' @keywords internal
-#' @noRd
-
-createOneVsAllContrastMatrix <- function(pairwiseComp, baselineLevel){
-  
-  if(!(baselineLevel %in% contrastLevels)){
-    stop("baselineLevel is not part of the contrast levels")
-  }
-  
-  pairwiseComp <- createOneVsAllPairwiseComparisons(contrastLevels, baselineLevel)
-  myContrasts <- apply(pairwiseComp, 1, function(x) paste0(x[1], conditionSeparator, x[2]))
-  
-  contrast.matrix <- eval(as.call(c(
-    as.symbol("makeContrasts"),
-    as.list(myContrasts),
-    levels = list(contrastLevels)
-  )))
-  return(contrast.matrix)   
-}
-
-#' Create contrast matrix with one vs one pairwise comparison
-
-#' @keywords internal
-#' @noRd
-
-createOneVsOneContrastMatrix <- function(contrastLevels, levelUp, levelDown){
-  
-  if(!(levelUp %in% contrastLevels) | !(levelDown %in% contrastLevels)){
-    stop("levelUp and levelDown are not part of the contrast levels.")
-  }
-  
-  pairwiseComp <- createOneVsOnePairwiseComparisons(contrastLevels, levelUp, levelDown)
-  myContrasts <- apply(pairwiseComp, 1, function(x) paste0(x[1], conditionSeparator, x[2]))
-
-  contrast.matrix <- eval(as.call(c(
-    as.symbol("makeContrasts"),
-    as.list(myContrasts),
-    levels = list(contrastLevels)
-  )))
-  return(contrast.matrix)   
-}
-
-

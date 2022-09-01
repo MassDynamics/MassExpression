@@ -11,19 +11,17 @@
 #' `limma::decideTests`. If FALSE a single model is run for all contrasts.
 #' @param conditionSeparator string. String used to separate up and down condition in output. 
 #' 
-#' @export runLimmaPipeline
+#' @export 
 #' @import data.table
 #' @importFrom stringr str_c
 
-# one condition
 
-runLimmaPipeline <- function(longIntensityDT, 
+fitModelOneCondition <- function(longIntensityDT, 
                              metadataExperiment,
-                             useImputed, 
                              comparisonType = "all",
-                             orderConditionsList = NULL, 
-                             baselineConditionList = NULL, 
-                             customComparisonsList = NULL, 
+                             orderCondition = NULL, 
+                             baselineInpuLevel = NULL, 
+                             customComparisonsCond = NULL, 
                              conditionsDict,
                              fitSeparateModels, 
                              returnDecideTestColumn, 
@@ -36,38 +34,24 @@ runLimmaPipeline <- function(longIntensityDT,
   longIntensityDT[, RunId := str_c(Condition, Replicate, sep = ".")]
   
   if(comparisonType %in% c("all", "oneVSall", "custom")){
-    condName <- metadataExperiment$experimentType$condition1Name
     condLevels <- metadataExperiment$experimentType$condition1Levels
-    print(paste0("Create pairwise comparisons for condition: ",condName))
-    
-    
-    
+    condName <- metadataExperiment$experimentType$condition1Name
+    print(paste0("Running pairwise comparison type", comparisonType ," with condition: ", condName))
+  
     pairwiseComp <- createPairwiseComparisons(comparisonType = comparisonType, 
                                               condLevels = condLevels, 
                                               conditionsDict = conditionsDict,
-                                              orderCondition = orderConditionsList[[condName]],
-                                              baselineInpuLevel = baselineConditionList[[condName]],
-                                              customComparisonsCond = customComparisonsList[[condName]])
+                                              orderCondition = orderCondition,
+                                              baselineInpuLevel = baselineInpuLevel,
+                                              customComparisonsCond = customComparisonsCond)
 
     
     print("Starting DE with limma...")
-    
-  # featureIdType = "ProteinId"
-  # intensityType = "log2NIntNorm"
-  # conditionColname = "Condition"
-  # runIdColname = "RunId"
-  # repColname = "Replicate"
-  # longIntensityDT = longIntensityDT
-  # pairwiseComparisons = pairwiseComp
-  # returnDecideTestColumn=returnDecideTestColumn
-  # conditionSeparator=conditionSeparator
-  #   
-    resultsQuant <- limmaPairwiseOneCondition(featureIdType = "ProteinId",
+    resultsQuant <- fitLimmaPairwiseOneCondition(featureIdType = "ProteinId",
                                      intensityType = "log2NIntNorm",
                                      conditionColname = "Condition",
                                      runIdColname = "RunId",
                                      repColname = "Replicate",
-                                     useImputed = useImputed,
                                      longIntensityDT = longIntensityDT,
                                      metadataExperiment = metadataExperiment,
                                      fitSeparateModels = fitSeparateModels,

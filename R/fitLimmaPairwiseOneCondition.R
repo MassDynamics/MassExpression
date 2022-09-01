@@ -12,16 +12,14 @@
 #' `limma::decideTests`. 
 #' @param conditionSeparator string. String used to separate up and down condition in output. 
 
-#' @export limmaPairwiseOneCondition
-#' @import limma
-#' @import Biobase 
+#' @export fitLimmaPairwiseOneCondition
+
 #' @importFrom stringr str_order str_c str_sort
 #' @importFrom data.table rbindlist dcast.data.table as.data.table
 
-limmaPairwiseOneCondition <- function(conditionColname,
+fitLimmaPairwiseOneCondition <- function(conditionColname,
                                      longIntensityDT,
                                      metadataExperiment,
-                                     useImputed,
                                      featureIdType,
                                       intensityType,
                                       runIdColname,
@@ -56,11 +54,9 @@ limmaPairwiseOneCondition <- function(conditionColname,
                                                           colNamesFrom = runIdColname, 
                                                           fillValuesFrom = "Imputed")
   
-  if(!useImputed){
-    intensitiesMatrix[imputedMatrix == 1] <- NA
-  }
-  
-  # TODO: add limma with NAs
+  #if(!useImputed){
+  #  intensitiesMatrix[imputedMatrix == 1] <- NA
+  #}
   
   print("Create ExpressionSet object for limma")
   eset <- MassExpression:::createExpressionSetFromLongDT(longIntensityDT = longIntensityDT,
@@ -243,6 +239,7 @@ assembleComparisonConditionMapping <- function(conditionComparisonMapping, seper
 #' Fit linear models using limma
 
 #' @export fitLinearModelLimma
+#' @import limma
 #' 
 fitLinearModelLimma <- function(eset, designMat, contrastMatrix, metadataExperiment){
   

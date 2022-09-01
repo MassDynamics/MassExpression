@@ -7,9 +7,10 @@
 importData(
   experimentDesign,
   proteinIntensities,
-  normalisationMethod = "None",
-  species,
-  labellingMethod
+  secondConditionName,
+  normalisationMethod = NULL,
+  species = NULL,
+  labellingMethod = NULL
 )
 }
 \arguments{

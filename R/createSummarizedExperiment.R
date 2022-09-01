@@ -4,18 +4,20 @@
 #' @param proteinIntensities data.frame. Wide matrix of intensities. Rows are proteins and columns are SampleNames. Required column: `ProteinId`. 
 #' @param listMetadata list of metadata: `Species`, `LabellingMethod`, `NormalisationAppliedToAssay`.
 #' @return A SummarizedExperiment object
+
 #' @export
+
 #' @importFrom SummarizedExperiment SummarizedExperiment rowData colData
 #' @importFrom S4Vectors SimpleList
 #' @importFrom dplyr group_by mutate row_number
 
 createSummarizedExperiment <- function(experimentDesign, 
                                        proteinIntensities, 
-                                       listMetadata, 
-                                       subjectCol = "Subject",
-                                       techReplCol = "TechRepl"){
+                                       listMetadata = NULL, 
+                                       subjectCol,
+                                       techReplCol){
   
-  print("Sanity check experiment design and detect experiment type.")
+  info(MassExpressionLogger(), "Sanity check experiment design and detect experiment type.")
   # check and update the design
   if(!("Condition" %in% colnames(experimentDesign))){
     stop("'Condition' column is not available in the experiment design.")
@@ -47,11 +49,11 @@ createSummarizedExperiment <- function(experimentDesign,
   # Add subject columns
   if(!(subjectCol %in% colnames(experimentDesign))){
     experimentDesign[, subjectCol] <- 1:nrow(experimentDesign)
-    print("Subject information is added automatically assuming samples derive from different subjects.")
+    info(MassExpressionLogger(), "Subject information is added automatically assuming samples derive from different subjects.")
   }
   
   designTypeInfo <- detectDesignType(experimentDesign = experimentDesign, 
-                                     techReplCol = "TechRepl", subjectCol = "Subject")
+                                     techReplCol = techReplCol, subjectCol = subjectCol)
   experimentDesign <- designTypeInfo$experimentDesign
   expType <- designTypeInfo$expType
   
@@ -64,12 +66,14 @@ createSummarizedExperiment <- function(experimentDesign,
   }
   
   # metadata 
-  if(!(listMetadata$NormalisationAppliedToAssay %in% c("None", "Median"))){
-    stop("normalisationMethod should be one one of: 'Median' or `None`.")
+  if(!is.null(listMetadata)){
+    if(!(listMetadata$NormalisationAppliedToAssay %in% c("None", "Median"))){
+      stop("normalisationMethod should be one one of: 'Median' or `None`.")
+    }
   }
   listMetadata <- list(inputMetadata = listMetadata, experimentType = expType)
   
-  print("Prepare rowData")
+  info(MassExpressionLogger(), "Prepare rowData")
   rowDataPossible <-  c("ProteinId","GeneName","Description")
   rowDataPresent <- intersect(rowDataPossible, colnames(proteinIntensities))
   rowDataAbsent <- rowDataPossible[!(rowDataPossible %in% rowDataPresent)]

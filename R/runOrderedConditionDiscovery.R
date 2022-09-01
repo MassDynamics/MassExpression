@@ -2,11 +2,6 @@
 #' 
 #' @param experimentDesign data.frame. Experiment design provided in input by the user. Required columsn are: `SampleName` and `Condition`.
 #' @param proteinIntensities data.frame. Wide matrix of intensities. Rows are proteins and columns are SampleNames. Required column: `ProteinId`. 
-#' @param normalisationMethod Normalisation method. One of "None" or "Median". 
-#' @param species Species. One of 'Human', 'Mouse', 'Yeast', 'Other'
-#' @param labellingMethod One of 'LFQ' or 'TMT'
-#' @param useImputed logical. If TRUE, imputed values are used in the linear models with limma; 
-#' otherwise NAs are kept. 
 #' @param comparisonType Type of model / pairwise comparison. One of, "all", "oneVSall", "custom", "spline". 
 #' Default to "all"  
 #' @param orderConditionsList list. Each entry of the list provides the ordering of the relative condition. 
@@ -33,34 +28,18 @@
 #' of the comparisons. If they are provided, one level of the condition is automatically selected based on automatic ordering
 #' selection. 
 
-#' @examples 
-#' design <- fragpipe_data$design
-#' intensities <- fragpipe_data$intensities
-#' parameters <- fragpipe_data$parameters
-#' normalisation_method <- parameters[parameters[,1] == "UseNormalisationMethod",2]
-#' species <- parameters[parameters[,1] == "Species",2]
-#' labellingMethod <- parameters[parameters[,1] == "LabellingMethod",2]
-#' listIntensityExperiments <- runGenericDiscovery(experimentDesign = design, 
-#' proteinIntensities = intensities, 
-#' normalisationMethod = normalisation_method,
-#' species = species, 
-#' labellingMethod = labellingMethod)
-
-
-#' @export
+#' @export 
 
 #' @import log4r
 
-# chosenComparisons <- data.frame(left = c("T1", "T2"), right = c("T0", "T3"))
+# This workflow assumes that data have already been pre-processed/normalised
 
-runGenericDiscovery <- function(experimentDesign, proteinIntensities, 
-                                normalisationMethod="None", species, 
-                                labellingMethod, 
+runOrderedConditionDiscovery <- function(experimentDesign, proteinIntensities, 
                                 comparisonType = "all", 
                                 orderConditionsList = NULL, #list
                                 baselineConditionList = NULL, # list
-                                customComparisonsList = NULL, #data.frame with left/right levels
-                                fitSeparateModels = TRUE,
+                                customComparisonsList = NULL, # data.frame with left/right levels
+                                fitSeparateModels = FALSE,
                                 returnDecideTestColumn = FALSE, 
                                 conditionSeparator = " - "){
   
@@ -68,10 +47,7 @@ runGenericDiscovery <- function(experimentDesign, proteinIntensities,
   info(MassExpressionLogger(), "IMPORT DATA")
   # Create Data Rep
   IntensityExperiment <- importData(experimentDesign = experimentDesign,
-                                    proteinIntensities = proteinIntensities,
-                                    normalisationMethod = normalisationMethod, 
-                                    species = species, 
-                                    labellingMethod = labellingMethod)
+                                    proteinIntensities = proteinIntensities)
   # now the data can be used for plotting and qc
   print(IntensityExperiment)
   
@@ -94,20 +70,20 @@ runGenericDiscovery <- function(experimentDesign, proteinIntensities,
     condName <- metadataExperiment$experimentType$condition1Name  
     info(MassExpressionLogger(), 
          paste0("RUN DIFFERENTIAL EXPRESSION ANALYSIS FOR ONE CONDITION ONLY: ", condName))
-  
+    
     # pass information only 
     resultsLimma <- fitModelOneCondition(longIntensityDT=longIntensityDT,
-                                     metadataExperiment = metadataExperiment,
-                                     comparisonType = comparisonType,
-                                     orderCondition = orderConditionsList[[condName]], 
-                                     baselineInpuLevel = baselineConditionList[[condName]], 
-                                     customComparisonsCond = customComparisonsList[[condName]],
-                                     conditionsDict = conditionsDict[[condName]],
-                                     fitSeparateModels = fitSeparateModels,
-                                     returnDecideTestColumn = returnDecideTestColumn,
-                                     conditionSeparator = conditionSeparator)
+                                         metadataExperiment = metadataExperiment,
+                                         comparisonType = comparisonType,
+                                         orderCondition = orderConditionsList[[condName]], 
+                                         baselineInpuLevel = baselineConditionList[[condName]], 
+                                         customComparisonsCond = customComparisonsList[[condName]],
+                                         conditionsDict = conditionsDict[[condName]],
+                                         fitSeparateModels = fitSeparateModels,
+                                         returnDecideTestColumn = returnDecideTestColumn,
+                                         conditionSeparator = conditionSeparator)
     
-    info(MassExpressionLogger, "CREATING OUTPUT SUMMARIZED EXPERIMENT")
+    info(MassExpressionLogger(), "CREATING OUTPUT SUMMARIZED EXPERIMENT")
     results <- createResults(IntensityExperiment,
                              limmaStats=resultsLimma$limmaStats,
                              longIntensityDT = resultsLimma$decodedLongIntensityDT,
@@ -116,13 +92,11 @@ runGenericDiscovery <- function(experimentDesign, proteinIntensities,
   } else {
     print("Limma model for two conditions not implemented yet.")
     
-    
-    
     results <- IntensityExperiment
   }
-
+  
   print("Workflow completed.")
-
+  
   return(results)
-
+  
 }

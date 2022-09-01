@@ -4,7 +4,7 @@
 #' @param conditionColname name of column indicating the condition of interest
 #' @param runIdColname name of column indicating the protein id
 #' 
-#' @import data.table
+#' @import data.table 
 #' @return `list`: filtered data.table and list of proteins 
 #' @export prepareForFiltering
 

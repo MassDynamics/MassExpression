@@ -12,24 +12,32 @@
 #' 
 #' @importFrom SummarizedExperiment SummarizedExperiment rowData colData
 
-importData <- function(experimentDesign, proteinIntensities, 
-                       normalisationMethod="None", species, 
-                       labellingMethod){
+importData <- function(experimentDesign, 
+                       proteinIntensities,
+                       secondConditionName,
+                       normalisationMethod = NULL, 
+                       species = NULL, 
+                       labellingMethod = NULL){
   
-  print("Sanitize import")
+  info(MassExpressionLogger(), "Sanitize import")
   # Sanitize invisible and Unicode characters for correct export
   experimentDesign <- sanitize_strings_in_dataframe(experimentDesign)
   proteinIntensities <- sanitize_strings_in_dataframe(proteinIntensities)
   
-  print("Prepare list metadata")
-  listMetadata <- list(Species = species,
-                       LabellingMethod = labellingMethod, 
-                       NormalisationAppliedToAssay = normalisationMethod)
+  listMetadata <- NULL
+  if(!is.null(normalisationMethod) & !is.null(labellingMethod) & !is.null(species)){
+    info(MassExpressionLogger(), "Prepare list metadata")
+    listMetadata <- list(Species = species,
+                         LabellingMethod = labellingMethod, 
+                         NormalisationAppliedToAssay = normalisationMethod)
+  }
   
   # Create Data Rep
   IntensityExperiment <- createSummarizedExperiment(experimentDesign = experimentDesign, 
                                                     proteinIntensities = proteinIntensities,
-                                                    listMetadata = listMetadata)
+                                                    listMetadata = listMetadata,
+                                                    subjectCol = "Subject",
+                                                    techReplCol = "TechRepl")
   
   return(IntensityExperiment)
 }

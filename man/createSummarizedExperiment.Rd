@@ -7,9 +7,9 @@
 createSummarizedExperiment(
   experimentDesign,
   proteinIntensities,
-  listMetadata,
-  subjectCol = "Subject",
-  techReplCol = "TechRepl"
+  listMetadata = NULL,
+  subjectCol,
+  techReplCol
 )
 }
 \arguments{

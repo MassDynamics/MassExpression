@@ -20,8 +20,6 @@ SEToLongDT <- function(IntensityExperiment, assayName = "raw"){
   as.data.table(long)
 }
 
-
-
 #' This function performs the log2 conversion for intensities larger than 0 and initialise the imputed column.
 #' @param IntensityExperiment Output from createSummarizedExperiment
 

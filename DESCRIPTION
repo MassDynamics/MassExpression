@@ -11,10 +11,10 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Depends: 
-  R (>= 3.5),
-  Biobase (>= 2.46.0),
-  SummarizedExperiment (>= 1.16.1)
+  R (>= 3.5)
 Imports: 
+  Biobase (>= 2.46.0),
+  SummarizedExperiment (>= 1.16.1),
   limma (>= 3.42.2),
   data.table (>= 1.14.0),
   stringr (>= 1.4.0),
@@ -41,7 +41,8 @@ Imports:
   uuid (>= 1.0-3), 
   parallel (>= 4.1.0),
   here (>= 1.0.1),
-  ComplexHeatmap (>= 2.8.0)
+  ComplexHeatmap (>= 2.8.0),
+  log4r (>= 0.4.2)
 RoxygenNote: 7.2.1
 Suggests: 
     testthat (>= 3.0.0)

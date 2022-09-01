@@ -11,14 +11,11 @@
 
 preProcess <- function(IntensityExperiment){
   
-
   ## TODO add checks for correct metadata structure and its presence  
   metadataInfo <- metadata(IntensityExperiment)
-    
-  print("Starting pre-processing...")
   longIntensityDT <- initialiseLongIntensityDT(IntensityExperiment)
   
-  print("Encode conditions to create safe names for processing")
+  info(MassExpressionLogger(), "Encode conditions to create safe names for processing")
   conditionNames <- c(metadataInfo$experimentType$condition1Name, 
                       metadataInfo$experimentType$condition2Name)
   encodedCondition <- condition_name_encoder(dt = longIntensityDT, condNames = conditionNames)
@@ -27,18 +24,29 @@ preProcess <- function(IntensityExperiment){
   conditionsDict <- encodedCondition$conditionsDict
   
   # Create Median Normalized Measurements in each Condition/Replicate
-  normalisationMethod <- metadataInfo$inputMetadata$NormalisationAppliedToAssay
-  longIntensityDT <- normaliseIntensity(longIntensityDT=longIntensityDT,
-                                        normalisationMethod=normalisationMethod)
-  
-  # Imputation
-  longIntensityDT <- imputeLFQ(longIntensityDT, 
-                               id_type = "ProteinId", 
-                               int_type = "log2NIntNorm",
-                               f_imputeStDev = 0.3,
-                               f_imputePosition = 1.8)
+  if(!is.null(metadataInfo$inputMetadata)){
+    normalisationMethod <- metadataInfo$inputMetadata$NormalisationAppliedToAssay
+    info(MassExpressionLogger(), "Normalise intensities")
+    longIntensityDT <- normaliseIntensity(longIntensityDT=longIntensityDT,
+                                          normalisationMethod=normalisationMethod)
+    
+    # Imputation
+    info(MassExpressionLogger(), "Impute")
+    longIntensityDT <- imputeLFQ(longIntensityDT, 
+                                 id_type = "ProteinId", 
+                                 int_type = "log2NIntNorm",
+                                 f_imputeStDev = 0.3,
+                                 f_imputePosition = 1.8)
+  } else {
+    info(MassExpressionLogger(), "Assuming log2Intensities already pre-processed.")
+    setnames(longIntensityDT, "log2NInt","log2NIntNorm")
+  }
   
   ##TODO return in SummarisedExperiment shape not just long format as well
   list(longIntensityDT = longIntensityDT, conditionsDict = conditionsDict)
   
 }
+
+
+
+
