@@ -553,10 +553,21 @@ plot_missingness_heatmap <- function(Experiment,
   
   ha_column <- HeatmapAnnotation(Condition = condition)
   
+  tab_missing <- as.numeric(names(table(y_missing)))
+  if(length(tab_missing) == 1){
+    col_heatmap <- ifelse(tab_missing == 0, "#8FBC8F", "#FFEFDB")
+    labels_heatmap <- ifelse(tab_missing == 0, "observed", "missing")
+    at_heatmap = tab_missing
+  } else {
+    col_heatmap <- c("#8FBC8F", "#FFEFDB")
+    labels_heatmap <- c("missing","observed")
+    at_heatmap <- c(1,0)
+  }
+  
   hm <- Heatmap(y_missing,
                 column_title = title,
                 name = "Intensity",
-                col = c("#8FBC8F", "#FFEFDB"),
+                col = col_heatmap,
                 show_row_names = FALSE,
                 show_column_names = FALSE,
                 cluster_rows = TRUE,
@@ -568,7 +579,8 @@ plot_missingness_heatmap <- function(Experiment,
                 column_names_gp = grid::gpar(fontsize = 8),
                 heatmap_legend_param = list(#direction = "horizontal",
                   heatmap_legend_side = "bottom",
-                  labels = c("missing","observed"),
+                  at = at_heatmap,
+                  labels = labels_heatmap,
                   legend_width = unit(6, "cm")),
   )
   hm <- draw(hm, heatmap_legend_side = "left")
