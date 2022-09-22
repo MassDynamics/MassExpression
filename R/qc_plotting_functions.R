@@ -663,7 +663,7 @@ plot_rle_boxplot <- function(IntensityExperiment, CompleteIntensityExperiment,
     
   }else{
     # the intensity plotted are the ones present in the assay experiment
-    longIntensityDF <- SEToLongDT(CompleteIntensityExperiment)
+    longIntensityDF <- SEToLongDT(CompleteIntensityExperiment, assayName = "intensities")
     longIntensityDF <- as_tibble(longIntensityDF) %>% 
       left_join(as_tibble(longRawDF))
     longIntensityDF <- data.table(longIntensityDF[!longIntensityDF$Imputed,
