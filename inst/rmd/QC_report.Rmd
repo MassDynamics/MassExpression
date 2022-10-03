@@ -247,21 +247,21 @@ if(is.null(p)){
 # 3. Feature completedness {.tabset .tabset-fade .tabset-pills}
 
 <details>
-  <summary>Distribution of missing values by samples and by proteins </summary>
+  <summary>Data completedness details</summary>
   <span>
     <p> The amount of missing values can be affected by the biological condition or by technical factors and it can vary largely between experiments.</p>
    <p>For a healthy experiment we expect:</p>
     <ul>
-      <li>The distribution of missing values by replicate to be similar across replicates, especially within the same biological conditions</li>
+      <li>The distribution of available measurements by replicate to be similar across replicates, especially within the same biological conditions</li>
     </ul>
-    <p>There isns't a strict threshold to look for in terms of % of missing values. However, an unusually large amount of missingness in one or a few replicates can be sympthomatic of technial problems and should be taken into account when intepreting the final differential expression results.<p>
+    <p>There isn't a strict threshold to look for in terms of minimum % of available measurements. However, an unusually low value in one or a few replicates can be symptomatic of technical problems and should be taken into account when interpreting the final differential expression results.<p>
   </span>
 </details> 
 
 ## By sample
 
 ```{r sample-missingness}
-p <- plot_replicate_missingness(IntensityExperiment)
+p <- plot_replicate_measured_values(IntensityExperiment, title = NULL)
 if (params$format == "pdf"){
   p
 } else {
@@ -275,7 +275,7 @@ if (params$format == "pdf"){
 ## By protein
 
 ```{r protein-missingness}
-p <- plot_protein_missingness(IntensityExperiment)
+p <- plot_protein_missingness(IntensityExperiment, title = NULL)
 if (params$format == "pdf"){
   p
 } else {
@@ -286,8 +286,31 @@ if (params$format == "pdf"){
 ```
 
 
+# 4. Identifications
 
-# 4. Normalisation and Imputation
+<details>
+  <summary>Identifications Details</summary>
+  <span>
+    <p>Identifications of proteins is a measure of the number of non missing measurements by replicate.</p>
+    <p>Low counts in a run may suggest a systematic flaw in the experiment that needs to be addressed prior to interpretation.</p>
+  </span>
+</details> 
+
+
+```{r}
+p <- plot_n_identified_proteins_by_replicate(IntensityExperiment)
+
+if (params$format == "pdf"){
+  p
+} else {
+ggplotly(p, tooltip = c("y")) %>% plotly::config(displayModeBar = T, 
+                                                  modeBarButtons = list(list('toImage')),
+                                                  displaylogo = F)
+}
+```
+
+
+# 5. Normalisation and Imputation
 
 <details>
   <summary>Distributions of raw, normalised (when requested), and imputed intensities </summary>

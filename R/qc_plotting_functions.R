@@ -351,16 +351,16 @@ plot_mds_experiment <- function(Experiment, assayName="intensities", log=FALSE){
 #' @param assayName name of assay to use
 #' @param title str. Plot title 
 #' 
-#' @export plot_replicate_missingness
+#' @export plot_replicate_measured_values
 
-plot_replicate_missingness <- function(Experiment, assayName="raw", title = "Missingness by samples using protein measurements"){
+plot_replicate_measured_values <- function(Experiment, assayName="raw", title = "Data completedness by samples using protein measurements"){
   # prepare data for plotting
   prep_data <- preparePlottingData(Experiment, assayName = assayName)
   intensities <- prep_data[['intensities']]
   design <- prep_data[['design']]
 
   num.proteins <- dim(intensities)[1]
-  missing.vector <- round(colSums(0 == intensities)/num.proteins * 100, 1)
+  missing.vector <- 100 - round(colSums(0 == intensities)/num.proteins * 100, 1)
   missing.table <- data.frame(SampleName = as.character(names(missing.vector)),
                               MissingValues = as.numeric(missing.vector))
   missing.table <- missing.table %>% left_join(design) %>%
@@ -370,14 +370,11 @@ plot_replicate_missingness <- function(Experiment, assayName="raw", title = "Mis
   
   
   p <- ggplot(missing.table, aes(x = plotSampleName, y = as.numeric(MissingValues), 
-                                 color = Condition, label=as.factor(plotSampleName))) +
-    geom_segment( aes(x= plotSampleName, xend= plotSampleName, y=0, yend=as.numeric(MissingValues)), 
-                  color="grey") +
-    geom_point(size=2, alpha=0.9) +
-    coord_flip() +
+                                 fill = Condition, label=as.factor(plotSampleName))) +
+    geom_col( aes(x= plotSampleName, y=as.numeric(MissingValues))) +
     theme_minimal() +
     scale_x_discrete("Sample names") +
-    scale_y_continuous("% Missing Values") +
+    scale_y_continuous("% measured values") +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.2),
           panel.grid.major.y = element_blank(),
           panel.border = element_blank(),

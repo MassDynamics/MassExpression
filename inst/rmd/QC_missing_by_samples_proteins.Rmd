@@ -59,7 +59,7 @@ comparisonExperiments <-
 
 
 ```{r sample-missingness}
-p <- plot_replicate_missingness(IntensityExperiment)
+p <- plot_replicate_measured_values(IntensityExperiment, title = "Proteins - Data completedness by sample")
 
 ggplotly(p, tooltip = c("y")) %>% plotly::config(displayModeBar = T, 
                                                 modeBarButtons = list(list('toImage')),
