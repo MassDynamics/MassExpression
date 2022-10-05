@@ -1,33 +1,11 @@
 #!/usr/bin/Rscript
 
-ensure_package_installed <- function (package, repos = repos) {
-  if(!require(package, character.only=TRUE)) {
-    install.packages(package, repos = repos)
-    library(package, character.only=TRUE)
-  }
-}
-
-ensure_package_installed_with_version <- function (package, version, repos = repos) {
-  if(!require(package, character.only=TRUE)) {
-    install_version(package, version = version, repos = repos)
-    library(package, character.only=TRUE)
-  } else if (packageVersion(package) != version) {
-    install_version(package, version = version, repos = repos)
-    library(package, character.only=TRUE)
-  }
-  
-  if(packageVersion(package) != version) {
-    stop("issue with: ", package, " ", version)
-  }
-  
-}
-
 # ensure_package_installed("roxygen2", repos = list("http://cran.rstudio.com/", "https://cran.ms.unimelb.edu.au/"))
 # ensure_package_installed("devtools", repos = list("http://cran.rstudio.com/", "https://cran.ms.unimelb.edu.au/"))
 # ensure_package_installed("grDevices", repos = list("http://cran.rstudio.com/", "https://cran.ms.unimelb.edu.au/"))
 # ensure_package_installed("parallel", repos = list("http://cran.rstudio.com/", "https://cran.ms.unimelb.edu.au/"))
-# 
-# 
+#
+#
 # ensure_package_installed_with_version("gert", "1.3.1",repos = "http://cran.rstudio.com/")
 # ensure_package_installed_with_version("usethis","2.0.1", repos = "http://cran.rstudio.com/")
 # ensure_package_installed_with_version("data.table", "1.14.0",repos = "http://cran.rstudio.com/")
@@ -60,13 +38,13 @@ ensure_package_installed_with_version <- function (package, version, repos = rep
 # ensure_package_installed_with_version("broom", '0.7.9', repos = "http://cran.rstudio.com/")
 # ensure_package_installed_with_version("uuid", '1.0-3', repos = "http://cran.rstudio.com/")
 # ensure_package_installed_with_version("here", '1.0.1', repos = "http://cran.rstudio.com/")
-# 
-# 
+#
+#
 # #### Install packages Bioconductor
 # ensure_package_installed_with_version("BiocManager", '1.30.16', repos = "http://cran.rstudio.com/")
-# BiocManager::install(c("Biobase", "limma", "S4Vectors", "GenomicRanges", 
+# BiocManager::install(c("Biobase", "limma", "S4Vectors", "GenomicRanges",
 #                        "GenomeInfoDb", "SummarizedExperiment", "ComplexHeatmap"), ask=FALSE, type="source")
-# 
+#
 # biocManager_valid <- BiocManager::valid()
 # if (typeof(biocManager_valid) == 'list'){
 #   BiocManager::valid()$out_of_date
@@ -76,7 +54,7 @@ ensure_package_installed_with_version <- function (package, version, repos = rep
 # }
 
 
-ensure_package_installed_with_version("BiocManager", '1.30.16', repos = "http://cran.rstudio.com/")
+install.packages("BiocManager")
 install.packages("renv")
 
 renv::restore(library = '/usr/local/lib64/R/library/')
