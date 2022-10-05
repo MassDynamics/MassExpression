@@ -126,6 +126,7 @@ limmaStatsFun <- function(ID_type,
   )))
   
   # Fit linear models
+  #saveRDS(list(eset=eset, design.mat=design.mat, contrast.matrix=contrast.matrix), file = "test.rds")
   fit <- lmFit(eset, design.mat)
   fit2 <- contrasts.fit(fit, contrasts = contrast.matrix)
   fit2 <- eBayes(fit2, robust = TRUE, trend = TRUE)
