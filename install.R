@@ -54,7 +54,7 @@
 # }
 
 
-ensure_package_installed_with_version("BiocManager", '1.30.18', repos = "http://cran.rstudio.com/")
+install.packages("BiocManager")
 install.packages("renv")
 
 renv::restore(library = '/usr/local/lib64/R/library/')
