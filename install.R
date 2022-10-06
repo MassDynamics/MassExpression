@@ -55,7 +55,7 @@
 
 
 install.packages("BiocManager")
-install.packages("renv")
+#install.packages("renv")
 
 renv::restore(library = '/usr/local/lib64/R/library/')
 
