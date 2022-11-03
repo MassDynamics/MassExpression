@@ -114,7 +114,11 @@ fill_out_missing_columns <- function(comparisonStatistics){
 
 rename_comparison_statistics_export <- function(comparisonStatistics){
   
-  comparisonStatistics = as_tibble(comparisonStatistics) %>% 
+  initial_colnames <- colnames(comparisonStatistics)
+  comparisonStatistics <- as_tibble(comparisonStatistics)
+  colnames(comparisonStatistics) <- initial_colnames
+  
+  comparisonStatistics <- comparisonStatistics %>% 
     dplyr::rename(
       ProteinId = ProteinId,
       GeneName = GeneName,
