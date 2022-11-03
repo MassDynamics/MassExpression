@@ -969,7 +969,7 @@ plot_samples_correlation_matrix <- function(Experiment, assayName="intensities",
       stop("No adjusted PVlaues in rowData of the Experiment provided.")
     }
     protDE <- limmaStats$ProteinId[limmaStats$adj.P.Val < 0.05]
-    intensities <- intensities[rownames(intensities) %in% protDE, ]
+    intensities <- intensities[rownames(intensities) %in% protDE, ,drop=FALSE]
     nDE <- nrow(intensities)
     title <- paste0("Using only N=", nDE, " DE proteins")
   }
