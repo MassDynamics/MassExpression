@@ -41,7 +41,8 @@ Imports:
   uuid (>= 1.0-3), 
   parallel (>= 4.1.0),
   here (>= 1.0.1),
-  ComplexHeatmap (>= 2.8.0)
+  ComplexHeatmap (>= 2.8.0),
+  statmod (>= 1.4.37)
 RoxygenNote: 7.2.1
 Suggests: 
     testthat (>= 3.0.0)
