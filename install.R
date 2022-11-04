@@ -59,5 +59,4 @@ install.packages("BiocManager")
 
 renv::restore(library = '/usr/local/lib64/R/library/')
 
-print(.libPaths())
 sessionInfo()
