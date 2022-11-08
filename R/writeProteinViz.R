@@ -83,7 +83,7 @@ filter_stats_table_on_comparison <- function(statisticsTable, comparison){
   statisticsTable <- statisticsTable[,c("ProteinId", "GeneName", "Description",
                                         statisticsColumns)]
   
-  colnames(statisticsTable) <- gsub(str_c(" ",comparison), "",colnames(statisticsTable))
+  colnames(statisticsTable) <- gsub(str_c(" ",comparison), "",colnames(statisticsTable), fixed = TRUE)
   
   return(statisticsTable)
 }
