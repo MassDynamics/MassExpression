@@ -238,6 +238,16 @@ listIntensityExperiments <- runGenericDiscovery(experimentDesign = design,
                                                 labellingMethod = labMethod)
 
 
+
+intensitiesNAs <- intensities
+intensitiesNAs[1:3,"LFQ.intensity.1_hu_C1"] <- NA
+listIntensityExperimentsWithNas <- runGenericDiscovery(experimentDesign = design, 
+                                                proteinIntensities = intensitiesNAs, 
+                                                normalisationMethod = normMethod,
+                                                species = species, 
+                                                labellingMethod = labMethod)
+
+
 # # QC reports
 # print("Generate QC report")
 # output_folder <- file.path(here(), "data/HER2-test-output/")
@@ -282,8 +292,36 @@ test_limma_output(current = currentCompleteIntensityExperiment,
 test_comparisons_output(complete_current = compare_me$Int,
                         comparison_current = compare_me$IntComp)
 
-# test_qc_reports_exist(".")
+##
+print("###########################")
+print("Test with NAs in intensity matrix")
+print("###########################")
+currentCompleteIntensityExperiment <- listIntensityExperimentsWithNas$CompleteIntensityExperiment
+currentIntensityExperiment <- listIntensityExperimentsWithNas$IntensityExperiment
+currentcomparisonExperiments <- 
+  listComparisonExperiments(currentCompleteIntensityExperiment)[[1]]
 
+currentCompleteIntensityExperiment_longdf <- make_long_wide_df(data.frame(assay(currentCompleteIntensityExperiment)),
+                                                               new_int_col = "Int")
+currentComparisonExperiments_longdf <- make_long_wide_df(data.frame(assay(currentcomparisonExperiments)),
+                                                         new_int_col = "IntComp")
+
+compare_me <- currentComparisonExperiments_longdf %>% left_join(currentCompleteIntensityExperiment_longdf)
+
+test_raw_output(current = currentIntensityExperiment, 
+                expected = expectedIntensityExperiment)
+
+
+test_complete_output(current = currentCompleteIntensityExperiment, 
+                     expected = expectedCompleteIntensityExperiment)
+
+
+test_limma_output(current = currentCompleteIntensityExperiment, 
+                  expected = expectedCompleteIntensityExperiment)
+
+
+test_comparisons_output(complete_current = compare_me$Int,
+                        comparison_current = compare_me$IntComp)
 
 
 ################################

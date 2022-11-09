@@ -54,6 +54,10 @@ createSummarizedExperiment <- function(experimentDesign, proteinIntensities, lis
   
   assayData <- as.matrix(proteinIntensities[,experimentDesign$SampleName])
   colnames(assayData) <- experimentDesign$SampleName
+  if(sum(is.na(assayData)) != 0){
+    warning("Empty cells are present in the intensity matrix and they will be filled with 0s.")
+    assayData[is.na(assayData)] <- 0
+  }
 
   rownames(assayData) <- proteinIntensities$ProteinId
   
