@@ -62,12 +62,14 @@ select_features_for_pca <- function(Experiment,
 #' @param Experiment SummarizedExperiment object
 #' @param assayName name of assay to use
 #' @param ndim number of dimensions kept in result 
+#' @param scale_unit scale sample intensities to unit variance before computing PCAs
+#' @param center center sample intensities means before computing PCAs
 
 #' @importFrom uuid UUIDgenerate
 #' @import FactoMineR
 #' @import factoextra
 
-compute_pcas <- function(Experiment, assayName, log, ndim=2){
+compute_pcas <- function(Experiment, assayName, log, ndim=2, scale_unit=FALSE, center=TRUE){
   
   # prepare data to compute PC
   toCompute <- preparePlottingData(Experiment, assayName, log)
@@ -75,7 +77,10 @@ compute_pcas <- function(Experiment, assayName, log, ndim=2){
   design <- toCompute$design
   
   rownames(intensities) <- UUIDgenerate(use.time = NA, n = nrow(intensities))
-  res.pca <- FactoMineR::PCA(t(intensities), graph = FALSE, ncp = ndim)
+  int_compute_pca <- scale(intensities, center = center, scale = scale_unit)
+  
+  res.pca <- FactoMineR::PCA(t(int_compute_pca), scale.unit = FALSE, graph = FALSE, ncp = ndim)
+  res.pca <- FactoMineR::PCA(t(intensities), scale.unit = TRUE, graph = FALSE, ncp = ndim)
   
   eig.val <- factoextra::get_eigenvalue(res.pca)
   eig.val <- data.table(dims = rownames(eig.val), eig.val)
@@ -85,6 +90,8 @@ compute_pcas <- function(Experiment, assayName, log, ndim=2){
   samples.coord$SampleName = design$SampleName
   
   samples.coord <- merge(samples.coord, design)
+  
+  ggplot(samples.coord, aes(x=Dim.1, y = Dim.2)) + geom_point()
   
   list(pcas = samples.coord, eigenval = eig.val)
 }  
@@ -101,6 +108,9 @@ compute_pcas <- function(Experiment, assayName, log, ndim=2){
 #' @param format 'pdf' or 'html'. Prepare image to be rendered for pdf or html Rmd output
 #' @param title_pca str. title on PCA plot
 #' @param title_screeplot str. title on screeplot
+#' @param scale_unit scale sample intensities to unit variance before computing PCAs
+#' @param center center sample intensities means before computing PCAs
+
 
 #' @export plot_chosen_pca_experiment
 #' @details #' A protein is defined DE if the adjusted PValue of the t-test or ANOVA (with multiple groups)
@@ -117,7 +127,8 @@ plot_chosen_pca_experiment <- function(Experiment,
                                 auto_select_features=NULL, 
                                 title_pca = "PCA plot",
                                 title_screeplot = "Scree plot",
-                                format="html"){
+                                format="html",
+                                scale_unit=FALSE, center=TRUE){
   
   # Subset experiment with features required
   Experiment <- select_features_for_pca(Experiment, auto_select_features = auto_select_features)
@@ -135,7 +146,8 @@ plot_chosen_pca_experiment <- function(Experiment,
   }
   
   # Calculate PCs
-  pcaToPlot <- compute_pcas(Experiment, assayName, log, ndim=max(dimPlot))
+  pcaToPlot <- compute_pcas(Experiment, assayName, log, ndim=max(dimPlot), 
+                            scale_unit=scale_unit, center=center)
   dim1 <- paste0("Dim.",dimPlot[1])
   dim2 <- paste0("Dim.",dimPlot[2])
   

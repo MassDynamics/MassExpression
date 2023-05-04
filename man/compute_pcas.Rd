@@ -4,7 +4,14 @@
 \alias{compute_pcas}
 \title{Compute PCAs}
 \usage{
-compute_pcas(Experiment, assayName, log, ndim = 2)
+compute_pcas(
+  Experiment,
+  assayName,
+  log,
+  ndim = 2,
+  scale_unit = FALSE,
+  center = TRUE
+)
 }
 \arguments{
 \item{Experiment}{SummarizedExperiment object}
@@ -12,6 +19,10 @@ compute_pcas(Experiment, assayName, log, ndim = 2)
 \item{assayName}{name of assay to use}
 
 \item{ndim}{number of dimensions kept in result}
+
+\item{scale_unit}{scale sample intensities to unit variance before computing PCAs}
+
+\item{center}{center sample intensities means before computing PCAs}
 }
 \description{
 Compute PCAs

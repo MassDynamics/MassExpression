@@ -12,7 +12,9 @@ plot_chosen_pca_experiment(
   auto_select_features = NULL,
   title_pca = "PCA plot",
   title_screeplot = "Scree plot",
-  format = "html"
+  format = "html",
+  scale_unit = FALSE,
+  center = TRUE
 )
 }
 \arguments{
@@ -32,6 +34,10 @@ plot_chosen_pca_experiment(
 \item{title_screeplot}{str. title on screeplot}
 
 \item{format}{'pdf' or 'html'. Prepare image to be rendered for pdf or html Rmd output}
+
+\item{scale_unit}{scale sample intensities to unit variance before computing PCAs}
+
+\item{center}{center sample intensities means before computing PCAs}
 }
 \description{
 Plot principal components

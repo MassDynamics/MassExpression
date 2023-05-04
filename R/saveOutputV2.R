@@ -86,10 +86,11 @@ oneGroupReplDataV2 <- function(oneProt, GroupColumnName, GroupLabelType){
     cond <- infoConds$name[cond_idx]
     infoOneCond <- infoConds[name %in% cond, ]
     
-    oneCondRepl <- data.table(oneProt)[Condition %in% cond, c("SampleName","log2NIntNorm", "Imputed")]
+    oneCondRepl <- data.table(oneProt)[Condition %in% cond, c("SampleName","log2NIntNorm", "Imputed","Replicate")]
     setnames(oneCondRepl, old = "log2NIntNorm", new = "log2NInt_ProteinGroupId")
+    setnames(oneCondRepl, old = "Replicate", new = "replicateNumber")
     setnames(oneCondRepl, old = "SampleName", new = "replicate")
-    oneCondRepl <- oneCondRepl[,c("replicate", "log2NInt_ProteinGroupId", "Imputed")]
+    oneCondRepl <- oneCondRepl[,c("replicate", "log2NInt_ProteinGroupId", "Imputed","replicateNumber")]
     
     entryCond <- dplyr::tibble(infoOneCond, intensityValues=list(oneCondRepl))
     conditions[cond_idx, ] <- entryCond
