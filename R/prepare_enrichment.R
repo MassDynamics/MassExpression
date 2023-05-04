@@ -11,10 +11,7 @@ listComparisonExperiments <- function(CompleteIntensityExperiment){
   
   comparisonExperiments <- list()
   
-  compAvail <- colnames(rowData(CompleteIntensityExperiment))[grep("P.Value",colnames(rowData(CompleteIntensityExperiment)))]
-  compAvail <- gsub("P.Value ","",compAvail)
   for (comparison in comparisons){
-    if(!(comparison %in% compAvail)) next
     comparisonExperiments[[comparison]] <- createComparisonExperiment(
       CompleteIntensityExperiment, comparison
     )

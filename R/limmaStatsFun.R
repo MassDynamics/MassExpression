@@ -224,7 +224,7 @@ fitSeparateModels <- function(statsANOVA, eset, pairwise.comp, funDT,
     # Filter for IDs that are not present in at least one experiment in pairwise manner
     isPresent <- filterDT[get(condition_col_name) %in% pairwise.comp[ipair, c(left, right)] & repPC >= 0.5, unique(ID)]
     
-    if (length(isPresent) > 3) {
+    if (length(isPresent) > 0) {
       eset_pair <- eset[rownames(eset) %in% isPresent, colnames(eset) %in% subsecting]
       
       
@@ -271,9 +271,7 @@ fitSeparateModels <- function(statsANOVA, eset, pairwise.comp, funDT,
         dtest$ID <- pid
         stats <- merge(stats, dtest, by = "ID", all = T)
       }
-    } else {
-      pairs_comp <- paste(pairwise.comp[ipair,], collapse = ",")
-      print(paste0("Comparison: ", pairs_comp," skipped becauase not enough proteins available."))
+      
     }
   }
   return(stats)

@@ -11,6 +11,8 @@
 
 writeProteinViz <- function(IntensityExperiment, outputFolder){
   
+
+  
   conditionComparisonMapping = metadata(IntensityExperiment)$conditionComparisonMapping
   comparisons <- conditionComparisonMapping$comparison.string
   
@@ -18,12 +20,9 @@ writeProteinViz <- function(IntensityExperiment, outputFolder){
   
   proteinViz = list()
   
-  compAvail <- colnames(rowData(IntensityExperiment))[grep("P.Value",colnames(rowData(IntensityExperiment)))]
-  compAvail <- gsub("P.Value ","",compAvail)
   for (comparison in comparisons){
     
     print(comparison)
-    if(!(comparison %in% compAvail)) next
     
     #get up and down
     up.condition <- getUpCondition(conditionComparisonMapping, comparison)

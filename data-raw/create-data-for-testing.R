@@ -286,27 +286,3 @@ SampleDT <- data.table(ProteinId = c(rep("Prot1", 10), rep("Prot2", 10)),
 
 writeReplicateData(SampleDT, "tests/data")
 
-###################
-##################
-## Test data COVID multiple conditions
-
-library(readr)
-experimentDesign <- read_delim("~/Projects/MD/MD-services/time-series/data/covid-data/experiment_design.tsv", 
-                                delim = "\t", escape_double = FALSE, 
-                                trim_ws = TRUE)
-
-proteinIntensities <- read.table("~/Projects/MD/MD-services/time-series/data/covid-data/protein_intensities.tsv",sep = "\t", header = TRUE)
-
-proteinIntensities$Control_2h_1 <- 0
-proteinIntensities$Control_2h_2 <- 0
-proteinIntensities$Control_6h_2 <- 0
-proteinIntensities$Control_6h_1 <- 0
-controls <- colnames(proteinIntensities)[grep("Control", colnames(proteinIntensities))]
-proteinIntensities <- proteinIntensities[, c("ProteinId","GeneName",controls)]
-
-proteinIntensities = proteinIntensities
-params <- list(normalisationMethod="None", species = "Human", labellingMethod = "TMT")
-experimentDesign <- experimentDesign[experimentDesign$SampleName %in% colnames(proteinIntensities),]
-
-covid_data = list(expDes = experimentDesign, protInt = proteinIntensities, params = params)
-save(covid_data, file = "tests/data/covid_data_many_missing.RData")

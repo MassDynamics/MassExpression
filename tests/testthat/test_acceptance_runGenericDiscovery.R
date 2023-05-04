@@ -203,17 +203,6 @@ test_qc_reports_exist <- function(output_folder){
   
 }
 
-
-### Test when one condition comparison is removed
-
-test_raw_output <- function(current, expected, tolerance=10**-5){
-  test_that("rawSE: column names of assay in raw are the same",{
-    result = min(colnames(expected) == colnames(current))
-    expect_true(as.logical(result))
-  })
-  
-}
-
 ###########
 # Run tests
 ###########
@@ -415,58 +404,7 @@ test_concordance_maxquant_output(current_diff_fc = current_diff_fc_maxquant,
 
 
 ########################
-## COVID - many conditions and remove one due to large amount of missing values
+## QC report creation
 #######################
 
-load("../data/covid_data_many_missing.RData")
 
-current <- runGenericDiscovery(experimentDesign = covid_data$expDes, 
-                               proteinIntensities = covid_data$protInt, 
-                               normalisationMethod = covid_data$params$normalisationMethod,
-                               species = covid_data$params$species, 
-                               labellingMethod = covid_data$params$labellingMethod)
-
-test_output_missing_comparisons <- function(current){
-  
-  expected_comp <- c("Control_10h - Control_24h", "Control_10h - Control_2h", "Control_10h - Control_6h",
-                     "Control_24h - Control_2h", "Control_24h - Control_6h") 
-  
-  test_that("complete experiment row data: only expected pvals for comparisons available",{
-    pvals_expected <- paste0("P.Value ", expected_comp)
-    pvals_current <- colnames(rowData(current))[grep("P.Value ",colnames(rowData(current)))]
-    expect_true(all(pvals_expected %in% pvals_current))
-    expect_true(all(pvals_current %in% pvals_expected))
-    
-  })
-  
-  test_that("complete experiment row data: only expected adj pvals for comparisons available",{
-    pvals_expected <- paste0("adj.P.Val ", expected_comp)
-    pvals_current <- colnames(rowData(current))[grep("adj.P.Val ",colnames(rowData(current)))]
-    expect_true(all(pvals_expected %in% pvals_current))
-    expect_true(all(pvals_current %in% pvals_expected))
-  })
-  
-  test_that("complete experiment row data: only expected logFC for comparisons available",{
-    pvals_expected <- paste0("logFC ", expected_comp)
-    pvals_current <- colnames(rowData(current))[grep("logFC",colnames(rowData(current)))]
-    expect_true(all(pvals_expected %in% pvals_current))
-    expect_true(all(pvals_current %in% pvals_expected))
-  })
-  
-  test_that("Protein viz output contains only the expected pairwise comparisons",{
-    tmpOutput <- "../tmp/remove_paircomp"
-    dir.create(file.path(tmpOutput), recursive = TRUE, showWarnings = FALSE)
-    writeProteinViz(current, tmpOutput)
-    
-    current_proteinViz <- jsonlite::read_json("../tmp/remove_paircomp/protein_viz.json")
-    current_paircomps <- do.call(c, lapply(current_proteinViz, function(comp) comp[[1]]) )
-    
-    expect_true(all(current_paircomps %in% expected_comp))
-    expect_true(all(expected_comp %in% current_paircomps))
-    
-    unlink(tmpOutput, recursive = TRUE)
-  })
-
-}
-
-test_output_missing_comparisons(current = current$CompleteIntensityExperiment)
